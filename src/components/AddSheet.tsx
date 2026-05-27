@@ -12,7 +12,7 @@ import {
 import { type Meal, MEAL_LABEL, usePlate, ymd } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 
-type Mode = "menu" | "quick" | "manual";
+type Mode = "menu" | "quick" | "manual" | "scan";
 
 interface Props {
   open: boolean;
