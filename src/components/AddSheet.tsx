@@ -65,7 +65,9 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                     ? "Dodaj pozycję"
                     : mode === "quick"
                     ? "Szybkie dodawanie"
-                    : "Wpisz ręcznie"}
+                    : mode === "manual"
+                    ? "Wpisz ręcznie"
+                    : "Skanuj etykietę"}
                 </h2>
                 <button
                   onClick={mode === "menu" ? close : () => setMode("menu")}
