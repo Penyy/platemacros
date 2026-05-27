@@ -10,8 +10,9 @@ import {
   X,
 } from "lucide-react";
 import { type Meal, MEAL_LABEL, usePlate, ymd } from "@/lib/store";
+import { ScanLabelFlow } from "./ScanLabelFlow";
 
-type Mode = "menu" | "quick" | "manual";
+type Mode = "menu" | "quick" | "manual" | "scan";
 
 interface Props {
   open: boolean;
@@ -64,7 +65,9 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                     ? "Dodaj pozycję"
                     : mode === "quick"
                     ? "Szybkie dodawanie"
-                    : "Wpisz ręcznie"}
+                    : mode === "manual"
+                    ? "Wpisz ręcznie"
+                    : "Skanuj etykietę"}
                 </h2>
                 <button
                   onClick={mode === "menu" ? close : () => setMode("menu")}
@@ -98,6 +101,16 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                   }}
                 />
               )}
+              {mode === "scan" && (
+                <ScanLabelFlow
+                  meal={meal}
+                  setMeal={setMeal}
+                  onSubmit={(payload) => {
+                    addEntry({ ...payload, date, meal });
+                    close();
+                  }}
+                />
+              )}
             </div>
           </motion.div>
         </>
@@ -114,9 +127,9 @@ function guessMeal(): Meal {
   return "snack";
 }
 
-function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual") => void }) {
+function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan") => void }) {
   const items = [
-    { id: "scan", label: "Skanuj etykietę", icon: Camera, soon: true },
+    { id: "scan", label: "Skanuj etykietę", icon: Camera, soon: false },
     { id: "compound", label: "Złożony posiłek", icon: Layers, soon: true },
     { id: "quick", label: "Szybkie dodawanie", icon: Zap, soon: false },
     { id: "manual", label: "Wpisz ręcznie", icon: PencilLine, soon: false },
