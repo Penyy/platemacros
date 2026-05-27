@@ -101,6 +101,16 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                   }}
                 />
               )}
+              {mode === "scan" && (
+                <ScanLabelFlow
+                  meal={meal}
+                  setMeal={setMeal}
+                  onSubmit={(payload) => {
+                    addEntry({ ...payload, date, meal });
+                    close();
+                  }}
+                />
+              )}
             </div>
           </motion.div>
         </>
