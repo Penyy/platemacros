@@ -127,9 +127,9 @@ function guessMeal(): Meal {
   return "snack";
 }
 
-function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual") => void }) {
+function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan") => void }) {
   const items = [
-    { id: "scan", label: "Skanuj etykietę", icon: Camera, soon: true },
+    { id: "scan", label: "Skanuj etykietę", icon: Camera, soon: false },
     { id: "compound", label: "Złożony posiłek", icon: Layers, soon: true },
     { id: "quick", label: "Szybkie dodawanie", icon: Zap, soon: false },
     { id: "manual", label: "Wpisz ręcznie", icon: PencilLine, soon: false },
