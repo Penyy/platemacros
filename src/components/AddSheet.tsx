@@ -146,7 +146,7 @@ function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan") => void
             key={it.id}
             whileTap={disabled ? undefined : { scale: 0.96 }}
             disabled={disabled}
-            onClick={() => !disabled && onPick(it.id as "quick" | "manual")}
+            onClick={() => !disabled && onPick(it.id as "quick" | "manual" | "scan")}
             className={`group relative flex flex-col items-start gap-2 rounded-2xl border border-border/60 bg-card p-3 text-left transition ${
               disabled ? "opacity-50" : "active:bg-accent"
             }`}
