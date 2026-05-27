@@ -1,32 +1,28 @@
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { BottomNav } from "./BottomNav";
 import { AddSheet } from "./AddSheet";
-import { ymd, type Meal } from "@/lib/store";
+import { ymd, usePlate } from "@/lib/store";
 
 interface Props {
   children: ReactNode;
 }
 
 export function AppShell({ children }: Props) {
-  const [open, setOpen] = useState(false);
-  const [meal, setMeal] = useState<Meal | undefined>(undefined);
+  const sheet = usePlate((s) => s.addSheet);
+  const openAdd = usePlate((s) => s.openAdd);
+  const closeAdd = usePlate((s) => s.closeAdd);
 
   return (
     <div className="ambient-bg min-h-screen">
       <div className="mx-auto flex min-h-screen w-full max-w-[430px] flex-col">
         <main className="flex-1 pb-32">{children}</main>
       </div>
-      <BottomNav
-        onAdd={() => {
-          setMeal(undefined);
-          setOpen(true);
-        }}
-      />
+      <BottomNav onAdd={() => openAdd(undefined)} />
       <AddSheet
-        open={open}
-        defaultMeal={meal}
+        open={sheet.open}
+        defaultMeal={sheet.meal}
         date={ymd(new Date())}
-        onClose={() => setOpen(false)}
+        onClose={closeAdd}
       />
     </div>
   );

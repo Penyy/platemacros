@@ -28,6 +28,9 @@ export interface Profile {
 interface State {
   profile: Profile;
   entries: LogEntry[];
+  addSheet: { open: boolean; meal?: Meal };
+  openAdd: (meal?: Meal) => void;
+  closeAdd: () => void;
   setTheme: (t: Theme) => void;
   setGoals: (g: Partial<Pick<Profile, "goal_kcal" | "goal_protein" | "goal_carbs" | "goal_fat">>) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
@@ -47,6 +50,9 @@ export const usePlate = create<State>()(
         goal_fat: 70,
       },
       entries: [],
+      addSheet: { open: false },
+      openAdd: (meal) => set({ addSheet: { open: true, meal } }),
+      closeAdd: () => set((s) => ({ addSheet: { ...s.addSheet, open: false } })),
       setTheme: (theme) =>
         set((s) => ({ profile: { ...s.profile, theme } })),
       setGoals: (g) =>
