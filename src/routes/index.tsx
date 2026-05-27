@@ -1,29 +1,157 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { MacroRings } from "@/components/MacroRings";
+import { MealCard } from "@/components/MealCard";
+import { WeekStrip } from "@/components/WeekStrip";
+import { ScreenHeader } from "@/components/ScreenHeader";
+import {
+  type Meal,
+  sumEntries,
+  usePlate,
+  ymd,
+} from "@/lib/store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "Plate — Dzisiaj" },
+      {
+        name: "description",
+        content:
+          "Twój dzienny przegląd kalorii i makroskładników w jednym widoku.",
+      },
     ],
   }),
-  component: Index,
+  component: TodayPage,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+const MEALS: Meal[] = ["breakfast", "lunch", "dinner", "snack"];
+
+function formatDate(d: Date) {
+  return d.toLocaleDateString("pl-PL", {
+    day: "numeric",
+    month: "long",
+  });
+}
+
+function titleFor(date: string) {
+  const today = ymd(new Date());
+  const yest = new Date();
+  yest.setDate(yest.getDate() - 1);
+  if (date === today) return "Dzisiaj";
+  if (date === ymd(yest)) return "Wczoraj";
+  const d = new Date(date + "T00:00:00");
+  return d.toLocaleDateString("pl-PL", { weekday: "long" });
+}
+
+function TodayPage() {
+  const [selected, setSelected] = useState(() => ymd(new Date()));
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const profile = usePlate((s) => s.profile);
+  const entries = usePlate((s) => s.entries);
+  const openAdd = usePlate((s) => s.openAdd);
+
+  const dayEntries = useMemo(
+    () => entries.filter((e) => e.date === selected),
+    [entries, selected]
+  );
+  const sum = useMemo(() => sumEntries(dayEntries), [dayEntries]);
+  const remaining = profile.goal_kcal - sum.kcal;
+
+  const dateLabel = formatDate(new Date(selected + "T00:00:00"));
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="space-y-4">
+      <ScreenHeader title={titleFor(selected)} subtitle={dateLabel} />
+
+      <div className="px-3">
+        <WeekStrip
+          selected={selected}
+          onSelect={setSelected}
+          weekOffset={weekOffset}
+          setWeekOffset={setWeekOffset}
+        />
+      </div>
+
+      <section className="px-4 py-2">
+        <MacroRings
+          protein={sum.protein}
+          carbs={sum.carbs}
+          fat={sum.fat}
+          goalP={profile.goal_protein}
+          goalC={profile.goal_carbs}
+          goalF={profile.goal_fat}
+          remainingKcal={remaining}
+          goalKcal={profile.goal_kcal}
+          consumedKcal={sum.kcal}
+        />
+        <Legend
+          protein={sum.protein}
+          carbs={sum.carbs}
+          fat={sum.fat}
+          goalP={profile.goal_protein}
+          goalC={profile.goal_carbs}
+          goalF={profile.goal_fat}
+        />
+      </section>
+
+      <section className="space-y-3 px-3">
+        {MEALS.map((m) => (
+          <MealCard
+            key={m}
+            meal={m}
+            entries={dayEntries.filter((e) => e.meal === m)}
+            onAdd={(meal) => openAdd(meal)}
+          />
+        ))}
+      </section>
     </div>
+  );
+}
+
+function Legend({
+  protein,
+  carbs,
+  fat,
+  goalP,
+  goalC,
+  goalF,
+}: {
+  protein: number;
+  carbs: number;
+  fat: number;
+  goalP: number;
+  goalC: number;
+  goalF: number;
+}) {
+  const items: { label: string; color: string; v: number; g: number }[] = [
+    { label: "Białko", color: "var(--protein)", v: protein, g: goalP },
+    { label: "Węgle", color: "var(--carbs)", v: carbs, g: goalC },
+    { label: "Tłuszcz", color: "var(--fat)", v: fat, g: goalF },
+  ];
+  return (
+    <ul className="mt-4 grid grid-cols-3 gap-2">
+      {items.map((it) => (
+        <li
+          key={it.label}
+          className="flex flex-col items-center rounded-2xl bg-card/60 px-2 py-2 text-center"
+        >
+          <div className="flex items-center gap-1.5">
+            <span
+              className="h-2 w-2 rounded-full"
+              style={{ background: it.color }}
+            />
+            <span className="text-[11px] font-medium text-muted-foreground">
+              {it.label}
+            </span>
+          </div>
+          <div className="num-tight mt-0.5 text-sm">
+            <span className="font-semibold">{Math.round(it.v)}</span>
+            <span className="text-muted-foreground">/{it.g} g</span>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }
