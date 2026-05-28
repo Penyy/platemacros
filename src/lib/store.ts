@@ -73,6 +73,21 @@ export const usePlate = create<State>()(
         set((s) => ({ profile: { ...s.profile, theme } })),
       setGoals: (g) =>
         set((s) => ({ profile: { ...s.profile, ...g } })),
+      setBody: (b) =>
+        set((s) => ({
+          profile: {
+            ...s.profile,
+            body: {
+              sex: s.profile.body?.sex ?? "female",
+              age: s.profile.body?.age ?? 30,
+              height: s.profile.body?.height ?? 170,
+              weight: s.profile.body?.weight ?? 70,
+              activity: s.profile.body?.activity ?? "moderate",
+              goal: s.profile.body?.goal ?? "maintain",
+              ...b,
+            },
+          },
+        })),
       addEntry: (e) =>
         set((s) => ({
           entries: [
