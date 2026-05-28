@@ -19,8 +19,52 @@ export const Route = createFileRoute("/settings")({
 
 function SettingsPage() {
   const profile = usePlate((s) => s.profile);
+  const entries = usePlate((s) => s.entries);
   const setTheme = usePlate((s) => s.setTheme);
   const setGoals = usePlate((s) => s.setGoals);
+  const replaceAll = usePlate((s) => s.replaceAll);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  function handleExport() {
+    const payload = {
+      app: "plate",
+      version: 1,
+      exported_at: new Date().toISOString(),
+      profile,
+      entries,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const stamp = new Date().toISOString().slice(0, 10);
+    a.download = `plate-backup-${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleImport(file: File) {
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (!data || typeof data !== "object" || !data.profile || !Array.isArray(data.entries)) {
+        alert("Nieprawidłowy plik kopii zapasowej.");
+        return;
+      }
+      const ok = confirm(
+        `Importować ${data.entries.length} wpisów? Obecne dane zostaną nadpisane.`
+      );
+      if (!ok) return;
+      replaceAll({ profile: data.profile, entries: data.entries });
+      alert("Dane zostały przywrócone.");
+    } catch {
+      alert("Nie udało się odczytać pliku.");
+    }
+  }
 
   return (
     <div>
@@ -28,10 +72,7 @@ function SettingsPage() {
 
       <Section title="Wygląd">
         <Row label="Motyw">
-          <ThemeSelect
-            value={profile.theme}
-            onChange={(t) => setTheme(t)}
-          />
+          <ThemeSelect value={profile.theme} onChange={(t) => setTheme(t)} />
         </Row>
       </Section>
 
@@ -59,6 +100,44 @@ function SettingsPage() {
           unit="g"
           value={profile.goal_fat}
           onChange={(v) => setGoals({ goal_fat: v })}
+        />
+      </Section>
+
+      <Section title="Dane">
+        <button
+          onClick={handleExport}
+          className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
+        >
+          <Download size={18} className="text-muted-foreground" />
+          <div className="flex-1">
+            <div className="text-[15px]">Eksportuj dane</div>
+            <div className="text-[11px] text-muted-foreground">
+              Pobierz plik JSON z całą historią
+            </div>
+          </div>
+        </button>
+        <button
+          onClick={() => fileRef.current?.click()}
+          className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
+        >
+          <Upload size={18} className="text-muted-foreground" />
+          <div className="flex-1">
+            <div className="text-[15px]">Importuj dane</div>
+            <div className="text-[11px] text-muted-foreground">
+              Wczytaj kopię zapasową (nadpisze obecne)
+            </div>
+          </div>
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="application/json,.json"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) handleImport(f);
+            e.target.value = "";
+          }}
         />
       </Section>
 
