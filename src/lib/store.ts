@@ -17,12 +17,26 @@ export interface LogEntry {
   created_at: number;
 }
 
+export type Sex = "female" | "male";
+export type Activity = "sedentary" | "light" | "moderate" | "high" | "very_high";
+export type GoalKind = "cut" | "maintain" | "bulk";
+
+export interface BodyProfile {
+  sex: Sex;
+  age: number;
+  height: number; // cm
+  weight: number; // kg
+  activity: Activity;
+  goal: GoalKind;
+}
+
 export interface Profile {
   theme: Theme;
   goal_kcal: number;
   goal_protein: number;
   goal_carbs: number;
   goal_fat: number;
+  body?: BodyProfile;
 }
 
 interface State {
@@ -33,6 +47,7 @@ interface State {
   closeAdd: () => void;
   setTheme: (t: Theme) => void;
   setGoals: (g: Partial<Pick<Profile, "goal_kcal" | "goal_protein" | "goal_carbs" | "goal_fat">>) => void;
+  setBody: (b: Partial<BodyProfile>) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
   removeEntry: (id: string) => void;
   replaceAll: (data: { profile: Profile; entries: LogEntry[] }) => void;
