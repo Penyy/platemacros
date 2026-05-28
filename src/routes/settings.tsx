@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useRef } from "react";
+import { Download, Upload } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { type Theme, usePlate } from "@/lib/store";
 
