@@ -118,6 +118,57 @@ export const MEAL_LABEL: Record<Meal, string> = {
   snack: "Przekąska",
 };
 
+export const ACTIVITY_LABEL: Record<Activity, string> = {
+  sedentary: "Siedzący",
+  light: "Lekka",
+  moderate: "Umiarkowana",
+  high: "Wysoka",
+  very_high: "Bardzo wysoka",
+};
+
+export const ACTIVITY_FACTOR: Record<Activity, number> = {
+  sedentary: 1.2,
+  light: 1.375,
+  moderate: 1.55,
+  high: 1.725,
+  very_high: 1.9,
+};
+
+export const GOAL_LABEL: Record<GoalKind, string> = {
+  cut: "Redukcja",
+  maintain: "Utrzymanie",
+  bulk: "Budowa masy",
+};
+
+export interface ComputedGoals {
+  bmr: number;
+  tdee: number;
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export function computeGoals(b: BodyProfile): ComputedGoals {
+  const base = 10 * b.weight + 6.25 * b.height - 5 * b.age;
+  const bmr = b.sex === "male" ? base + 5 : base - 161;
+  const tdee = bmr * ACTIVITY_FACTOR[b.activity];
+  const kcal =
+    b.goal === "cut" ? tdee * 0.8 : b.goal === "bulk" ? tdee * 1.12 : tdee;
+  const protein = 2 * b.weight;
+  const fat = 0.9 * b.weight;
+  const remaining = Math.max(0, kcal - protein * 4 - fat * 9);
+  const carbs = remaining / 4;
+  return {
+    bmr: Math.round(bmr),
+    tdee: Math.round(tdee),
+    kcal: Math.round(kcal),
+    protein: Math.round(protein),
+    carbs: Math.round(carbs),
+    fat: Math.round(fat),
+  };
+}
+
 export function ymd(d: Date) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
