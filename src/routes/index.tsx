@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { MacroRings } from "@/components/MacroRings";
+import { PlateVisual } from "@/components/PlateVisual";
 import { MealCard } from "@/components/MealCard";
 import { WeekStrip } from "@/components/WeekStrip";
 import { ScreenHeader } from "@/components/ScreenHeader";
@@ -75,7 +75,7 @@ function TodayPage() {
       </div>
 
       <section className="px-4 py-2">
-        <MacroRings
+        <PlateVisual
           protein={sum.protein}
           carbs={sum.carbs}
           fat={sum.fat}
