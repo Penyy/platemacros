@@ -35,6 +35,7 @@ interface State {
   setGoals: (g: Partial<Pick<Profile, "goal_kcal" | "goal_protein" | "goal_carbs" | "goal_fat">>) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
   removeEntry: (id: string) => void;
+  replaceAll: (data: { profile: Profile; entries: LogEntry[] }) => void;
 }
 
 const todayKcalDefault = 2200;
@@ -73,6 +74,8 @@ export const usePlate = create<State>()(
         })),
       removeEntry: (id) =>
         set((s) => ({ entries: s.entries.filter((x) => x.id !== id) })),
+      replaceAll: (data) =>
+        set({ profile: data.profile, entries: data.entries }),
     }),
     { name: "plate-store-v1" }
   )
