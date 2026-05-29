@@ -43,15 +43,18 @@ export interface Profile {
 interface State {
   profile: Profile;
   entries: LogEntry[];
+  burned: Record<string, number>;
   addSheet: { open: boolean; meal?: Meal };
   openAdd: (meal?: Meal) => void;
   closeAdd: () => void;
   setTheme: (t: Theme) => void;
   setGoals: (g: Partial<Pick<Profile, "goal_kcal" | "goal_protein" | "goal_carbs" | "goal_fat">>) => void;
   setBody: (b: Partial<BodyProfile>) => void;
+  setIncludeBurned: (v: boolean) => void;
+  setBurned: (date: string, kcal: number) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
   removeEntry: (id: string) => void;
-  replaceAll: (data: { profile: Profile; entries: LogEntry[] }) => void;
+  replaceAll: (data: { profile: Profile; entries: LogEntry[]; burned?: Record<string, number> }) => void;
 }
 
 const todayKcalDefault = 2200;
