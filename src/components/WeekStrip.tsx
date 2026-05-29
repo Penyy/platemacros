@@ -107,7 +107,9 @@ export function WeekStrip({ selected, onSelect, weekOffset, setWeekOffset }: Pro
           const isToday = s === todayStr;
           const isFuture = d > today && !isToday;
           const dayKcal = sumEntries(entries.filter((e) => e.date === s)).kcal;
-          const pct = goalKcal ? dayKcal / goalKcal : 0;
+          const dayBurned = burnedMap[s] ?? 0;
+          const effGoal = includeBurned ? goalKcal + dayBurned : goalKcal;
+          const pct = effGoal ? dayKcal / effGoal : 0;
           return (
             <button
               key={s}
