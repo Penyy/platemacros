@@ -81,6 +81,19 @@ function ProfilePage() {
           <ChevronRight size={20} className="text-muted-foreground" />
         </Link>
 
+        <Link
+          to="/products"
+          className="flex items-center gap-3 rounded-3xl bg-card p-4"
+        >
+          <div className="flex-1">
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Biblioteka
+            </div>
+            <div className="mt-0.5 text-lg font-semibold">Moje produkty</div>
+          </div>
+          <ChevronRight size={20} className="text-muted-foreground" />
+        </Link>
+
         <div className="rounded-3xl bg-card p-4">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
             Rozkład makro
