@@ -70,6 +70,7 @@ export const usePlate = create<State>()(
         goal_fat: 70,
       },
       entries: [],
+      burned: {},
       addSheet: { open: false },
       openAdd: (meal) => set({ addSheet: { open: true, meal } }),
       closeAdd: () => set((s) => ({ addSheet: { ...s.addSheet, open: false } })),
