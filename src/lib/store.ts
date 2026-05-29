@@ -85,6 +85,7 @@ export const usePlate = create<State>()(
       },
       entries: [],
       burned: {},
+      products: [],
       addSheet: { open: false },
       openAdd: (meal) => set({ addSheet: { open: true, meal } }),
       closeAdd: () => set((s) => ({ addSheet: { ...s.addSheet, open: false } })),
