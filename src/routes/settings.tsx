@@ -62,7 +62,11 @@ function SettingsPage() {
         `Importować ${data.entries.length} wpisów? Obecne dane zostaną nadpisane.`
       );
       if (!ok) return;
-      replaceAll({ profile: data.profile, entries: data.entries });
+      replaceAll({
+        profile: data.profile,
+        entries: data.entries,
+        burned: data.burned && typeof data.burned === "object" ? data.burned : {},
+      });
       alert("Dane zostały przywrócone.");
     } catch {
       alert("Nie udało się odczytać pliku.");
