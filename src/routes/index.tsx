@@ -89,7 +89,7 @@ function TodayPage() {
           goalC={profile.goal_carbs}
           goalF={profile.goal_fat}
           remainingKcal={remaining}
-          goalKcal={profile.goal_kcal}
+          goalKcal={adjustedGoal}
           consumedKcal={sum.kcal}
         />
         <Legend
@@ -99,6 +99,13 @@ function TodayPage() {
           goalP={profile.goal_protein}
           goalC={profile.goal_carbs}
           goalF={profile.goal_fat}
+        />
+        <BurnedRow
+          value={burned}
+          editing={editingBurned}
+          setEditing={setEditingBurned}
+          onChange={(v) => setBurned(selected, v)}
+          included={!!profile.include_burned}
         />
       </section>
 
