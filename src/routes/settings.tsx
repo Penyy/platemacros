@@ -22,6 +22,7 @@ function SettingsPage() {
   const profile = usePlate((s) => s.profile);
   const entries = usePlate((s) => s.entries);
   const burned = usePlate((s) => s.burned);
+  const products = usePlate((s) => s.products);
   const setTheme = usePlate((s) => s.setTheme);
   const setGoals = usePlate((s) => s.setGoals);
   const setIncludeBurned = usePlate((s) => s.setIncludeBurned);
