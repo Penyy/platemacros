@@ -9,10 +9,10 @@ import {
   ScanBarcode,
   X,
 } from "lucide-react";
-import { type Meal, MEAL_LABEL, usePlate, ymd } from "@/lib/store";
+import { type Meal, MEAL_LABEL, type Product, usePlate, ymd } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 
-type Mode = "menu" | "quick" | "manual" | "scan";
+type Mode = "menu" | "quick" | "manual" | "scan" | "search";
 
 interface Props {
   open: boolean;
@@ -67,6 +67,8 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                     ? "Szybkie dodawanie"
                     : mode === "manual"
                     ? "Wpisz ręcznie"
+                    : mode === "search"
+                    ? "Szukaj produktu"
                     : "Skanuj etykietę"}
                 </h2>
                 <button
@@ -111,6 +113,16 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                   }}
                 />
               )}
+              {mode === "search" && (
+                <SearchForm
+                  meal={meal}
+                  setMeal={setMeal}
+                  onSubmit={(payload) => {
+                    addEntry({ ...payload, date, meal });
+                    close();
+                  }}
+                />
+              )}
             </div>
           </motion.div>
         </>
@@ -127,13 +139,13 @@ function guessMeal(): Meal {
   return "snack";
 }
 
-function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan") => void }) {
+function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan" | "search") => void }) {
   const items = [
     { id: "scan", label: "Skanuj etykietę", icon: Camera, soon: false },
     { id: "compound", label: "Złożony posiłek", icon: Layers, soon: true },
     { id: "quick", label: "Szybkie dodawanie", icon: Zap, soon: false },
     { id: "manual", label: "Wpisz ręcznie", icon: PencilLine, soon: false },
-    { id: "search", label: "Szukaj produktu", icon: Search, soon: true },
+    { id: "search", label: "Szukaj produktu", icon: Search, soon: false },
     { id: "barcode", label: "Kod kreskowy", icon: ScanBarcode, soon: true },
   ];
   return (
@@ -146,7 +158,7 @@ function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan") => void
             key={it.id}
             whileTap={disabled ? undefined : { scale: 0.96 }}
             disabled={disabled}
-            onClick={() => !disabled && onPick(it.id as "quick" | "manual" | "scan")}
+            onClick={() => !disabled && onPick(it.id as "quick" | "manual" | "scan" | "search")}
             className={`group relative flex flex-col items-start gap-2 rounded-2xl border border-border/60 bg-card p-3 text-left transition ${
               disabled ? "opacity-50" : "active:bg-accent"
             }`}
@@ -442,5 +454,146 @@ function SubmitButton({
     >
       {children}
     </motion.button>
+  );
+}
+
+function SearchForm({
+  meal,
+  setMeal,
+  onSubmit,
+}: {
+  meal: Meal;
+  setMeal: (m: Meal) => void;
+  onSubmit: (p: FormPayload) => void;
+}) {
+  const products = usePlate((s) => s.products);
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<Product | null>(null);
+  const [grams, setGrams] = useState("100");
+
+  const results = products
+    .filter((p) =>
+      p.name.toLowerCase().includes(query.trim().toLowerCase())
+    )
+    .sort((a, b) => a.name.localeCompare(b.name, "pl"))
+    .slice(0, 30);
+
+  const g = Number(grams) || 0;
+  const scale = g / 100;
+  const total = selected
+    ? {
+        kcal: selected.kcal * scale,
+        protein: selected.protein * scale,
+        carbs: selected.carbs * scale,
+        fat: selected.fat * scale,
+      }
+    : null;
+
+  const valid = selected && g > 0;
+
+  if (selected) {
+    return (
+      <form
+        className="space-y-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!valid || !total) return;
+          onSubmit({
+            name: selected.name,
+            grams: g,
+            kcal: total.kcal,
+            protein: total.protein,
+            carbs: total.carbs,
+            fat: total.fat,
+          });
+        }}
+      >
+        <MealPicker meal={meal} setMeal={setMeal} />
+        <button
+          type="button"
+          onClick={() => setSelected(null)}
+          className="text-xs font-medium text-muted-foreground underline-offset-2 hover:underline"
+        >
+          ← Wybierz inny produkt
+        </button>
+        <div className="rounded-2xl bg-foreground/5 p-3">
+          <div className="text-sm font-semibold">{selected.name}</div>
+          <div className="num-tight mt-0.5 text-[11px] text-muted-foreground">
+            {Math.round(selected.kcal)} kcal · B {Math.round(selected.protein)} ·
+            W {Math.round(selected.carbs)} · T {Math.round(selected.fat)} / 100 g
+          </div>
+        </div>
+        <Field label="Ile gramów">
+          <input
+            autoFocus
+            className={inputCls}
+            inputMode="decimal"
+            value={grams}
+            onChange={(e) => setGrams(e.target.value.replace(",", "."))}
+          />
+        </Field>
+        {total && (
+          <div className="rounded-2xl bg-foreground/5 p-3 num-tight">
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Razem
+            </div>
+            <div className="mt-0.5 text-sm">
+              <span className="text-lg font-bold">{Math.round(total.kcal)}</span>{" "}
+              kcal · {Math.round(g)} g
+            </div>
+            <div className="text-xs text-muted-foreground">
+              B {Math.round(total.protein)} · W {Math.round(total.carbs)} · T{" "}
+              {Math.round(total.fat)}
+            </div>
+          </div>
+        )}
+        <SubmitButton disabled={!valid}>Dodaj do dziennika</SubmitButton>
+      </form>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <input
+        autoFocus
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Szukaj w bibliotece…"
+        className={inputCls}
+      />
+      {products.length === 0 ? (
+        <p className="px-1 py-2 text-center text-sm text-muted-foreground">
+          Twoja biblioteka jest pusta. Dodaj produkty w „Moje produkty”
+          (Profil).
+        </p>
+      ) : results.length === 0 ? (
+        <p className="px-1 py-2 text-center text-sm text-muted-foreground">
+          Brak wyników.
+        </p>
+      ) : (
+        <ul className="max-h-[50vh] space-y-1.5 overflow-y-auto pr-1">
+          {results.map((p) => (
+            <li key={p.id}>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelected(p);
+                  setGrams("100");
+                }}
+                className="flex w-full items-center gap-2 rounded-xl border border-border/60 bg-card p-3 text-left active:bg-accent"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold">{p.name}</div>
+                  <div className="num-tight mt-0.5 text-[11px] text-muted-foreground">
+                    {Math.round(p.kcal)} kcal · B {Math.round(p.protein)} · W{" "}
+                    {Math.round(p.carbs)} · T {Math.round(p.fat)} / 100 g
+                  </div>
+                </div>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

@@ -40,10 +40,21 @@ export interface Profile {
   include_burned?: boolean;
 }
 
+export interface Product {
+  id: string;
+  name: string;
+  kcal: number; // per 100 g
+  protein: number;
+  carbs: number;
+  fat: number;
+  created_at: number;
+}
+
 interface State {
   profile: Profile;
   entries: LogEntry[];
   burned: Record<string, number>;
+  products: Product[];
   addSheet: { open: boolean; meal?: Meal };
   openAdd: (meal?: Meal) => void;
   closeAdd: () => void;
@@ -54,7 +65,10 @@ interface State {
   setBurned: (date: string, kcal: number) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
   removeEntry: (id: string) => void;
-  replaceAll: (data: { profile: Profile; entries: LogEntry[]; burned?: Record<string, number> }) => void;
+  addProduct: (p: Omit<Product, "id" | "created_at">) => void;
+  updateProduct: (id: string, p: Partial<Omit<Product, "id" | "created_at">>) => void;
+  removeProduct: (id: string) => void;
+  replaceAll: (data: { profile: Profile; entries: LogEntry[]; burned?: Record<string, number>; products?: Product[] }) => void;
 }
 
 const todayKcalDefault = 2200;
@@ -71,6 +85,7 @@ export const usePlate = create<State>()(
       },
       entries: [],
       burned: {},
+      products: [],
       addSheet: { open: false },
       openAdd: (meal) => set({ addSheet: { open: true, meal } }),
       closeAdd: () => set((s) => ({ addSheet: { ...s.addSheet, open: false } })),
@@ -118,11 +133,32 @@ export const usePlate = create<State>()(
           else next[date] = Math.round(kcal);
           return { burned: next };
         }),
+      addProduct: (p) =>
+        set((s) => ({
+          products: [
+            ...s.products,
+            {
+              ...p,
+              id:
+                typeof crypto !== "undefined" && "randomUUID" in crypto
+                  ? crypto.randomUUID()
+                  : String(Math.random()).slice(2),
+              created_at: Date.now(),
+            },
+          ],
+        })),
+      updateProduct: (id, p) =>
+        set((s) => ({
+          products: s.products.map((x) => (x.id === id ? { ...x, ...p } : x)),
+        })),
+      removeProduct: (id) =>
+        set((s) => ({ products: s.products.filter((x) => x.id !== id) })),
       replaceAll: (data) =>
         set({
           profile: data.profile,
           entries: data.entries,
           burned: data.burned ?? {},
+          products: data.products ?? [],
         }),
     }),
     { name: "plate-store-v1" }

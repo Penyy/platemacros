@@ -22,6 +22,7 @@ function SettingsPage() {
   const profile = usePlate((s) => s.profile);
   const entries = usePlate((s) => s.entries);
   const burned = usePlate((s) => s.burned);
+  const products = usePlate((s) => s.products);
   const setTheme = usePlate((s) => s.setTheme);
   const setGoals = usePlate((s) => s.setGoals);
   const setIncludeBurned = usePlate((s) => s.setIncludeBurned);
@@ -36,6 +37,7 @@ function SettingsPage() {
       profile,
       entries,
       burned,
+      products,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json",
@@ -67,6 +69,7 @@ function SettingsPage() {
         profile: data.profile,
         entries: data.entries,
         burned: data.burned && typeof data.burned === "object" ? data.burned : {},
+        products: Array.isArray(data.products) ? data.products : [],
       });
       alert("Dane zostały przywrócone.");
     } catch {
