@@ -34,6 +34,7 @@ function SettingsPage() {
       exported_at: new Date().toISOString(),
       profile,
       entries,
+      burned,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json",
