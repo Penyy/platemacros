@@ -139,13 +139,13 @@ function guessMeal(): Meal {
   return "snack";
 }
 
-function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan") => void }) {
+function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan" | "search") => void }) {
   const items = [
     { id: "scan", label: "Skanuj etykietę", icon: Camera, soon: false },
     { id: "compound", label: "Złożony posiłek", icon: Layers, soon: true },
     { id: "quick", label: "Szybkie dodawanie", icon: Zap, soon: false },
     { id: "manual", label: "Wpisz ręcznie", icon: PencilLine, soon: false },
-    { id: "search", label: "Szukaj produktu", icon: Search, soon: true },
+    { id: "search", label: "Szukaj produktu", icon: Search, soon: false },
     { id: "barcode", label: "Kod kreskowy", icon: ScanBarcode, soon: true },
   ];
   return (
@@ -158,7 +158,7 @@ function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan") => void
             key={it.id}
             whileTap={disabled ? undefined : { scale: 0.96 }}
             disabled={disabled}
-            onClick={() => !disabled && onPick(it.id as "quick" | "manual" | "scan")}
+            onClick={() => !disabled && onPick(it.id as "quick" | "manual" | "scan" | "search")}
             className={`group relative flex flex-col items-start gap-2 rounded-2xl border border-border/60 bg-card p-3 text-left transition ${
               disabled ? "opacity-50" : "active:bg-accent"
             }`}
