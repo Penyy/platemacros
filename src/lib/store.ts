@@ -40,10 +40,21 @@ export interface Profile {
   include_burned?: boolean;
 }
 
+export interface Product {
+  id: string;
+  name: string;
+  kcal: number; // per 100 g
+  protein: number;
+  carbs: number;
+  fat: number;
+  created_at: number;
+}
+
 interface State {
   profile: Profile;
   entries: LogEntry[];
   burned: Record<string, number>;
+  products: Product[];
   addSheet: { open: boolean; meal?: Meal };
   openAdd: (meal?: Meal) => void;
   closeAdd: () => void;
@@ -54,7 +65,10 @@ interface State {
   setBurned: (date: string, kcal: number) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
   removeEntry: (id: string) => void;
-  replaceAll: (data: { profile: Profile; entries: LogEntry[]; burned?: Record<string, number> }) => void;
+  addProduct: (p: Omit<Product, "id" | "created_at">) => void;
+  updateProduct: (id: string, p: Partial<Omit<Product, "id" | "created_at">>) => void;
+  removeProduct: (id: string) => void;
+  replaceAll: (data: { profile: Profile; entries: LogEntry[]; burned?: Record<string, number>; products?: Product[] }) => void;
 }
 
 const todayKcalDefault = 2200;
