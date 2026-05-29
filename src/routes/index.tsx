@@ -47,9 +47,12 @@ function titleFor(date: string) {
 function TodayPage() {
   const [selected, setSelected] = useState(() => ymd(new Date()));
   const [weekOffset, setWeekOffset] = useState(0);
+  const [editingBurned, setEditingBurned] = useState(false);
 
   const profile = usePlate((s) => s.profile);
   const entries = usePlate((s) => s.entries);
+  const burnedMap = usePlate((s) => s.burned);
+  const setBurned = usePlate((s) => s.setBurned);
   const openAdd = usePlate((s) => s.openAdd);
 
   const dayEntries = useMemo(
@@ -57,7 +60,10 @@ function TodayPage() {
     [entries, selected]
   );
   const sum = useMemo(() => sumEntries(dayEntries), [dayEntries]);
-  const remaining = profile.goal_kcal - sum.kcal;
+  const burned = burnedMap[selected] ?? 0;
+  const adjustedGoal =
+    profile.include_burned ? profile.goal_kcal + burned : profile.goal_kcal;
+  const remaining = adjustedGoal - sum.kcal;
 
   const dateLabel = formatDate(new Date(selected + "T00:00:00"));
 
@@ -83,7 +89,7 @@ function TodayPage() {
           goalC={profile.goal_carbs}
           goalF={profile.goal_fat}
           remainingKcal={remaining}
-          goalKcal={profile.goal_kcal}
+          goalKcal={adjustedGoal}
           consumedKcal={sum.kcal}
         />
         <Legend
@@ -93,6 +99,13 @@ function TodayPage() {
           goalP={profile.goal_protein}
           goalC={profile.goal_carbs}
           goalF={profile.goal_fat}
+        />
+        <BurnedRow
+          value={burned}
+          editing={editingBurned}
+          setEditing={setEditingBurned}
+          onChange={(v) => setBurned(selected, v)}
+          included={!!profile.include_burned}
         />
       </section>
 
@@ -153,5 +166,67 @@ function Legend({
         </li>
       ))}
     </ul>
+  );
+}
+
+function BurnedRow({
+  value,
+  editing,
+  setEditing,
+  onChange,
+  included,
+}: {
+  value: number;
+  editing: boolean;
+  setEditing: (b: boolean) => void;
+  onChange: (v: number) => void;
+  included: boolean;
+}) {
+  return (
+    <div className="mt-3 rounded-2xl bg-card/60">
+      <button
+        onClick={() => setEditing(!editing)}
+        className="flex w-full items-center justify-between px-4 py-3 text-left active:bg-foreground/5 transition rounded-2xl"
+      >
+        <div className="flex flex-col">
+          <span className="text-[13px] font-medium">Spalone kcal</span>
+          <span className="text-[11px] text-muted-foreground">
+            {included ? "doliczane do celu" : "tylko informacyjnie"}
+          </span>
+        </div>
+        <div className="num-tight text-sm">
+          {value > 0 ? (
+            <>
+              <span className="font-semibold">{value}</span>
+              <span className="text-muted-foreground"> kcal</span>
+            </>
+          ) : (
+            <span className="text-muted-foreground">dodaj</span>
+          )}
+        </div>
+      </button>
+      {editing && (
+        <div className="flex items-center gap-2 px-4 pb-3">
+          <input
+            autoFocus
+            inputMode="numeric"
+            value={value || ""}
+            placeholder="0"
+            onChange={(e) => {
+              const n = Number(e.target.value.replace(/[^\d]/g, ""));
+              onChange(Number.isNaN(n) ? 0 : n);
+            }}
+            className="num-tight flex-1 rounded-lg bg-foreground/5 px-3 py-2 text-right text-[15px] font-semibold outline-none focus:ring-1 focus:ring-primary"
+          />
+          <span className="text-xs text-muted-foreground">kcal</span>
+          <button
+            onClick={() => setEditing(false)}
+            className="rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+          >
+            Gotowe
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

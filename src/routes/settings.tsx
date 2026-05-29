@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useRef } from "react";
 import { Download, Upload } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
+import { Switch } from "@/components/ui/switch";
 import { type Theme, usePlate } from "@/lib/store";
 
 export const Route = createFileRoute("/settings")({
@@ -20,8 +21,10 @@ export const Route = createFileRoute("/settings")({
 function SettingsPage() {
   const profile = usePlate((s) => s.profile);
   const entries = usePlate((s) => s.entries);
+  const burned = usePlate((s) => s.burned);
   const setTheme = usePlate((s) => s.setTheme);
   const setGoals = usePlate((s) => s.setGoals);
+  const setIncludeBurned = usePlate((s) => s.setIncludeBurned);
   const replaceAll = usePlate((s) => s.replaceAll);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -32,6 +35,7 @@ function SettingsPage() {
       exported_at: new Date().toISOString(),
       profile,
       entries,
+      burned,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json",
@@ -59,7 +63,11 @@ function SettingsPage() {
         `Importować ${data.entries.length} wpisów? Obecne dane zostaną nadpisane.`
       );
       if (!ok) return;
-      replaceAll({ profile: data.profile, entries: data.entries });
+      replaceAll({
+        profile: data.profile,
+        entries: data.entries,
+        burned: data.burned && typeof data.burned === "object" ? data.burned : {},
+      });
       alert("Dane zostały przywrócone.");
     } catch {
       alert("Nie udało się odczytać pliku.");
@@ -102,6 +110,19 @@ function SettingsPage() {
           onChange={(v) => setGoals({ goal_fat: v })}
         />
       </Section>
+
+      <Section title="Aktywność">
+        <Row label="Uwzględniaj spalone kcal">
+          <Switch
+            checked={!!profile.include_burned}
+            onCheckedChange={(v) => setIncludeBurned(v)}
+          />
+        </Row>
+        <p className="px-4 pb-3 pt-1 text-[11px] text-muted-foreground">
+          Gdy włączone, spalone kalorie powiększają dzienny cel (cel + spalone − zjedzone).
+        </p>
+      </Section>
+
 
       <Section title="Dane">
         <button

@@ -37,20 +37,24 @@ export interface Profile {
   goal_carbs: number;
   goal_fat: number;
   body?: BodyProfile;
+  include_burned?: boolean;
 }
 
 interface State {
   profile: Profile;
   entries: LogEntry[];
+  burned: Record<string, number>;
   addSheet: { open: boolean; meal?: Meal };
   openAdd: (meal?: Meal) => void;
   closeAdd: () => void;
   setTheme: (t: Theme) => void;
   setGoals: (g: Partial<Pick<Profile, "goal_kcal" | "goal_protein" | "goal_carbs" | "goal_fat">>) => void;
   setBody: (b: Partial<BodyProfile>) => void;
+  setIncludeBurned: (v: boolean) => void;
+  setBurned: (date: string, kcal: number) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
   removeEntry: (id: string) => void;
-  replaceAll: (data: { profile: Profile; entries: LogEntry[] }) => void;
+  replaceAll: (data: { profile: Profile; entries: LogEntry[]; burned?: Record<string, number> }) => void;
 }
 
 const todayKcalDefault = 2200;
@@ -66,6 +70,7 @@ export const usePlate = create<State>()(
         goal_fat: 70,
       },
       entries: [],
+      burned: {},
       addSheet: { open: false },
       openAdd: (meal) => set({ addSheet: { open: true, meal } }),
       closeAdd: () => set((s) => ({ addSheet: { ...s.addSheet, open: false } })),
@@ -104,8 +109,21 @@ export const usePlate = create<State>()(
         })),
       removeEntry: (id) =>
         set((s) => ({ entries: s.entries.filter((x) => x.id !== id) })),
+      setIncludeBurned: (v) =>
+        set((s) => ({ profile: { ...s.profile, include_burned: v } })),
+      setBurned: (date, kcal) =>
+        set((s) => {
+          const next = { ...s.burned };
+          if (!kcal || kcal <= 0) delete next[date];
+          else next[date] = Math.round(kcal);
+          return { burned: next };
+        }),
       replaceAll: (data) =>
-        set({ profile: data.profile, entries: data.entries }),
+        set({
+          profile: data.profile,
+          entries: data.entries,
+          burned: data.burned ?? {},
+        }),
     }),
     { name: "plate-store-v1" }
   )
