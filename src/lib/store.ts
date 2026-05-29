@@ -109,8 +109,21 @@ export const usePlate = create<State>()(
         })),
       removeEntry: (id) =>
         set((s) => ({ entries: s.entries.filter((x) => x.id !== id) })),
+      setIncludeBurned: (v) =>
+        set((s) => ({ profile: { ...s.profile, include_burned: v } })),
+      setBurned: (date, kcal) =>
+        set((s) => {
+          const next = { ...s.burned };
+          if (!kcal || kcal <= 0) delete next[date];
+          else next[date] = Math.round(kcal);
+          return { burned: next };
+        }),
       replaceAll: (data) =>
-        set({ profile: data.profile, entries: data.entries }),
+        set({
+          profile: data.profile,
+          entries: data.entries,
+          burned: data.burned ?? {},
+        }),
     }),
     { name: "plate-store-v1" }
   )
