@@ -9,10 +9,10 @@ import {
   ScanBarcode,
   X,
 } from "lucide-react";
-import { type Meal, MEAL_LABEL, usePlate, ymd } from "@/lib/store";
+import { type Meal, MEAL_LABEL, type Product, usePlate, ymd } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 
-type Mode = "menu" | "quick" | "manual" | "scan";
+type Mode = "menu" | "quick" | "manual" | "scan" | "search";
 
 interface Props {
   open: boolean;
