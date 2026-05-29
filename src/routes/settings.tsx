@@ -110,6 +110,19 @@ function SettingsPage() {
         />
       </Section>
 
+      <Section title="Aktywność">
+        <Row label="Uwzględniaj spalone kcal">
+          <Switch
+            checked={!!profile.include_burned}
+            onCheckedChange={(v) => setIncludeBurned(v)}
+          />
+        </Row>
+        <p className="px-4 pb-3 pt-1 text-[11px] text-muted-foreground">
+          Gdy włączone, spalone kalorie powiększają dzienny cel (cel + spalone − zjedzone).
+        </p>
+      </Section>
+
+
       <Section title="Dane">
         <button
           onClick={handleExport}
