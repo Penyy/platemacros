@@ -69,6 +69,7 @@ function SettingsPage() {
         profile: data.profile,
         entries: data.entries,
         burned: data.burned && typeof data.burned === "object" ? data.burned : {},
+        products: Array.isArray(data.products) ? data.products : [],
       });
       alert("Dane zostały przywrócone.");
     } catch {
