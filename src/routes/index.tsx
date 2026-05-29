@@ -47,9 +47,12 @@ function titleFor(date: string) {
 function TodayPage() {
   const [selected, setSelected] = useState(() => ymd(new Date()));
   const [weekOffset, setWeekOffset] = useState(0);
+  const [editingBurned, setEditingBurned] = useState(false);
 
   const profile = usePlate((s) => s.profile);
   const entries = usePlate((s) => s.entries);
+  const burnedMap = usePlate((s) => s.burned);
+  const setBurned = usePlate((s) => s.setBurned);
   const openAdd = usePlate((s) => s.openAdd);
 
   const dayEntries = useMemo(
@@ -57,7 +60,10 @@ function TodayPage() {
     [entries, selected]
   );
   const sum = useMemo(() => sumEntries(dayEntries), [dayEntries]);
-  const remaining = profile.goal_kcal - sum.kcal;
+  const burned = burnedMap[selected] ?? 0;
+  const adjustedGoal =
+    profile.include_burned ? profile.goal_kcal + burned : profile.goal_kcal;
+  const remaining = adjustedGoal - sum.kcal;
 
   const dateLabel = formatDate(new Date(selected + "T00:00:00"));
 
