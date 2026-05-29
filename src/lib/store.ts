@@ -133,11 +133,32 @@ export const usePlate = create<State>()(
           else next[date] = Math.round(kcal);
           return { burned: next };
         }),
+      addProduct: (p) =>
+        set((s) => ({
+          products: [
+            ...s.products,
+            {
+              ...p,
+              id:
+                typeof crypto !== "undefined" && "randomUUID" in crypto
+                  ? crypto.randomUUID()
+                  : String(Math.random()).slice(2),
+              created_at: Date.now(),
+            },
+          ],
+        })),
+      updateProduct: (id, p) =>
+        set((s) => ({
+          products: s.products.map((x) => (x.id === id ? { ...x, ...p } : x)),
+        })),
+      removeProduct: (id) =>
+        set((s) => ({ products: s.products.filter((x) => x.id !== id) })),
       replaceAll: (data) =>
         set({
           profile: data.profile,
           entries: data.entries,
           burned: data.burned ?? {},
+          products: data.products ?? [],
         }),
     }),
     { name: "plate-store-v1" }
