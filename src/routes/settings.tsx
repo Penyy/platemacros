@@ -20,8 +20,10 @@ export const Route = createFileRoute("/settings")({
 function SettingsPage() {
   const profile = usePlate((s) => s.profile);
   const entries = usePlate((s) => s.entries);
+  const burned = usePlate((s) => s.burned);
   const setTheme = usePlate((s) => s.setTheme);
   const setGoals = usePlate((s) => s.setGoals);
+  const setIncludeBurned = usePlate((s) => s.setIncludeBurned);
   const replaceAll = usePlate((s) => s.replaceAll);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
