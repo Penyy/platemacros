@@ -67,6 +67,8 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                     ? "Szybkie dodawanie"
                     : mode === "manual"
                     ? "Wpisz ręcznie"
+                    : mode === "search"
+                    ? "Szukaj produktu"
                     : "Skanuj etykietę"}
                 </h2>
                 <button
