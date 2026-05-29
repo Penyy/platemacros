@@ -37,6 +37,7 @@ export interface Profile {
   goal_carbs: number;
   goal_fat: number;
   body?: BodyProfile;
+  include_burned?: boolean;
 }
 
 interface State {
