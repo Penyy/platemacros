@@ -37,6 +37,7 @@ function SettingsPage() {
       profile,
       entries,
       burned,
+      products,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json",
