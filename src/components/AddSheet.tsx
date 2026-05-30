@@ -6,13 +6,15 @@ import {
   Zap,
   PencilLine,
   Search,
-  ScanBarcode,
+  Sparkles,
   X,
 } from "lucide-react";
 import { type Meal, MEAL_LABEL, type Product, usePlate, ymd } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
+import { CompoundMealFlow } from "./CompoundMealFlow";
+import { EstimateMealFlow } from "./EstimateMealFlow";
 
-type Mode = "menu" | "quick" | "manual" | "scan" | "search";
+type Mode = "menu" | "quick" | "manual" | "scan" | "search" | "compound" | "estimate";
 
 interface Props {
   open: boolean;
@@ -69,6 +71,10 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                     ? "Wpisz ręcznie"
                     : mode === "search"
                     ? "Szukaj produktu"
+                    : mode === "compound"
+                    ? "Złożony posiłek"
+                    : mode === "estimate"
+                    ? "Oszacuj ze zdjęcia"
                     : "Skanuj etykietę"}
                 </h2>
                 <button
@@ -123,6 +129,26 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                   }}
                 />
               )}
+              {mode === "compound" && (
+                <CompoundMealFlow
+                  meal={meal}
+                  setMeal={setMeal}
+                  onSubmit={(payload) => {
+                    addEntry({ ...payload, date, meal });
+                    close();
+                  }}
+                />
+              )}
+              {mode === "estimate" && (
+                <EstimateMealFlow
+                  meal={meal}
+                  setMeal={setMeal}
+                  onSubmit={(payload) => {
+                    addEntry({ ...payload, date, meal });
+                    close();
+                  }}
+                />
+              )}
             </div>
           </motion.div>
         </>
@@ -139,14 +165,14 @@ function guessMeal(): Meal {
   return "snack";
 }
 
-function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan" | "search") => void }) {
+function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan" | "search" | "compound" | "estimate") => void }) {
   const items = [
     { id: "scan", label: "Skanuj etykietę", icon: Camera, soon: false },
-    { id: "compound", label: "Złożony posiłek", icon: Layers, soon: true },
+    { id: "estimate", label: "Oszacuj ze zdjęcia (AI)", icon: Sparkles, soon: false },
+    { id: "compound", label: "Złożony posiłek", icon: Layers, soon: false },
+    { id: "search", label: "Szukaj produktu", icon: Search, soon: false },
     { id: "quick", label: "Szybkie dodawanie", icon: Zap, soon: false },
     { id: "manual", label: "Wpisz ręcznie", icon: PencilLine, soon: false },
-    { id: "search", label: "Szukaj produktu", icon: Search, soon: false },
-    { id: "barcode", label: "Kod kreskowy", icon: ScanBarcode, soon: true },
   ];
   return (
     <div className="grid grid-cols-2 gap-2.5">
@@ -158,7 +184,7 @@ function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan" | "searc
             key={it.id}
             whileTap={disabled ? undefined : { scale: 0.96 }}
             disabled={disabled}
-            onClick={() => !disabled && onPick(it.id as "quick" | "manual" | "scan" | "search")}
+            onClick={() => !disabled && onPick(it.id as "quick" | "manual" | "scan" | "search" | "compound" | "estimate")}
             className={`group relative flex flex-col items-start gap-2 rounded-2xl border border-border/60 bg-card p-3 text-left transition ${
               disabled ? "opacity-50" : "active:bg-accent"
             }`}

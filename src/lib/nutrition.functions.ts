@@ -117,3 +117,115 @@ export const scanNutritionLabel = createServerFn({ method: "POST" })
       confidence: v.data.confidence,
     };
   });
+
+// ---------- Estimate full meal from photo ----------
+
+const EstimateInputSchema = z.object({
+  imageBase64: z.string().min(100).max(8_000_000),
+  mimeType: z.string().optional(),
+  description: z.string().max(500).optional(),
+});
+
+const EstimateSchema = z.object({
+  name: z.string().max(120),
+  total: z.object({
+    kcal: z.number().min(0).max(5000),
+    protein: z.number().min(0).max(500),
+    carbs: z.number().min(0).max(500),
+    fat: z.number().min(0).max(500),
+  }),
+  confidence: z.enum(["high", "medium", "low"]),
+});
+
+export type MealEstimate = z.infer<typeof EstimateSchema>;
+
+const ESTIMATE_PROMPT = `Oszacuj wartości odżywcze gotowego posiłku widocznego na zdjęciu.
+Zwróć WYŁĄCZNIE poprawny JSON (bez markdown) o strukturze:
+{"name": string, "total": {"kcal": number, "protein": number, "carbs": number, "fat": number}, "confidence": "high"|"medium"|"low"}
+
+Zasady:
+- Wartości w "total" to CAŁKOWITE wartości dla widocznej porcji (NIE na 100 g).
+- Rozpoznaj składniki i oszacuj wielkość porcji (talerz ~26 cm, miska, sztućce jako skala).
+- Wykorzystaj opis użytkownika do rozpoznania składników i wielkości, jeśli jest podany.
+- Makro w gramach, energia w kcal. Zaokrąglij do 1 miejsca po przecinku.
+- name = krótka polska nazwa dania (do 60 znaków).
+- confidence: "high" gdy wyraźnie widać składniki i porcję, "medium" przy częściowej widoczności, "low" gdy mocno szacujesz.
+- To jest SZACUNEK — przy wątpliwościach obniż confidence, ale zawsze podaj liczby > 0 jeśli widać jedzenie.`;
+
+export const estimateMealFromPhoto = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => EstimateInputSchema.parse(input))
+  .handler(async ({ data }): Promise<MealEstimate> => {
+    const apiKey = process.env.Gemini || process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error("GEMINI_KEY_MISSING");
+
+    const mimeType = data.mimeType ?? "image/jpeg";
+    const base64 = data.imageBase64.startsWith("data:")
+      ? data.imageBase64.split(",")[1] ?? ""
+      : data.imageBase64;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+    const userText = data.description?.trim()
+      ? `${ESTIMATE_PROMPT}\n\nOpis od użytkownika: ${data.description.trim()}`
+      : ESTIMATE_PROMPT;
+
+    const body = {
+      contents: [
+        {
+          parts: [
+            { inline_data: { mime_type: mimeType, data: base64 } },
+            { text: userText },
+          ],
+        },
+      ],
+      generationConfig: {
+        responseMimeType: "application/json",
+        temperature: 0.2,
+      },
+    };
+
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    } catch (err) {
+      throw new Error("AI_NETWORK: " + (err instanceof Error ? err.message : String(err)));
+    }
+
+    if (!res.ok) {
+      if (res.status === 429) throw new Error("AI_RATE_LIMIT");
+      if (res.status === 402 || res.status === 403) throw new Error("AI_CREDITS");
+      const txt = await res.text().catch(() => "");
+      throw new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`);
+    }
+
+    const payload = (await res.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+    const raw = payload.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+    if (!raw) throw new Error("AI_EMPTY");
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(stripFences(raw));
+    } catch {
+      throw new Error("AI_BAD_JSON");
+    }
+
+    const v = EstimateSchema.safeParse(parsed);
+    if (!v.success) throw new Error("AI_BAD_SHAPE");
+
+    return {
+      name: v.data.name.slice(0, 80),
+      total: {
+        kcal: round1(v.data.total.kcal),
+        protein: round1(v.data.total.protein),
+        carbs: round1(v.data.total.carbs),
+        fat: round1(v.data.total.fat),
+      },
+      confidence: v.data.confidence,
+    };
+  });
