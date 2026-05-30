@@ -4,7 +4,7 @@ import { Camera, Loader2, RotateCcw } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { scanNutritionLabel, type NutritionLabel } from "@/lib/nutrition.functions";
-import { type Meal, MEAL_LABEL } from "@/lib/store";
+import { type Meal, MEAL_LABEL, usePlate } from "@/lib/store";
 
 const MEALS: Meal[] = ["breakfast", "lunch", "dinner", "snack"];
 
