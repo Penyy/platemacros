@@ -165,14 +165,14 @@ function guessMeal(): Meal {
   return "snack";
 }
 
-function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan" | "search") => void }) {
+function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan" | "search" | "compound" | "estimate") => void }) {
   const items = [
     { id: "scan", label: "Skanuj etykietę", icon: Camera, soon: false },
-    { id: "compound", label: "Złożony posiłek", icon: Layers, soon: true },
+    { id: "estimate", label: "Oszacuj ze zdjęcia (AI)", icon: Sparkles, soon: false },
+    { id: "compound", label: "Złożony posiłek", icon: Layers, soon: false },
+    { id: "search", label: "Szukaj produktu", icon: Search, soon: false },
     { id: "quick", label: "Szybkie dodawanie", icon: Zap, soon: false },
     { id: "manual", label: "Wpisz ręcznie", icon: PencilLine, soon: false },
-    { id: "search", label: "Szukaj produktu", icon: Search, soon: false },
-    { id: "barcode", label: "Kod kreskowy", icon: ScanBarcode, soon: true },
   ];
   return (
     <div className="grid grid-cols-2 gap-2.5">
