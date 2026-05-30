@@ -48,6 +48,8 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
   const [preview, setPreview] = useState<string | null>(null);
   const [label, setLabel] = useState<NutritionLabel | null>(null);
   const [grams, setGrams] = useState("100");
+  const [saveToLib, setSaveToLib] = useState(false);
+  const addProduct = usePlate((s) => s.addProduct);
   const scan = useServerFn(scanNutritionLabel);
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
