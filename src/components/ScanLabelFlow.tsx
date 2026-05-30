@@ -74,13 +74,9 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
       } else {
         toast.error("Nie udało się odczytać etykiety, spróbuj ponownie.");
       }
-      // Show review with zeros so user can still enter manually
-      setLabel({
-        name: "",
-        per100: { kcal: 0, protein: 0, carbs: 0, fat: 0 },
-        confidence: "low",
-      });
-      setPhase("review");
+      setPreview(null);
+      setLabel(null);
+      setPhase("capture");
     } finally {
       if (fileRef.current) fileRef.current.value = "";
     }
