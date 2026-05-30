@@ -4,7 +4,7 @@ import { Camera, Loader2, RotateCcw } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { scanNutritionLabel, type NutritionLabel } from "@/lib/nutrition.functions";
-import { type Meal, MEAL_LABEL } from "@/lib/store";
+import { type Meal, MEAL_LABEL, usePlate } from "@/lib/store";
 
 const MEALS: Meal[] = ["breakfast", "lunch", "dinner", "snack"];
 
@@ -48,6 +48,8 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
   const [preview, setPreview] = useState<string | null>(null);
   const [label, setLabel] = useState<NutritionLabel | null>(null);
   const [grams, setGrams] = useState("100");
+  const [saveToLib, setSaveToLib] = useState(false);
+  const addProduct = usePlate((s) => s.addProduct);
   const scan = useServerFn(scanNutritionLabel);
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,19 +68,15 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
       if (msg.includes("AI_RATE_LIMIT")) {
         toast.error("Za dużo żądań do AI. Spróbuj za chwilę.");
       } else if (msg.includes("AI_CREDITS")) {
-        toast.error("Brak kredytów AI — doładuj w ustawieniach workspace.");
-      } else if (msg.includes("AI_BAD_JSON") || msg.includes("AI_BAD_SHAPE")) {
-        toast.error("Nie udało się odczytać etykiety. Wpisz dane ręcznie.");
+        toast.error("Brak kredytów AI lub problem z kluczem Gemini.");
+      } else if (msg.includes("GEMINI_KEY_MISSING")) {
+        toast.error("Brak klucza Gemini w sekretach.");
       } else {
-        toast.error("Coś poszło nie tak. Spróbuj ponownie.");
+        toast.error("Nie udało się odczytać etykiety, spróbuj ponownie.");
       }
-      // Show review with zeros so user can still enter manually
-      setLabel({
-        name: "",
-        per100: { kcal: 0, protein: 0, carbs: 0, fat: 0 },
-        confidence: "low",
-      });
-      setPhase("review");
+      setPreview(null);
+      setLabel(null);
+      setPhase("capture");
     } finally {
       if (fileRef.current) fileRef.current.value = "";
     }
@@ -164,6 +162,15 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
       onSubmit={(e) => {
         e.preventDefault();
         if (!valid) return;
+        if (saveToLib) {
+          addProduct({
+            name: label.name.trim(),
+            kcal: label.per100.kcal,
+            protein: label.per100.protein,
+            carbs: label.per100.carbs,
+            fat: label.per100.fat,
+          });
+        }
         onSubmit({
           name: label.name.trim(),
           grams: g,
@@ -241,6 +248,16 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
       )}
 
       <MealPicker meal={meal} setMeal={setMeal} />
+
+      <label className="flex items-center gap-2 rounded-2xl bg-foreground/5 px-3 py-2.5 text-sm">
+        <input
+          type="checkbox"
+          checked={saveToLib}
+          onChange={(e) => setSaveToLib(e.target.checked)}
+          className="h-4 w-4 accent-primary"
+        />
+        <span>Zapisz do moich produktów</span>
+      </label>
 
       <motion.button
         whileTap={{ scale: 0.97 }}
