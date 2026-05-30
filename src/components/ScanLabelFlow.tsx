@@ -249,6 +249,16 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
 
       <MealPicker meal={meal} setMeal={setMeal} />
 
+      <label className="flex items-center gap-2 rounded-2xl bg-foreground/5 px-3 py-2.5 text-sm">
+        <input
+          type="checkbox"
+          checked={saveToLib}
+          onChange={(e) => setSaveToLib(e.target.checked)}
+          className="h-4 w-4 accent-primary"
+        />
+        <span>Zapisz do moich produktów</span>
+      </label>
+
       <motion.button
         whileTap={{ scale: 0.97 }}
         type="submit"
