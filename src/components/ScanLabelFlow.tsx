@@ -162,6 +162,15 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
       onSubmit={(e) => {
         e.preventDefault();
         if (!valid) return;
+        if (saveToLib) {
+          addProduct({
+            name: label.name.trim(),
+            kcal: label.per100.kcal,
+            protein: label.per100.protein,
+            carbs: label.per100.carbs,
+            fat: label.per100.fat,
+          });
+        }
         onSubmit({
           name: label.name.trim(),
           grams: g,
