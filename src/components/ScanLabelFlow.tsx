@@ -68,11 +68,11 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
       if (msg.includes("AI_RATE_LIMIT")) {
         toast.error("Za dużo żądań do AI. Spróbuj za chwilę.");
       } else if (msg.includes("AI_CREDITS")) {
-        toast.error("Brak kredytów AI — doładuj w ustawieniach workspace.");
-      } else if (msg.includes("AI_BAD_JSON") || msg.includes("AI_BAD_SHAPE")) {
-        toast.error("Nie udało się odczytać etykiety. Wpisz dane ręcznie.");
+        toast.error("Brak kredytów AI lub problem z kluczem Gemini.");
+      } else if (msg.includes("GEMINI_KEY_MISSING")) {
+        toast.error("Brak klucza Gemini w sekretach.");
       } else {
-        toast.error("Coś poszło nie tak. Spróbuj ponownie.");
+        toast.error("Nie udało się odczytać etykiety, spróbuj ponownie.");
       }
       // Show review with zeros so user can still enter manually
       setLabel({
