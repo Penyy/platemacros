@@ -129,6 +129,26 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                   }}
                 />
               )}
+              {mode === "compound" && (
+                <CompoundMealFlow
+                  meal={meal}
+                  setMeal={setMeal}
+                  onSubmit={(payload) => {
+                    addEntry({ ...payload, date, meal });
+                    close();
+                  }}
+                />
+              )}
+              {mode === "estimate" && (
+                <EstimateMealFlow
+                  meal={meal}
+                  setMeal={setMeal}
+                  onSubmit={(payload) => {
+                    addEntry({ ...payload, date, meal });
+                    close();
+                  }}
+                />
+              )}
             </div>
           </motion.div>
         </>
