@@ -179,8 +179,9 @@ function guessMeal(): Meal {
   return "snack";
 }
 
-function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan" | "search" | "compound" | "estimate") => void }) {
+function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan" | "search" | "compound" | "estimate" | "barcode") => void }) {
   const items = [
+    { id: "barcode", label: "Skanuj kod kreskowy", icon: ScanLine, soon: false },
     { id: "scan", label: "Skanuj etykietę", icon: Camera, soon: false },
     { id: "estimate", label: "Oszacuj ze zdjęcia (AI)", icon: Sparkles, soon: false },
     { id: "compound", label: "Złożony posiłek", icon: Layers, soon: false },
