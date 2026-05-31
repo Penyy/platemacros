@@ -7,14 +7,16 @@ import {
   PencilLine,
   Search,
   Sparkles,
+  ScanLine,
   X,
 } from "lucide-react";
 import { type Meal, MEAL_LABEL, type Product, usePlate, ymd } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 import { CompoundMealFlow } from "./CompoundMealFlow";
 import { EstimateMealFlow } from "./EstimateMealFlow";
+import { BarcodeScanFlow } from "./BarcodeScanFlow";
 
-type Mode = "menu" | "quick" | "manual" | "scan" | "search" | "compound" | "estimate";
+type Mode = "menu" | "quick" | "manual" | "scan" | "search" | "compound" | "estimate" | "barcode";
 
 interface Props {
   open: boolean;
