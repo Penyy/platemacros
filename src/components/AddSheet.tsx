@@ -7,14 +7,16 @@ import {
   PencilLine,
   Search,
   Sparkles,
+  ScanLine,
   X,
 } from "lucide-react";
 import { type Meal, MEAL_LABEL, type Product, usePlate, ymd } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 import { CompoundMealFlow } from "./CompoundMealFlow";
 import { EstimateMealFlow } from "./EstimateMealFlow";
+import { BarcodeScanFlow } from "./BarcodeScanFlow";
 
-type Mode = "menu" | "quick" | "manual" | "scan" | "search" | "compound" | "estimate";
+type Mode = "menu" | "quick" | "manual" | "scan" | "search" | "compound" | "estimate" | "barcode";
 
 interface Props {
   open: boolean;
@@ -75,6 +77,8 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                     ? "Złożony posiłek"
                     : mode === "estimate"
                     ? "Oszacuj ze zdjęcia"
+                    : mode === "barcode"
+                    ? "Skanuj kod kreskowy"
                     : "Skanuj etykietę"}
                 </h2>
                 <button
@@ -149,6 +153,16 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                   }}
                 />
               )}
+              {mode === "barcode" && (
+                <BarcodeScanFlow
+                  meal={meal}
+                  setMeal={setMeal}
+                  onSubmit={(payload) => {
+                    addEntry({ ...payload, date, meal });
+                    close();
+                  }}
+                />
+              )}
             </div>
           </motion.div>
         </>
@@ -165,8 +179,9 @@ function guessMeal(): Meal {
   return "snack";
 }
 
-function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan" | "search" | "compound" | "estimate") => void }) {
+function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan" | "search" | "compound" | "estimate" | "barcode") => void }) {
   const items = [
+    { id: "barcode", label: "Skanuj kod kreskowy", icon: ScanLine, soon: false },
     { id: "scan", label: "Skanuj etykietę", icon: Camera, soon: false },
     { id: "estimate", label: "Oszacuj ze zdjęcia (AI)", icon: Sparkles, soon: false },
     { id: "compound", label: "Złożony posiłek", icon: Layers, soon: false },
@@ -184,7 +199,7 @@ function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan" | "searc
             key={it.id}
             whileTap={disabled ? undefined : { scale: 0.96 }}
             disabled={disabled}
-            onClick={() => !disabled && onPick(it.id as "quick" | "manual" | "scan" | "search" | "compound" | "estimate")}
+            onClick={() => !disabled && onPick(it.id as "quick" | "manual" | "scan" | "search" | "compound" | "estimate" | "barcode")}
             className={`group relative flex flex-col items-start gap-2 rounded-2xl border border-border/60 bg-card p-3 text-left transition ${
               disabled ? "opacity-50" : "active:bg-accent"
             }`}
