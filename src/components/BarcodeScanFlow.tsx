@@ -553,6 +553,3 @@ function SmallField({
     </label>
   );
 }
-
-// suppress unused import warning (Camera used elsewhere in similar flows)
-void Camera;
