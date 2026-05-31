@@ -244,7 +244,7 @@ export const usePlate = create<State>()((set, get) => ({
     const body = get().profile.body;
     void supabase
       .from("profiles")
-      .update({ activity_profile: body ?? null })
+      .update({ activity_profile: (body ?? null) as unknown as Json })
       .eq("id", uid)
       .then(({ error }) => {
         if (error) netToast(error);
