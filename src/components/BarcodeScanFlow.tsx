@@ -196,9 +196,13 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           <video
             ref={videoRef}
             playsInline
+            autoPlay
             muted
+            // @ts-expect-error iOS Safari legacy attribute
+            webkit-playsinline="true"
             className="absolute inset-0 h-full w-full object-cover"
           />
+
           {/* Scanner frame overlay */}
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div className="relative h-[55%] w-[80%] rounded-xl">
