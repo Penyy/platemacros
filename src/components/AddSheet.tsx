@@ -153,6 +153,16 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                   }}
                 />
               )}
+              {mode === "barcode" && (
+                <BarcodeScanFlow
+                  meal={meal}
+                  setMeal={setMeal}
+                  onSubmit={(payload) => {
+                    addEntry({ ...payload, date, meal });
+                    close();
+                  }}
+                />
+              )}
             </div>
           </motion.div>
         </>
