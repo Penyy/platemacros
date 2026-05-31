@@ -420,7 +420,7 @@ export const usePlate = create<State>()((set, get) => ({
           goal_carbs: data.profile.goal_carbs,
           goal_fat: data.profile.goal_fat,
           consider_burned: !!data.profile.include_burned,
-          activity_profile: data.profile.body ?? null,
+          activity_profile: (data.profile.body ?? null) as unknown as Json,
         })
         .eq("id", uid);
       // insert entries
