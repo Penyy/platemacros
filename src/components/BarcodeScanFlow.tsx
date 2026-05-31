@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Loader2, RotateCcw, ScanLine, Image as ImageIcon } from "lucide-react";
+import { Loader2, RotateCcw, ScanLine, Image as ImageIcon } from "lucide-react";
 import { BrowserMultiFormatReader, type IScannerControls } from "@zxing/browser";
 import { toast } from "sonner";
 import { type Meal, MEAL_LABEL, usePlate } from "@/lib/store";
