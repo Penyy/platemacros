@@ -198,9 +198,9 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
             playsInline
             autoPlay
             muted
-            // @ts-expect-error iOS Safari legacy attribute
-            webkit-playsinline="true"
+            {...({ "webkit-playsinline": "true" } as Record<string, string>)}
             className="absolute inset-0 h-full w-full object-cover"
+
           />
 
           {/* Scanner frame overlay */}
