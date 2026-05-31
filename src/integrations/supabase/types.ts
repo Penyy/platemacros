@@ -14,7 +14,147 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      daily_burned: {
+        Row: {
+          burned_kcal: number
+          created_at: string
+          date: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          burned_kcal?: number
+          created_at?: string
+          date: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          burned_kcal?: number
+          created_at?: string
+          date?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      food_entries: {
+        Row: {
+          carbs: number
+          created_at: string
+          date: string
+          fat: number
+          grams: number | null
+          id: string
+          kcal: number
+          meal: string
+          name: string
+          protein: number
+          sub_items: Json | null
+          user_id: string
+        }
+        Insert: {
+          carbs?: number
+          created_at?: string
+          date: string
+          fat?: number
+          grams?: number | null
+          id?: string
+          kcal?: number
+          meal: string
+          name: string
+          protein?: number
+          sub_items?: Json | null
+          user_id: string
+        }
+        Update: {
+          carbs?: number
+          created_at?: string
+          date?: string
+          fat?: number
+          grams?: number | null
+          id?: string
+          kcal?: number
+          meal?: string
+          name?: string
+          protein?: number
+          sub_items?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      foods: {
+        Row: {
+          carbs_100: number
+          created_at: string
+          fat_100: number
+          id: string
+          kcal_100: number
+          name: string
+          protein_100: number
+          user_id: string
+        }
+        Insert: {
+          carbs_100?: number
+          created_at?: string
+          fat_100?: number
+          id?: string
+          kcal_100?: number
+          name: string
+          protein_100?: number
+          user_id: string
+        }
+        Update: {
+          carbs_100?: number
+          created_at?: string
+          fat_100?: number
+          id?: string
+          kcal_100?: number
+          name?: string
+          protein_100?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          activity_profile: Json | null
+          consider_burned: boolean
+          created_at: string
+          goal_carbs: number
+          goal_fat: number
+          goal_kcal: number
+          goal_protein: number
+          id: string
+          theme: string
+          updated_at: string
+        }
+        Insert: {
+          activity_profile?: Json | null
+          consider_burned?: boolean
+          created_at?: string
+          goal_carbs?: number
+          goal_fat?: number
+          goal_kcal?: number
+          goal_protein?: number
+          id: string
+          theme?: string
+          updated_at?: string
+        }
+        Update: {
+          activity_profile?: Json | null
+          consider_burned?: boolean
+          created_at?: string
+          goal_carbs?: number
+          goal_fat?: number
+          goal_kcal?: number
+          goal_protein?: number
+          id?: string
+          theme?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
