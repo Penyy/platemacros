@@ -372,7 +372,7 @@ export const usePlate = create<State>()((set, get) => ({
     if (p.fat !== undefined) dbPatch.fat_100 = p.fat;
     void supabase
       .from("foods")
-      .update(dbPatch)
+      .update(dbPatch as never)
       .eq("id", id)
       .eq("user_id", uid)
       .then(({ error }) => {
