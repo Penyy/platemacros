@@ -100,6 +100,17 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     let cancelled = false;
     const reader = new BrowserMultiFormatReader();
     setScannerError(null);
+
+    // iOS Safari fix: ensure required attributes BEFORE stream is attached
+    const v = videoRef.current;
+    if (v) {
+      v.setAttribute("playsinline", "true");
+      v.setAttribute("webkit-playsinline", "true");
+      v.setAttribute("autoplay", "true");
+      v.setAttribute("muted", "true");
+      v.muted = true;
+    }
+
     (async () => {
       try {
         if (!videoRef.current) return;
@@ -123,6 +134,16 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           return;
         }
         controlsRef.current = controls;
+
+        // iOS Safari: explicitly call play() after srcObject is set
+        const vid = videoRef.current;
+        if (vid) {
+          try {
+            await vid.play();
+          } catch {
+            /* play() may reject if already playing — safe to ignore */
+          }
+        }
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
         setScannerError(msg || "Brak dostępu do kamery");
@@ -133,6 +154,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
       stopScanner();
     };
   }, [phase]);
+
 
   const onFileFallback = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -174,9 +196,13 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           <video
             ref={videoRef}
             playsInline
+            autoPlay
             muted
+            {...({ "webkit-playsinline": "true" } as Record<string, string>)}
             className="absolute inset-0 h-full w-full object-cover"
+
           />
+
           {/* Scanner frame overlay */}
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div className="relative h-[55%] w-[80%] rounded-xl">
