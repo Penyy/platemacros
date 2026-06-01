@@ -94,7 +94,34 @@ function SettingsPage() {
     try {
       const text = await file.text();
       const data = JSON.parse(text);
-      if (!data || typeof data !== "object" || !data.profile || !Array.isArray(data.entries)) {
+      if (!data || typeof data !== "object") {
+        alert("Nieprawidłowy plik.");
+        return;
+      }
+
+      // MacroFlow export detection
+      if (Array.isArray((data as any).myFoods)) {
+        const converted = convertMacroFlow((data as any).myFoods);
+        if (converted.length === 0) {
+          alert("Nie znaleziono wpisów w pliku MacroFlow.");
+          return;
+        }
+        const ok = confirm(
+          `Znaleziono ${converted.length} wpisów z MacroFlow — importować?`
+        );
+        if (!ok) return;
+        await replaceAll({
+          profile,
+          entries: [...entries, ...converted],
+          burned,
+          products,
+        });
+        alert(`Zaimportowano ${converted.length} wpisów z MacroFlow.`);
+        return;
+      }
+
+      // Plate native format
+      if (!data.profile || !Array.isArray(data.entries)) {
         alert("Nieprawidłowy plik kopii zapasowej.");
         return;
       }
@@ -102,7 +129,7 @@ function SettingsPage() {
         `Importować ${data.entries.length} wpisów? Obecne dane zostaną nadpisane.`
       );
       if (!ok) return;
-      replaceAll({
+      await replaceAll({
         profile: data.profile,
         entries: data.entries,
         burned: data.burned && typeof data.burned === "object" ? data.burned : {},
