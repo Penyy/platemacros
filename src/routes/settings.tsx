@@ -5,12 +5,50 @@ import { ScreenHeader } from "@/components/ScreenHeader";
 import { Switch } from "@/components/ui/switch";
 import {
   type Theme,
+  type LogEntry,
+  type Meal,
   usePlate,
   readLegacyLocalStorage,
   clearLegacyLocalStorage,
 } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+function mealFromHour(h: number): Meal {
+  if (h >= 5 && h <= 10) return "breakfast";
+  if (h >= 11 && h <= 14) return "lunch";
+  if (h >= 15 && h <= 20) return "dinner";
+  return "snack";
+}
+
+function convertMacroFlow(items: any[]): LogEntry[] {
+  const out: LogEntry[] = [];
+  for (const item of items) {
+    if (!item || typeof item !== "object") continue;
+    const eatenAt = item.eatenAt ? new Date(item.eatenAt) : null;
+    if (!eatenAt || isNaN(eatenAt.getTime())) continue;
+    const date = eatenAt.toISOString().slice(0, 10);
+    const meal = mealFromHour(eatenAt.getHours());
+    const servingG = Number(item?.selectedServing?.grams ?? 1) || 1;
+    const qty = Number(item?.quantity ?? 1) || 1;
+    out.push({
+      id:
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random()}`,
+      date,
+      meal,
+      name: String(item.name ?? "Bez nazwy"),
+      grams: Math.round(qty * servingG),
+      kcal: Math.round(Number(item.calories ?? 0)),
+      protein: Number(item.protein ?? 0),
+      carbs: Number(item.carbs ?? 0),
+      fat: Number(item.fat ?? 0),
+      created_at: eatenAt.getTime(),
+    });
+  }
+  return out;
+}
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -94,7 +132,34 @@ function SettingsPage() {
     try {
       const text = await file.text();
       const data = JSON.parse(text);
-      if (!data || typeof data !== "object" || !data.profile || !Array.isArray(data.entries)) {
+      if (!data || typeof data !== "object") {
+        alert("Nieprawidłowy plik.");
+        return;
+      }
+
+      // MacroFlow export detection
+      if (Array.isArray((data as any).myFoods)) {
+        const converted = convertMacroFlow((data as any).myFoods);
+        if (converted.length === 0) {
+          alert("Nie znaleziono wpisów w pliku MacroFlow.");
+          return;
+        }
+        const ok = confirm(
+          `Znaleziono ${converted.length} wpisów z MacroFlow — importować?`
+        );
+        if (!ok) return;
+        await replaceAll({
+          profile,
+          entries: [...entries, ...converted],
+          burned,
+          products,
+        });
+        alert(`Zaimportowano ${converted.length} wpisów z MacroFlow.`);
+        return;
+      }
+
+      // Plate native format
+      if (!data.profile || !Array.isArray(data.entries)) {
         alert("Nieprawidłowy plik kopii zapasowej.");
         return;
       }
@@ -102,7 +167,7 @@ function SettingsPage() {
         `Importować ${data.entries.length} wpisów? Obecne dane zostaną nadpisane.`
       );
       if (!ok) return;
-      replaceAll({
+      await replaceAll({
         profile: data.profile,
         entries: data.entries,
         burned: data.burned && typeof data.burned === "object" ? data.burned : {},
