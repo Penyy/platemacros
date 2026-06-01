@@ -202,6 +202,38 @@ function SettingsPage() {
         />
       </Section>
 
+      {legacy && (
+        <Section title="Migracja">
+          <button
+            onClick={handleMigrate}
+            disabled={migrating}
+            className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition disabled:opacity-60"
+          >
+            <CloudUpload size={18} className="text-muted-foreground" />
+            <div className="flex-1">
+              <div className="text-[15px]">
+                {migrating ? "Przenoszę…" : "Przenieś moje dane do chmury"}
+              </div>
+              <div className="text-[11px] text-muted-foreground">
+                Znaleziono {legacy.entries.length} wpisów i {legacy.products.length} produktów lokalnie.
+              </div>
+            </div>
+          </button>
+        </Section>
+      )}
+
+      <Section title="Konto">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
+        >
+          <LogOut size={18} className="text-muted-foreground" />
+          <div className="flex-1">
+            <div className="text-[15px]">Wyloguj się</div>
+          </div>
+        </button>
+      </Section>
+
       <p className="px-6 pt-2 pb-6 text-center text-[11px] text-muted-foreground">
         Plate · wersja 0.1
       </p>
