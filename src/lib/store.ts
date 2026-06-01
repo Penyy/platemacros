@@ -437,7 +437,7 @@ export const usePlate = create<State>()((set, get) => ({
             protein: e.protein,
             carbs: e.carbs,
             fat: e.fat,
-            sub_items: e.sub_items ?? null,
+            sub_items: (e.sub_items ?? null) as Json,
           }))
         );
       }
