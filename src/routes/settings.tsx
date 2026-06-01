@@ -1,9 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef } from "react";
-import { Download, Upload } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { Download, Upload, LogOut, CloudUpload } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Switch } from "@/components/ui/switch";
-import { type Theme, usePlate } from "@/lib/store";
+import {
+  type Theme,
+  usePlate,
+  readLegacyLocalStorage,
+  clearLegacyLocalStorage,
+} from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -28,6 +35,36 @@ function SettingsPage() {
   const setIncludeBurned = usePlate((s) => s.setIncludeBurned);
   const replaceAll = usePlate((s) => s.replaceAll);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const [legacy, setLegacy] = useState<ReturnType<typeof readLegacyLocalStorage>>(null);
+  const [migrating, setMigrating] = useState(false);
+
+  useEffect(() => {
+    setLegacy(readLegacyLocalStorage());
+  }, []);
+
+  async function handleMigrate() {
+    if (!legacy || migrating) return;
+    const ok = confirm(
+      `Przenieść ${legacy.entries.length} wpisów i ${legacy.products.length} produktów do chmury? Obecne dane w chmurze zostaną nadpisane.`
+    );
+    if (!ok) return;
+    setMigrating(true);
+    try {
+      await replaceAll(legacy);
+      clearLegacyLocalStorage();
+      setLegacy(null);
+      toast.success("Dane zostały przeniesione do chmury.");
+    } catch {
+      toast.error("Nie udało się przenieść danych.");
+    } finally {
+      setMigrating(false);
+    }
+  }
+
+  async function handleLogout() {
+    const { error } = await supabase.auth.signOut();
+    if (error) toast.error(error.message);
+  }
 
   function handleExport() {
     const payload = {
@@ -163,6 +200,38 @@ function SettingsPage() {
             e.target.value = "";
           }}
         />
+      </Section>
+
+      {legacy && (
+        <Section title="Migracja">
+          <button
+            onClick={handleMigrate}
+            disabled={migrating}
+            className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition disabled:opacity-60"
+          >
+            <CloudUpload size={18} className="text-muted-foreground" />
+            <div className="flex-1">
+              <div className="text-[15px]">
+                {migrating ? "Przenoszę…" : "Przenieś moje dane do chmury"}
+              </div>
+              <div className="text-[11px] text-muted-foreground">
+                Znaleziono {legacy.entries.length} wpisów i {legacy.products.length} produktów lokalnie.
+              </div>
+            </div>
+          </button>
+        </Section>
+      )}
+
+      <Section title="Konto">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
+        >
+          <LogOut size={18} className="text-muted-foreground" />
+          <div className="flex-1">
+            <div className="text-[15px]">Wyloguj się</div>
+          </div>
+        </button>
       </Section>
 
       <p className="px-6 pt-2 pb-6 text-center text-[11px] text-muted-foreground">
