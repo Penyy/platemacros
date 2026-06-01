@@ -1,9 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef } from "react";
-import { Download, Upload } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { Download, Upload, LogOut, CloudUpload } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Switch } from "@/components/ui/switch";
-import { type Theme, usePlate } from "@/lib/store";
+import {
+  type Theme,
+  usePlate,
+  readLegacyLocalStorage,
+  clearLegacyLocalStorage,
+} from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -28,6 +35,36 @@ function SettingsPage() {
   const setIncludeBurned = usePlate((s) => s.setIncludeBurned);
   const replaceAll = usePlate((s) => s.replaceAll);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const [legacy, setLegacy] = useState<ReturnType<typeof readLegacyLocalStorage>>(null);
+  const [migrating, setMigrating] = useState(false);
+
+  useEffect(() => {
+    setLegacy(readLegacyLocalStorage());
+  }, []);
+
+  async function handleMigrate() {
+    if (!legacy || migrating) return;
+    const ok = confirm(
+      `Przenieść ${legacy.entries.length} wpisów i ${legacy.products.length} produktów do chmury? Obecne dane w chmurze zostaną nadpisane.`
+    );
+    if (!ok) return;
+    setMigrating(true);
+    try {
+      await replaceAll(legacy);
+      clearLegacyLocalStorage();
+      setLegacy(null);
+      toast.success("Dane zostały przeniesione do chmury.");
+    } catch {
+      toast.error("Nie udało się przenieść danych.");
+    } finally {
+      setMigrating(false);
+    }
+  }
+
+  async function handleLogout() {
+    const { error } = await supabase.auth.signOut();
+    if (error) toast.error(error.message);
+  }
 
   function handleExport() {
     const payload = {
