@@ -1,7 +1,9 @@
-import { type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { BottomNav } from "./BottomNav";
 import { AddSheet } from "./AddSheet";
+import { LoginScreen } from "./LoginScreen";
 import { ymd, usePlate } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   children: ReactNode;
@@ -11,9 +13,54 @@ export function AppShell({ children }: Props) {
   const sheet = usePlate((s) => s.addSheet);
   const openAdd = usePlate((s) => s.openAdd);
   const closeAdd = usePlate((s) => s.closeAdd);
+  const userId = usePlate((s) => s.userId);
+  const authReady = usePlate((s) => s.authReady);
+  const online = usePlate((s) => s.online);
+  const setAuth = usePlate((s) => s.setAuth);
+  const setOnline = usePlate((s) => s.setOnline);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setAuth(session?.user?.id ?? null);
+      },
+    );
+    void supabase.auth.getSession().then(({ data }) => {
+      setAuth(data.session?.user?.id ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, [setAuth]);
+
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, [setOnline]);
+
+  if (!authReady) {
+    return (
+      <div className="ambient-bg flex min-h-screen items-center justify-center">
+        <div className="text-sm text-muted-foreground">Ładowanie…</div>
+      </div>
+    );
+  }
+
+  if (!userId) {
+    return <LoginScreen />;
+  }
 
   return (
     <div className="ambient-bg min-h-screen">
+      {!online && (
+        <div className="sticky top-0 z-50 bg-amber-500/90 px-4 py-1.5 text-center text-xs font-semibold text-black">
+          Brak połączenia — zmiany zostaną zsynchronizowane po powrocie online.
+        </div>
+      )}
       <div className="mx-auto flex min-h-screen w-full max-w-[430px] flex-col">
         <main className="flex-1 pb-32">{children}</main>
       </div>
