@@ -66,7 +66,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
       },
-      { title: "Plate — liczenie makro" },
+      { title: "Plate" },
       {
         name: "description",
         content:
@@ -79,6 +79,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "apple-mobile-web-app-status-bar-style",
         content: "black-translucent",
       },
+      { property: "og:title", content: "Plate" },
+      { name: "twitter:title", content: "Plate" },
+      { name: "description", content: "apka do liczenia macrosów" },
+      { property: "og:description", content: "apka do liczenia macrosów" },
+      { name: "twitter:description", content: "apka do liczenia macrosów" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/14d927e7-a872-42c4-aaca-7f87bf99b00e/id-preview-96f48b8a--ac16331c-b821-4344-8168-06b3d5e7ef76.lovable.app-1780324283535.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/14d927e7-a872-42c4-aaca-7f87bf99b00e/id-preview-96f48b8a--ac16331c-b821-4344-8168-06b3d5e7ef76.lovable.app-1780324283535.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:type", content: "website" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
