@@ -211,6 +211,7 @@ export function Plate3D({
             return <FoodMesh key={it.id} item={it} opacity={opacity} />;
           })}
         </Canvas>
+        )}
       </div>
       <div className="-mt-6 flex flex-col items-center pointer-events-none">
         <div
