@@ -181,9 +181,13 @@ export function Plate3D({
   const fillPct = goalKcal > 0 ? consumedKcal / goalKcal : 0;
   const over = remainingKcal < 0;
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   return (
     <div className="relative mx-auto w-full">
       <div className="h-[300px] w-full">
+        {mounted && (
         <Canvas
           shadows
           dpr={[1, 2]}
