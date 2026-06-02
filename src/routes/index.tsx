@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Plate3D } from "@/components/Plate3D";
-import { GLBTest } from "@/components/GLBTest";
 import { MealCard } from "@/components/MealCard";
 import { WeekStrip } from "@/components/WeekStrip";
 import { ScreenHeader } from "@/components/ScreenHeader";
@@ -81,9 +80,6 @@ function TodayPage() {
         />
       </div>
 
-      <section className="px-4 py-2">
-        <GLBTest />
-      </section>
 
       <section className="px-4 py-2">
         <Plate3D
