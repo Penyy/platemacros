@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { PlateVisual } from "@/components/PlateVisual";
+import { Plate3D } from "@/components/Plate3D";
 import { MealCard } from "@/components/MealCard";
 import { WeekStrip } from "@/components/WeekStrip";
 import { ScreenHeader } from "@/components/ScreenHeader";
@@ -81,13 +81,9 @@ function TodayPage() {
       </div>
 
       <section className="px-4 py-2">
-        <PlateVisual
-          protein={sum.protein}
-          carbs={sum.carbs}
-          fat={sum.fat}
-          goalP={profile.goal_protein}
-          goalC={profile.goal_carbs}
-          goalF={profile.goal_fat}
+        <Plate3D
+          entries={dayEntries}
+          dayKey={selected}
           remainingKcal={remaining}
           goalKcal={adjustedGoal}
           consumedKcal={sum.kcal}
