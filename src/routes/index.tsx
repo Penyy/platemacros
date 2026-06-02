@@ -80,9 +80,6 @@ function TodayPage() {
         />
       </div>
 
-      <section className="px-4 py-2">
-        <GLBTest />
-      </section>
 
       <section className="px-4 py-2">
         <Plate3D
