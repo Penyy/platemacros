@@ -144,6 +144,17 @@ function AppleInstance({
   onExited,
   exiting,
 }: AppleInstanceProps) {
+  const { s, lift } = useSpring({
+    from: { s: 0, lift: 0.35 },
+    to: exiting ? { s: 0, lift: 0.4 } : { s: 1, lift: 0 },
+    config: exiting
+      ? { tension: 220, friction: 22, mass: 0.6 }
+      : { tension: 260, friction: 14, mass: 0.7 },
+    onRest: () => {
+      if (exiting) onExited();
+    },
+  });
+
   const { object, bottomOffset } = useMemo(() => {
     const obj = variant.template.clone(true);
     // Apply intended rotation onto a temp wrapper to measure bbox post-rotation,
