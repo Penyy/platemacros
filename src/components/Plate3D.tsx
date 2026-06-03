@@ -224,13 +224,8 @@ function planApples(
 ): PlannedApple[] {
   if (variants.length === 0) return [];
   const wholes = variants.filter((v) => v.kind === "whole");
-  const halves = variants.filter((v) => v.kind === "half");
-  const slices = variants.filter((v) => v.kind === "slice");
-  const cut = [...halves, ...slices];
   const pickWhole = (rand: () => number) =>
     wholes.length ? wholes[Math.floor(rand() * wholes.length)] : variants[0];
-  const pickCut = (rand: () => number) =>
-    cut.length ? cut[Math.floor(rand() * cut.length)] : pickWhole(rand);
 
   // Stable seed per day, but reused across renders so positions don't jitter
   const seedBase = Array.from(dayKey).reduce((a, c) => a + c.charCodeAt(0), 0);
