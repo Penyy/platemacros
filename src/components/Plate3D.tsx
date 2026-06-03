@@ -75,51 +75,56 @@ function buildVariants(scene: THREE.Object3D, nodes: Record<string, THREE.Object
     if ((obj as THREE.Mesh).isMesh) meshes.push(obj as THREE.Mesh);
   });
 
-  const classify = (n: string): AppleVariantKind => {
-    const s = n.toLowerCase();
-    if (/(slice|wedge|segment|piece|cut)/.test(s)) return "slice";
-    if (/(half|halve)/.test(s)) return "half";
-    return "whole";
-  };
+  const isCut = (n: string) => /(slice|wedge|segment|piece|cut|half|halve)/i.test(n);
 
-  const variants: AppleVariant[] = [];
-
+  // Group meshes by their top-level parent under scene — a "whole apple"
+  // usually includes the body mesh + a small leaf mesh. We want both together.
+  const groups = new Map<THREE.Object3D, THREE.Mesh[]>();
   for (const mesh of meshes) {
-    const clone = mesh.clone(true);
-    clone.visible = true;
-    const wrapper = new THREE.Group();
-    wrapper.add(clone);
-
-    // Normalize: center on origin, scale to height = APPLE_HEIGHT, sit on y=0
-    const box = new THREE.Box3().setFromObject(wrapper);
-    const size = new THREE.Vector3();
-    const center = new THREE.Vector3();
-    box.getSize(size);
-    box.getCenter(center);
-    if (size.y <= 0.0001) continue;
-
-    clone.position.sub(center);
-    const scale = APPLE_HEIGHT / size.y;
-    wrapper.scale.setScalar(scale);
-
-    const box2 = new THREE.Box3().setFromObject(wrapper);
-    wrapper.position.y -= box2.min.y;
-
-    wrapper.traverse((obj) => {
-      if ((obj as THREE.Mesh).isMesh) {
-        (obj as THREE.Mesh).castShadow = true;
-        (obj as THREE.Mesh).receiveShadow = true;
-      }
-    });
-
-    variants.push({
-      name: mesh.name || `mesh_${variants.length}`,
-      kind: classify(mesh.name || ""),
-      template: wrapper,
-    });
+    if (isCut(mesh.name)) continue;
+    let top: THREE.Object3D = mesh;
+    while (top.parent && top.parent !== scene) top = top.parent;
+    if (isCut(top.name)) continue;
+    const arr = groups.get(top) ?? [];
+    arr.push(mesh);
+    groups.set(top, arr);
   }
 
-  return variants;
+  // Pick the group with the largest bbox volume — that's the whole apple
+  let best: { source: THREE.Object3D; box: THREE.Box3; size: THREE.Vector3 } | null = null;
+  for (const [, group] of groups) {
+    const tmp = new THREE.Group();
+    for (const m of group) tmp.add(m.clone(true));
+    const box = new THREE.Box3().setFromObject(tmp);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const vol = size.x * size.y * size.z;
+    if (!best || vol > best.box.getSize(new THREE.Vector3()).x * best.box.getSize(new THREE.Vector3()).y * best.box.getSize(new THREE.Vector3()).z) {
+      best = { source: tmp, box, size };
+    }
+  }
+
+  if (!best || best.size.y <= 0.0001) return [];
+
+  const wrapper = new THREE.Group();
+  wrapper.add(best.source);
+  const center = new THREE.Vector3();
+  best.box.getCenter(center);
+  best.source.position.sub(center);
+  const scale = APPLE_HEIGHT / best.size.y;
+  wrapper.scale.setScalar(scale);
+
+  const finalBox = new THREE.Box3().setFromObject(wrapper);
+  wrapper.position.y -= finalBox.min.y;
+
+  wrapper.traverse((obj) => {
+    if ((obj as THREE.Mesh).isMesh) {
+      (obj as THREE.Mesh).castShadow = true;
+      (obj as THREE.Mesh).receiveShadow = true;
+    }
+  });
+
+  return [{ name: "whole", kind: "whole" as const, template: wrapper }];
 }
 
 /* ---------- Apple instance with spring ---------- */
