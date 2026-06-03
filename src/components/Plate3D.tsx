@@ -229,34 +229,28 @@ function planApples(
     const rand = seededRand(seedBase * 1000 + i * 97 + 13);
     if (i < ON_PLATE_SLOTS.length) {
       const [sx, sz] = ON_PLATE_SLOTS[i];
-      // small jitter
-      const x = sx + (rand() - 0.5) * 0.18;
-      const z = sz + (rand() - 0.5) * 0.18;
       const rotY = rand() * Math.PI * 2;
-      const tilt = (rand() - 0.5) * 0.18;
-      const tilt2 = (rand() - 0.5) * 0.18;
-      // mostly whole on the plate; occasional half
-      const useCut = i > 0 && rand() < 0.25 && cut.length > 0;
-      const variant = useCut ? pickCut(rand) : pickWhole(rand);
+      const variant = pickWhole(rand);
       planned.push({
         id: `on-${i}`,
         variant,
-        position: [x, plateTopY, z],
-        rotation: [tilt, rotY, tilt2],
+        position: [sx, plateTopY, sz],
+        rotation: [0, rotY, 0],
       });
     } else {
       const off = OFF_PLATE_SLOTS[(i - ON_PLATE_SLOTS.length) % OFF_PLATE_SLOTS.length];
-      const x = off[0] + (rand() - 0.5) * 0.3;
-      const z = off[1] + (rand() - 0.5) * 0.3;
-      // toppled on side -> rotate ~PI/2 on X or Z
-      const rotX = Math.PI / 2 + (rand() - 0.5) * 0.4;
+      const x = off[0];
+      const z = off[1];
+      // toppled on side -> rotate ~PI/2 on X (axis chosen via rand)
+      const onX = rand() < 0.5;
+      const rotX = onX ? Math.PI / 2 : 0;
+      const rotZ = onX ? 0 : Math.PI / 2;
       const rotY = rand() * Math.PI * 2;
-      const rotZ = (rand() - 0.5) * 0.4;
-      const variant = pickCut(rand);
+      const variant = pickWhole(rand);
       planned.push({
         id: `off-${i}`,
         variant,
-        position: [x, 0, z],
+        position: [x, APPLE_HEIGHT / 2, z],
         rotation: [rotX, rotY, rotZ],
       });
     }
