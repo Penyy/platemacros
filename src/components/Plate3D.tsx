@@ -383,7 +383,7 @@ export function Plate3D({
   const hasFood = entries.length > 0;
 
   const unit = goalKcal > 0 ? goalKcal / 5 : 0;
-  const appleCount = hasFood && unit > 0 ? Math.min(8, Math.floor(consumedKcal / unit)) : 0;
+  const appleCount = hasFood && unit > 0 ? Math.min(11, Math.floor(consumedKcal / unit)) : 0;
 
   const polar = Math.PI * 0.32;
 
