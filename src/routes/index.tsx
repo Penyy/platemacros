@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Plate3D } from "@/components/Plate3D";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+const Plate3D = lazy(() => import("@/components/Plate3D"));
 import { MealCard } from "@/components/MealCard";
 import { WeekStrip } from "@/components/WeekStrip";
 import { ScreenHeader } from "@/components/ScreenHeader";
