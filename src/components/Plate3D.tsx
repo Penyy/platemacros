@@ -144,26 +144,23 @@ function AppleInstance({
   onExited,
   exiting,
 }: AppleInstanceProps) {
-  const object = useMemo(() => variant.template.clone(true), [variant]);
-
-  const { s, lift } = useSpring({
-    from: { s: 0, lift: 0.35 },
-    to: exiting
-      ? { s: 0, lift: 0.4 }
-      : { s: 1, lift: 0 },
-    config: exiting
-      ? { tension: 220, friction: 22, mass: 0.6 }
-      : { tension: 260, friction: 14, mass: 0.7 }, // overshoot ~1.12
-    onRest: () => {
-      if (exiting) onExited();
-    },
-  });
+  const { object, bottomOffset } = useMemo(() => {
+    const obj = variant.template.clone(true);
+    // Apply intended rotation onto a temp wrapper to measure bbox post-rotation,
+    // so position.y = surface - box.min.y truly seats the apple on the surface.
+    const probe = new THREE.Group();
+    probe.add(obj.clone(true));
+    probe.rotation.set(rotation[0], rotation[1], rotation[2]);
+    probe.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(probe);
+    return { object: obj, bottomOffset: -box.min.y };
+  }, [variant, rotation]);
 
   return (
     <animated.group
       position-x={position[0]}
       position-z={position[2]}
-      position-y={lift.to((l) => position[1] + l)}
+      position-y={lift.to((l) => position[1] + bottomOffset + l)}
       rotation={rotation}
       scale={s}
     >
