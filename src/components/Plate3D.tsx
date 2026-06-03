@@ -252,19 +252,13 @@ function planApples(
       });
     } else {
       const off = OFF_PLATE_SLOTS[(i - ON_PLATE_SLOTS.length) % OFF_PLATE_SLOTS.length];
-      const x = off[0];
-      const z = off[1];
-      // toppled on side -> rotate ~PI/2 on X (axis chosen via rand)
-      const onX = rand() < 0.5;
-      const rotX = onX ? Math.PI / 2 : 0;
-      const rotZ = onX ? 0 : Math.PI / 2;
       const rotY = rand() * Math.PI * 2;
       const variant = pickWhole(rand);
       planned.push({
         id: `off-${i}`,
         variant,
-        position: [x, APPLE_HEIGHT / 2, z],
-        rotation: [rotX, rotY, rotZ],
+        position: [off[0], 0, off[1]],
+        rotation: [0, rotY, 0],
       });
     }
   }
