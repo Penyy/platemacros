@@ -45,6 +45,8 @@ function titleFor(date: string) {
 }
 
 function TodayPage() {
+  const [clientReady, setClientReady] = useState(false);
+  useEffect(() => setClientReady(true), []);
   const [selected, setSelected] = useState(() => ymd(new Date()));
   const [weekOffset, setWeekOffset] = useState(0);
   const [editingBurned, setEditingBurned] = useState(false);
