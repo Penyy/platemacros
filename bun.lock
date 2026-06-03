@@ -33,6 +33,8 @@
         "@radix-ui/react-toggle": "^1.1.10",
         "@radix-ui/react-toggle-group": "^1.1.11",
         "@radix-ui/react-tooltip": "^1.2.8",
+        "@react-spring/three": "^10.1.0",
+        "@react-spring/web": "^10.1.0",
         "@react-three/drei": "^10.7.7",
         "@react-three/fiber": "^9.6.1",
         "@supabase/supabase-js": "^2.106.2",
@@ -394,6 +396,20 @@
     "@radix-ui/react-visually-hidden": ["@radix-ui/react-visually-hidden@1.2.3", "", { "dependencies": { "@radix-ui/react-primitive": "2.1.3" }, "peerDependencies": { "@types/react": "*", "@types/react-dom": "*", "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc", "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react", "@types/react-dom"] }, "sha512-pzJq12tEaaIhqjbzpCuv/OypJY/BPavOofm+dbab+MHLajy277+1lLm6JFcGgF5eskJ6mquGirhXY2GD/8u8Ug=="],
 
     "@radix-ui/rect": ["@radix-ui/rect@1.1.1", "", {}, "sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw=="],
+
+    "@react-spring/animated": ["@react-spring/animated@10.1.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@react-spring/animated/-/animated-10.1.0.tgz", { "dependencies": { "@react-spring/shared": "~10.1.0", "@react-spring/types": "~10.1.0" }, "peerDependencies": { "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-dvGVSfNYhbkzTAnyB1S1940ZiKp6/Ey+b2vQc70dJ5k6gzH/GdlfeDzCh65V94b6OPqF7Xl4VUICVUQpc07iUg=="],
+
+    "@react-spring/core": ["@react-spring/core@10.1.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@react-spring/core/-/core-10.1.0.tgz", { "dependencies": { "@react-spring/animated": "~10.1.0", "@react-spring/shared": "~10.1.0", "@react-spring/types": "~10.1.0" }, "peerDependencies": { "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-XUG3UCCCxay6lYjBU2KOKzEgC1sx/w44ouB5gRh2Ex6rVJOdPcGVg7JJUIOAQo7uhKGfQdCQU4qUZaQnmInZPQ=="],
+
+    "@react-spring/rafz": ["@react-spring/rafz@10.1.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@react-spring/rafz/-/rafz-10.1.0.tgz", {}, "sha512-e/LRnNmvmg8Agl4j3MGcjHuSTSBcCrxr3xeoWdodxpLWeTHY1pHl8PJDOCEJ2Pj6BMdEBaWFRAX7uxRo1FLzCg=="],
+
+    "@react-spring/shared": ["@react-spring/shared@10.1.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@react-spring/shared/-/shared-10.1.0.tgz", { "dependencies": { "@react-spring/rafz": "~10.1.0", "@react-spring/types": "~10.1.0" }, "peerDependencies": { "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-ogIUujWxdwcsQ2Vp2hZs+KehvH8tKeWGHsFb1eRBYoePzhKS541Qg1JfFlQ7ursBUwwPDBQ5Wpwn+Cwx6WV1PQ=="],
+
+    "@react-spring/three": ["@react-spring/three@10.1.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@react-spring/three/-/three-10.1.0.tgz", { "dependencies": { "@react-spring/animated": "~10.1.0", "@react-spring/core": "~10.1.0", "@react-spring/shared": "~10.1.0", "@react-spring/types": "~10.1.0" }, "peerDependencies": { "@react-three/fiber": ">=6.0", "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0", "three": ">=0.126" } }, "sha512-/XhDlpfVfsmIBMzK38M999oexmeyt+wlTLc66XTJKR/XlRpo9dpCGA+6viS+XjwEfD/S9/GlDrsTBy6vKiuxZA=="],
+
+    "@react-spring/types": ["@react-spring/types@10.1.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@react-spring/types/-/types-10.1.0.tgz", {}, "sha512-RkJAlkAZ5yZSRBMOSidamioBHLjf8wGKbtr3pZ5iKoHFNQuNM2k6DqJDIEUcNQlWRZXny6Eqys2c9NdugdbdyQ=="],
+
+    "@react-spring/web": ["@react-spring/web@10.1.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@react-spring/web/-/web-10.1.0.tgz", { "dependencies": { "@react-spring/animated": "~10.1.0", "@react-spring/core": "~10.1.0", "@react-spring/shared": "~10.1.0", "@react-spring/types": "~10.1.0", "csstype": "^3.2.3" }, "peerDependencies": { "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0", "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-mIj/lJ+1eI4tLSkIloaSNjmuriTDZY9bbQ/GFGcbVGfOKzWb5JOMMKiuHACh8J3m0+se3KqcWdg/JoALVloE7g=="],
 
     "@react-three/drei": ["@react-three/drei@10.7.7", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@react-three/drei/-/drei-10.7.7.tgz", { "dependencies": { "@babel/runtime": "^7.26.0", "@mediapipe/tasks-vision": "0.10.17", "@monogrid/gainmap-js": "^3.0.6", "@use-gesture/react": "^10.3.1", "camera-controls": "^3.1.0", "cross-env": "^7.0.3", "detect-gpu": "^5.0.56", "glsl-noise": "^0.0.0", "hls.js": "^1.5.17", "maath": "^0.10.8", "meshline": "^3.3.1", "stats-gl": "^2.2.8", "stats.js": "^0.17.0", "suspend-react": "^0.1.3", "three-mesh-bvh": "^0.8.3", "three-stdlib": "^2.35.6", "troika-three-text": "^0.52.4", "tunnel-rat": "^0.1.2", "use-sync-external-store": "^1.4.0", "utility-types": "^3.11.0", "zustand": "^5.0.1" }, "peerDependencies": { "@react-three/fiber": "^9.0.0", "react": "^19", "react-dom": "^19", "three": ">=0.159" }, "optionalPeers": ["react-dom"] }, "sha512-ff+J5iloR0k4tC++QtD/j9u3w5fzfgFAWDtAGQah9pF2B1YgOq/5JxqY0/aVoQG5r3xSZz0cv5tk2YuBob4xEQ=="],
 

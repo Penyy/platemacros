@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import { useGLTF, OrbitControls, Environment, ContactShadows, PerspectiveCamera } from "@react-three/drei";
+import {
+  useGLTF,
+  OrbitControls,
+  Environment,
+  ContactShadows,
+  PerspectiveCamera,
+} from "@react-three/drei";
+import { useSpring, animated, config } from "@react-spring/three";
 import * as THREE from "three";
 import type { LogEntry } from "@/lib/store";
 
@@ -10,8 +17,11 @@ const APPLE_URL = "https://cdn.jsdelivr.net/gh/Penyy/plate-models@main/apple.glb
 useGLTF.preload(PLATE_URL);
 useGLTF.preload(APPLE_URL);
 
-const PLATE_DIAMETER = 4;
-const APPLE_HEIGHT = 0.7;
+const PLATE_DIAMETER = 3.0;
+const APPLE_HEIGHT = 1.0;
+const PLATE_RADIUS = PLATE_DIAMETER / 2;
+
+/* ---------- Plate ---------- */
 
 function PlateModel({ onTopY }: { onTopY: (y: number) => void }) {
   const { scene } = useGLTF(PLATE_URL);
@@ -22,16 +32,19 @@ function PlateModel({ onTopY }: { onTopY: (y: number) => void }) {
     const center = new THREE.Vector3();
     box.getSize(size);
     box.getCenter(center);
-    // Center to origin
     root.position.sub(center);
-    // Scale so the largest horizontal dimension (diameter) = PLATE_DIAMETER
     const maxXZ = Math.max(size.x, size.z);
     const scale = maxXZ > 0 ? PLATE_DIAMETER / maxXZ : 1;
     root.scale.setScalar(scale);
-    // After scaling, lift so bottom sits at y=0
     const box2 = new THREE.Box3().setFromObject(root);
     root.position.y -= box2.min.y;
     const finalBox = new THREE.Box3().setFromObject(root);
+    root.traverse((obj) => {
+      if ((obj as THREE.Mesh).isMesh) {
+        (obj as THREE.Mesh).castShadow = true;
+        (obj as THREE.Mesh).receiveShadow = true;
+      }
+    });
     return { root, topY: finalBox.max.y };
   }, [scene]);
 
@@ -39,117 +52,316 @@ function PlateModel({ onTopY }: { onTopY: (y: number) => void }) {
     onTopY(prepared.topY);
   }, [prepared.topY, onTopY]);
 
-  // Enable shadows on meshes
-  useEffect(() => {
-    prepared.root.traverse((obj) => {
+  return <primitive object={prepared.root} />;
+}
+
+/* ---------- Apple variants ---------- */
+
+type AppleVariantKind = "whole" | "half" | "slice";
+
+interface AppleVariant {
+  name: string;
+  kind: AppleVariantKind;
+  /** A reusable Object3D template (already normalized to APPLE_HEIGHT, bottom at y=0). */
+  template: THREE.Object3D;
+}
+
+function buildVariants(scene: THREE.Object3D, nodes: Record<string, THREE.Object3D>) {
+  // eslint-disable-next-line no-console
+  console.log("apple.glb nodes:", Object.keys(nodes));
+
+  const meshes: THREE.Mesh[] = [];
+  scene.traverse((obj) => {
+    if ((obj as THREE.Mesh).isMesh) meshes.push(obj as THREE.Mesh);
+  });
+
+  const classify = (n: string): AppleVariantKind => {
+    const s = n.toLowerCase();
+    if (/(slice|wedge|segment|piece|cut)/.test(s)) return "slice";
+    if (/(half|halve)/.test(s)) return "half";
+    return "whole";
+  };
+
+  const variants: AppleVariant[] = [];
+
+  for (const mesh of meshes) {
+    const clone = mesh.clone(true);
+    clone.visible = true;
+    const wrapper = new THREE.Group();
+    wrapper.add(clone);
+
+    // Normalize: center on origin, scale to height = APPLE_HEIGHT, sit on y=0
+    const box = new THREE.Box3().setFromObject(wrapper);
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+    if (size.y <= 0.0001) continue;
+
+    clone.position.sub(center);
+    const scale = APPLE_HEIGHT / size.y;
+    wrapper.scale.setScalar(scale);
+
+    const box2 = new THREE.Box3().setFromObject(wrapper);
+    wrapper.position.y -= box2.min.y;
+
+    wrapper.traverse((obj) => {
       if ((obj as THREE.Mesh).isMesh) {
         (obj as THREE.Mesh).castShadow = true;
         (obj as THREE.Mesh).receiveShadow = true;
       }
     });
-  }, [prepared]);
 
-  return <primitive object={prepared.root} />;
+    variants.push({
+      name: mesh.name || `mesh_${variants.length}`,
+      kind: classify(mesh.name || ""),
+      template: wrapper,
+    });
+  }
+
+  return variants;
 }
 
-function AppleModel({ surfaceY }: { surfaceY: number }) {
-  const { scene, nodes } = useGLTF(APPLE_URL);
+/* ---------- Apple instance with spring ---------- */
 
-  const prepared = useMemo(() => {
-    // Log node names to help identify the whole apple
-    // eslint-disable-next-line no-console
-    console.log("apple.glb nodes:", Object.keys(nodes));
+interface AppleInstanceProps {
+  variant: AppleVariant;
+  position: [number, number, number];
+  rotation: [number, number, number];
+  onExited: () => void;
+  exiting: boolean;
+}
 
-    const cloned = scene.clone(true);
+function AppleInstance({
+  variant,
+  position,
+  rotation,
+  onExited,
+  exiting,
+}: AppleInstanceProps) {
+  const object = useMemo(() => variant.template.clone(true), [variant]);
 
-    // Find candidate meshes
-    const meshes: THREE.Mesh[] = [];
-    cloned.traverse((obj) => {
-      if ((obj as THREE.Mesh).isMesh) meshes.push(obj as THREE.Mesh);
-    });
+  const { s, lift } = useSpring({
+    from: { s: 0, lift: 0.35 },
+    to: exiting
+      ? { s: 0, lift: 0.4 }
+      : { s: 1, lift: 0 },
+    config: exiting
+      ? { tension: 220, friction: 22, mass: 0.6 }
+      : { tension: 260, friction: 14, mass: 0.7 }, // overshoot ~1.12
+    onRest: () => {
+      if (exiting) onExited();
+    },
+  });
 
-    // Try to find a whole apple by name keywords
-    const wholeKeywords = ["whole", "full", "apple_full", "apple1", "apple_1", "complete"];
-    const sliceKeywords = ["half", "slice", "quarter", "piece", "cut", "wedge", "segment"];
+  return (
+    <animated.group
+      position-x={position[0]}
+      position-z={position[2]}
+      position-y={lift.to((l) => position[1] + l)}
+      rotation={rotation}
+      scale={s}
+    >
+      <primitive object={object} />
+    </animated.group>
+  );
+}
 
-    let wholeMeshes: THREE.Mesh[] = meshes.filter((m) => {
-      const n = m.name.toLowerCase();
-      return wholeKeywords.some((k) => n.includes(k));
-    });
+/* ---------- Slot generation ---------- */
 
-    if (wholeMeshes.length === 0) {
-      // Exclude obvious slice/half meshes
-      const nonSlice = meshes.filter((m) => {
-        const n = m.name.toLowerCase();
-        return !sliceKeywords.some((k) => n.includes(k));
+// Five on-plate slots within radius ~1.0 of plate center
+const ON_PLATE_SLOTS: Array<[number, number]> = [
+  [0, 0],
+  [0.7, 0.4],
+  [-0.6, 0.5],
+  [0.4, -0.6],
+  [-0.5, -0.5],
+];
+
+// Off-plate "spilled" positions (on the surface y=0, outside plate radius)
+const OFF_PLATE_SLOTS: Array<[number, number]> = [
+  [2.0, 0.4],
+  [-2.0, -0.3],
+  [1.6, -1.4],
+];
+
+function seededRand(seed: number) {
+  let s = seed >>> 0;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 0xffffffff;
+  };
+}
+
+interface PlannedApple {
+  id: string;
+  variant: AppleVariant;
+  position: [number, number, number];
+  rotation: [number, number, number];
+}
+
+function planApples(
+  count: number,
+  variants: AppleVariant[],
+  plateTopY: number,
+  dayKey: string,
+): PlannedApple[] {
+  if (variants.length === 0) return [];
+  const wholes = variants.filter((v) => v.kind === "whole");
+  const halves = variants.filter((v) => v.kind === "half");
+  const slices = variants.filter((v) => v.kind === "slice");
+  const cut = [...halves, ...slices];
+  const pickWhole = (rand: () => number) =>
+    wholes.length ? wholes[Math.floor(rand() * wholes.length)] : variants[0];
+  const pickCut = (rand: () => number) =>
+    cut.length ? cut[Math.floor(rand() * cut.length)] : pickWhole(rand);
+
+  // Stable seed per day, but reused across renders so positions don't jitter
+  const seedBase = Array.from(dayKey).reduce((a, c) => a + c.charCodeAt(0), 0);
+
+  const planned: PlannedApple[] = [];
+  const max = Math.min(count, 8);
+
+  for (let i = 0; i < max; i++) {
+    const rand = seededRand(seedBase * 1000 + i * 97 + 13);
+    if (i < ON_PLATE_SLOTS.length) {
+      const [sx, sz] = ON_PLATE_SLOTS[i];
+      // small jitter
+      const x = sx + (rand() - 0.5) * 0.18;
+      const z = sz + (rand() - 0.5) * 0.18;
+      const rotY = rand() * Math.PI * 2;
+      const tilt = (rand() - 0.5) * 0.18;
+      const tilt2 = (rand() - 0.5) * 0.18;
+      // mostly whole on the plate; occasional half
+      const useCut = i > 0 && rand() < 0.25 && cut.length > 0;
+      const variant = useCut ? pickCut(rand) : pickWhole(rand);
+      planned.push({
+        id: `on-${i}`,
+        variant,
+        position: [x, plateTopY, z],
+        rotation: [tilt, rotY, tilt2],
       });
-      // Pick the largest contiguous mesh (by bounding box volume)
-      const candidates = nonSlice.length > 0 ? nonSlice : meshes;
-      let best: THREE.Mesh | null = null;
-      let bestVol = -1;
-      for (const m of candidates) {
-        const b = new THREE.Box3().setFromObject(m);
-        const s = new THREE.Vector3();
-        b.getSize(s);
-        const vol = s.x * s.y * s.z;
-        if (vol > bestVol) {
-          bestVol = vol;
-          best = m;
-        }
-      }
-      if (best) wholeMeshes = [best];
+    } else {
+      const off = OFF_PLATE_SLOTS[(i - ON_PLATE_SLOTS.length) % OFF_PLATE_SLOTS.length];
+      const x = off[0] + (rand() - 0.5) * 0.3;
+      const z = off[1] + (rand() - 0.5) * 0.3;
+      // toppled on side -> rotate ~PI/2 on X or Z
+      const rotX = Math.PI / 2 + (rand() - 0.5) * 0.4;
+      const rotY = rand() * Math.PI * 2;
+      const rotZ = (rand() - 0.5) * 0.4;
+      const variant = pickCut(rand);
+      planned.push({
+        id: `off-${i}`,
+        variant,
+        position: [x, 0, z],
+        rotation: [rotX, rotY, rotZ],
+      });
     }
+  }
 
-    const wholeSet = new Set(wholeMeshes);
-    // Hide every other mesh
-    cloned.traverse((obj) => {
-      if ((obj as THREE.Mesh).isMesh) {
-        const m = obj as THREE.Mesh;
-        m.visible = wholeSet.has(m);
-        if (m.visible) {
-          m.castShadow = true;
-          m.receiveShadow = true;
-        }
-      }
-    });
-
-    // Wrap visible meshes in a group so we can normalize transform
-    const group = new THREE.Group();
-    // Compute bbox over visible parts
-    const box = new THREE.Box3();
-    let hasAny = false;
-    wholeMeshes.forEach((m) => {
-      const b = new THREE.Box3().setFromObject(m);
-      if (!hasAny) {
-        box.copy(b);
-        hasAny = true;
-      } else {
-        box.union(b);
-      }
-    });
-
-    const size = new THREE.Vector3();
-    const center = new THREE.Vector3();
-    box.getSize(size);
-    box.getCenter(center);
-
-    // Move the whole cloned scene so bbox center is at origin
-    cloned.position.sub(center);
-    group.add(cloned);
-
-    const scale = size.y > 0 ? APPLE_HEIGHT / size.y : 1;
-    group.scale.setScalar(scale);
-
-    // After scaling, lift so apple bottom rests at surfaceY
-    return { group, scale };
-  }, [scene, nodes]);
-
-  // Position: bottom on surfaceY
-  // After centering & scaling, bbox bottom = -size.y/2 * scale = -APPLE_HEIGHT/2
-  prepared.group.position.set(0, surfaceY + APPLE_HEIGHT / 2, 0);
-
-  return <primitive object={prepared.group} />;
+  return planned;
 }
+
+/* ---------- Apples wrapper that handles enter/exit ---------- */
+
+function ApplesLayer({
+  count,
+  plateTopY,
+  dayKey,
+}: {
+  count: number;
+  plateTopY: number;
+  dayKey: string;
+}) {
+  const { scene, nodes } = useGLTF(APPLE_URL) as unknown as {
+    scene: THREE.Object3D;
+    nodes: Record<string, THREE.Object3D>;
+  };
+  const variants = useMemo(() => buildVariants(scene, nodes), [scene, nodes]);
+
+  const planned = useMemo(
+    () => planApples(count, variants, plateTopY, dayKey),
+    [count, variants, plateTopY, dayKey],
+  );
+
+  // Track which ids are currently mounted (so we can animate out removed ones)
+  const [exiting, setExiting] = useState<Map<string, PlannedApple>>(new Map());
+  const prevIdsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    const nextIds = new Set(planned.map((p) => p.id));
+    const prev = prevIdsRef.current;
+    const removed: PlannedApple[] = [];
+    // Find ids that were present before but no longer present
+    // We need their old plan to render them while exiting
+    prev.forEach((id) => {
+      if (!nextIds.has(id)) {
+        const old = exitingPlanRef.current.get(id);
+        if (old) removed.push(old);
+      }
+    });
+    prevIdsRef.current = nextIds;
+    // Save current plan for future removals
+    planned.forEach((p) => exitingPlanRef.current.set(p.id, p));
+
+    if (removed.length > 0) {
+      setExiting((m) => {
+        const next = new Map(m);
+        removed.forEach((r) => next.set(r.id, r));
+        return next;
+      });
+    }
+    // Drop exiting entries that are now back in the plan
+    setExiting((m) => {
+      if (m.size === 0) return m;
+      let changed = false;
+      const next = new Map(m);
+      m.forEach((_v, id) => {
+        if (nextIds.has(id)) {
+          next.delete(id);
+          changed = true;
+        }
+      });
+      return changed ? next : m;
+    });
+  }, [planned]);
+
+  const exitingPlanRef = useRef<Map<string, PlannedApple>>(new Map());
+
+  return (
+    <>
+      {planned.map((p) => (
+        <AppleInstance
+          key={p.id}
+          variant={p.variant}
+          position={p.position}
+          rotation={p.rotation}
+          exiting={false}
+          onExited={() => {}}
+        />
+      ))}
+      {Array.from(exiting.values()).map((p) => (
+        <AppleInstance
+          key={`exit-${p.id}`}
+          variant={p.variant}
+          position={p.position}
+          rotation={p.rotation}
+          exiting
+          onExited={() =>
+            setExiting((m) => {
+              if (!m.has(p.id)) return m;
+              const next = new Map(m);
+              next.delete(p.id);
+              return next;
+            })
+          }
+        />
+      ))}
+    </>
+  );
+}
+
+/* ---------- Main component ---------- */
 
 interface Props {
   entries: LogEntry[];
@@ -161,6 +373,7 @@ interface Props {
 
 export function Plate3D({
   entries,
+  dayKey,
   remainingKcal,
   goalKcal,
   consumedKcal,
@@ -172,6 +385,11 @@ export function Plate3D({
   const over = remainingKcal < 0;
   const hasFood = entries.length > 0;
 
+  const unit = goalKcal > 0 ? goalKcal / 5 : 0;
+  const appleCount = hasFood && unit > 0 ? Math.min(8, Math.floor(consumedKcal / unit)) : 0;
+
+  const polar = Math.PI * 0.32;
+
   return (
     <div className="flex flex-col items-center w-full">
       <div className="h-[320px] w-full">
@@ -181,7 +399,7 @@ export function Plate3D({
             dpr={[1, 2]}
             gl={{ alpha: true, antialias: true }}
           >
-            <PerspectiveCamera makeDefault fov={35} position={[0, 3, 4.2]} />
+            <PerspectiveCamera makeDefault fov={32} position={[0, 3.3, 5.2]} />
             <ambientLight intensity={0.6} />
             <directionalLight
               position={[4, 8, 5]}
@@ -193,7 +411,13 @@ export function Plate3D({
             <Suspense fallback={null}>
               <Environment preset="studio" />
               <PlateModel onTopY={setPlateTopY} />
-              {hasFood && <AppleModel surfaceY={plateTopY} />}
+              {appleCount > 0 && (
+                <ApplesLayer
+                  count={appleCount}
+                  plateTopY={plateTopY}
+                  dayKey={dayKey}
+                />
+              )}
               <ContactShadows
                 position={[0, 0, 0]}
                 opacity={0.35}
@@ -206,9 +430,9 @@ export function Plate3D({
               enablePan={false}
               enableZoom={false}
               autoRotate
-              autoRotateSpeed={0.5}
-              minDistance={3}
-              maxDistance={7}
+              autoRotateSpeed={0.4}
+              minPolarAngle={polar}
+              maxPolarAngle={polar}
             />
           </Canvas>
         )}
@@ -233,3 +457,8 @@ export function Plate3D({
     </div>
   );
 }
+
+// Avoid unused-import warning for `config`
+void config;
+// Keep PLATE_RADIUS referenced for potential future bounds checks
+void PLATE_RADIUS;
