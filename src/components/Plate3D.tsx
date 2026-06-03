@@ -18,7 +18,7 @@ useGLTF.preload(PLATE_URL);
 useGLTF.preload(APPLE_URL);
 
 const PLATE_DIAMETER = 3.0;
-const APPLE_HEIGHT = 1.0;
+const APPLE_HEIGHT = 0.7;
 const PLATE_RADIUS = PLATE_DIAMETER / 2;
 
 /* ---------- Plate ---------- */
@@ -172,17 +172,20 @@ function AppleInstance({
 // Five on-plate slots within radius ~1.0 of plate center
 const ON_PLATE_SLOTS: Array<[number, number]> = [
   [0, 0],
-  [0.7, 0.4],
-  [-0.6, 0.5],
-  [0.4, -0.6],
-  [-0.5, -0.5],
+  [0.85, 0],
+  [-0.85, 0],
+  [0, 0.85],
+  [0, -0.85],
 ];
 
-// Off-plate "spilled" positions (on the surface y=0, outside plate radius)
+// Off-plate "spilled" positions (lying flat on surface y=0, outside plate radius)
 const OFF_PLATE_SLOTS: Array<[number, number]> = [
-  [2.0, 0.4],
-  [-2.0, -0.3],
-  [1.6, -1.4],
+  [1.9, 0.5],
+  [-1.9, -0.4],
+  [1.7, -1.5],
+  [-1.7, 1.4],
+  [2.1, -0.7],
+  [-2.1, 0.8],
 ];
 
 function seededRand(seed: number) {
