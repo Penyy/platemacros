@@ -223,7 +223,7 @@ function planApples(
   const seedBase = Array.from(dayKey).reduce((a, c) => a + c.charCodeAt(0), 0);
 
   const planned: PlannedApple[] = [];
-  const max = Math.min(count, 8);
+  const max = Math.min(count, ON_PLATE_SLOTS.length + OFF_PLATE_SLOTS.length);
 
   for (let i = 0; i < max; i++) {
     const rand = seededRand(seedBase * 1000 + i * 97 + 13);
