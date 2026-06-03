@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Plate3D } from "@/components/Plate3D";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+const Plate3D = lazy(() => import("@/components/Plate3D"));
 import { MealCard } from "@/components/MealCard";
 import { WeekStrip } from "@/components/WeekStrip";
 import { ScreenHeader } from "@/components/ScreenHeader";
@@ -45,6 +45,8 @@ function titleFor(date: string) {
 }
 
 function TodayPage() {
+  const [clientReady, setClientReady] = useState(false);
+  useEffect(() => setClientReady(true), []);
   const [selected, setSelected] = useState(() => ymd(new Date()));
   const [weekOffset, setWeekOffset] = useState(0);
   const [editingBurned, setEditingBurned] = useState(false);
@@ -82,13 +84,19 @@ function TodayPage() {
 
 
       <section className="px-4 py-2">
-        <Plate3D
-          entries={dayEntries}
-          dayKey={selected}
-          remainingKcal={remaining}
-          goalKcal={adjustedGoal}
-          consumedKcal={sum.kcal}
-        />
+        {clientReady ? (
+          <Suspense fallback={<div className="h-[320px]" />}>
+            <Plate3D
+              entries={dayEntries}
+              dayKey={selected}
+              remainingKcal={remaining}
+              goalKcal={adjustedGoal}
+              consumedKcal={sum.kcal}
+            />
+          </Suspense>
+        ) : (
+          <div className="h-[320px]" />
+        )}
         <Legend
           protein={sum.protein}
           carbs={sum.carbs}

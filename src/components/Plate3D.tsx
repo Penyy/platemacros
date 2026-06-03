@@ -459,3 +459,5 @@ export function Plate3D({
 void config;
 // Keep PLATE_RADIUS referenced for potential future bounds checks
 void PLATE_RADIUS;
+
+export default Plate3D;
