@@ -84,13 +84,19 @@ function TodayPage() {
 
 
       <section className="px-4 py-2">
-        <Plate3D
-          entries={dayEntries}
-          dayKey={selected}
-          remainingKcal={remaining}
-          goalKcal={adjustedGoal}
-          consumedKcal={sum.kcal}
-        />
+        {clientReady ? (
+          <Suspense fallback={<div className="h-[320px]" />}>
+            <Plate3D
+              entries={dayEntries}
+              dayKey={selected}
+              remainingKcal={remaining}
+              goalKcal={adjustedGoal}
+              consumedKcal={sum.kcal}
+            />
+          </Suspense>
+        ) : (
+          <div className="h-[320px]" />
+        )}
         <Legend
           protein={sum.protein}
           carbs={sum.carbs}
