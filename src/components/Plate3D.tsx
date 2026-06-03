@@ -182,23 +182,23 @@ function AppleInstance({
 
 /* ---------- Slot generation ---------- */
 
-// Five on-plate slots within radius ~1.0 of plate center
+// Five on-plate slots within radius ~0.8 of plate center
 const ON_PLATE_SLOTS: Array<[number, number]> = [
   [0, 0],
-  [0.85, 0],
-  [-0.85, 0],
-  [0, 0.85],
-  [0, -0.85],
+  [0.8, 0],
+  [-0.8, 0],
+  [0, 0.8],
+  [0, -0.8],
 ];
 
-// Off-plate "spilled" positions (lying flat on surface y=0, outside plate radius)
+// Off-plate "spilled" positions (standing on surface y=0, outside plate radius)
 const OFF_PLATE_SLOTS: Array<[number, number]> = [
-  [1.9, 0.5],
+  [1.9, 0.4],
   [-1.9, -0.4],
-  [1.7, -1.5],
-  [-1.7, 1.4],
-  [2.1, -0.7],
-  [-2.1, 0.8],
+  [1.5, -1.5],
+  [-1.5, 1.4],
+  [2.1, -0.6],
+  [-2.1, 0.7],
 ];
 
 function seededRand(seed: number) {
