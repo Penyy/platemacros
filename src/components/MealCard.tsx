@@ -1,5 +1,6 @@
-import { motion } from "framer-motion";
-import { Plus, Coffee, UtensilsCrossed, Moon, Apple, Trash2 } from "lucide-react";
+import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
+import { Plus, Coffee, UtensilsCrossed, Moon, Apple, Trash2, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
 import { type LogEntry, type Meal, MEAL_LABEL, sumEntries, usePlate } from "@/lib/store";
 
 const MEAL_ICON: Record<Meal, React.ComponentType<{ size?: number }>> = {
@@ -20,14 +21,15 @@ interface Props {
   meal: Meal;
   entries: LogEntry[];
   onAdd: (m: Meal) => void;
+  date: string;
 }
 
-export function MealCard({ meal, entries, onAdd }: Props) {
+export function MealCard({ meal, entries, onAdd, date }: Props) {
   const Icon = MEAL_ICON[meal];
   const sum = sumEntries(entries);
   const remove = usePlate((s) => s.removeEntry);
+  const repeatMeal = usePlate((s) => s.repeatMealFromPrevDay);
 
-  // Macro composition by kcal
   const pK = sum.protein * 4;
   const cK = sum.carbs * 4;
   const fK = sum.fat * 9;
@@ -35,6 +37,12 @@ export function MealCard({ meal, entries, onAdd }: Props) {
   const pPct = totalK ? (pK / totalK) * 100 : 0;
   const cPct = totalK ? (cK / totalK) * 100 : 0;
   const fPct = totalK ? (fK / totalK) * 100 : 0;
+
+  const handleRepeat = () => {
+    const n = repeatMeal(date, meal);
+    if (n === 0) toast.message("Brak posiłku do skopiowania");
+    else toast.success(`Skopiowano ${n} ${n === 1 ? "pozycję" : "pozycje"}`);
+  };
 
   return (
     <motion.div
@@ -62,6 +70,15 @@ export function MealCard({ meal, entries, onAdd }: Props) {
         </div>
         <motion.button
           whileTap={{ scale: 0.9 }}
+          onClick={handleRepeat}
+          className="grid h-9 w-9 place-items-center rounded-full bg-foreground/10 text-foreground/80"
+          aria-label="Powtórz z wczoraj"
+          title="Powtórz z wczoraj"
+        >
+          <RotateCcw size={16} />
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.9 }}
           onClick={() => onAdd(meal)}
           className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground"
           aria-label="Dodaj do posiłku"
@@ -80,29 +97,67 @@ export function MealCard({ meal, entries, onAdd }: Props) {
 
       {entries.length > 0 && (
         <ul className="mt-3 divide-y divide-border/60">
-          {entries.map((e) => (
-            <li key={e.id} className="flex items-center gap-3 py-2">
-              <div className="flex-1 min-w-0">
-                <div className="truncate text-sm font-medium">{e.name}</div>
-                <div className="text-[11px] text-muted-foreground num-tight">
-                  {e.grams ? `${Math.round(e.grams)} g · ` : ""}
-                  B {Math.round(e.protein)} · W {Math.round(e.carbs)} · T {Math.round(e.fat)}
-                </div>
-              </div>
-              <div className="num-tight text-sm font-semibold">{Math.round(e.kcal)}</div>
-              <button
-                onClick={() => {
-                  if (confirm(`Usunąć "${e.name}"?`)) remove(e.id);
-                }}
-                className="grid h-7 w-7 place-items-center rounded-full text-muted-foreground active:scale-90 transition hover:text-[color:var(--protein)]"
-                aria-label="Usuń"
-              >
-                <Trash2 size={14} />
-              </button>
-            </li>
-          ))}
+          <AnimatePresence initial={false}>
+            {entries.map((e) => (
+              <SwipeRow key={e.id} entry={e} onDelete={() => remove(e.id)} />
+            ))}
+          </AnimatePresence>
         </ul>
       )}
     </motion.div>
+  );
+}
+
+function SwipeRow({ entry: e, onDelete }: { entry: LogEntry; onDelete: () => void }) {
+  const x = useMotionValue(0);
+  const actionOpacity = useTransform(x, [-80, -20, 0], [1, 0.4, 0]);
+
+  return (
+    <motion.li
+      layout
+      initial={{ opacity: 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0, marginTop: 0, paddingTop: 0, paddingBottom: 0 }}
+      transition={{ duration: 0.2 }}
+      className="relative overflow-hidden"
+    >
+      <motion.div
+        style={{ opacity: actionOpacity }}
+        className="pointer-events-none absolute inset-y-0 right-0 flex items-center"
+      >
+        <button
+          onClick={onDelete}
+          className="pointer-events-auto m-1 grid h-[calc(100%-0.5rem)] place-items-center rounded-xl bg-[color:var(--protein)] px-4 text-white"
+          aria-label="Usuń"
+        >
+          <Trash2 size={16} />
+        </button>
+      </motion.div>
+      <motion.div
+        drag="x"
+        dragDirectionLock
+        style={{ x }}
+        dragConstraints={{ left: -96, right: 0 }}
+        dragElastic={{ left: 0.1, right: 0 }}
+        onDragEnd={(_, info) => {
+          if (info.offset.x < -160 || info.velocity.x < -500) {
+            onDelete();
+          } else if (info.offset.x < -56) {
+            x.set(-88);
+          } else {
+            x.set(0);
+          }
+        }}
+        className="relative flex items-center gap-3 bg-card py-2 touch-pan-y"
+      >
+        <div className="flex-1 min-w-0">
+          <div className="truncate text-sm font-medium">{e.name}</div>
+          <div className="text-[11px] text-muted-foreground num-tight">
+            {e.grams ? `${Math.round(e.grams)} g · ` : ""}
+            B {Math.round(e.protein)} · W {Math.round(e.carbs)} · T {Math.round(e.fat)}
+          </div>
+        </div>
+        <div className="num-tight text-sm font-semibold">{Math.round(e.kcal)}</div>
+      </motion.div>
+    </motion.li>
   );
 }
