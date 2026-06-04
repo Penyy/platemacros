@@ -645,6 +645,44 @@ export function ymd(d: Date) {
   return `${y}-${m}-${day}`;
 }
 
+export function seedWeeklyFromProfile(p: Profile): WeeklyMacroTargets {
+  const out: WeeklyMacroTargets = {};
+  for (let i = 0; i < 7; i++) {
+    out[String(i)] = { protein: p.goal_protein, carbs: p.goal_carbs, fat: p.goal_fat };
+  }
+  return out;
+}
+
+// 0=Mon ... 6=Sun
+export function weekdayIndex(dateStr: string): number {
+  const d = new Date(dateStr + "T00:00:00");
+  return (d.getDay() + 6) % 7;
+}
+
+export interface DayGoals {
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export function getDayGoals(p: Profile, dateStr: string): DayGoals {
+  if (p.weekly_targets_enabled && p.weekly_macro_targets) {
+    const k = String(weekdayIndex(dateStr));
+    const d = p.weekly_macro_targets[k];
+    if (d) {
+      const kcal = Math.round(d.protein * 4 + d.carbs * 4 + d.fat * 9);
+      return { kcal, protein: d.protein, carbs: d.carbs, fat: d.fat };
+    }
+  }
+  return {
+    kcal: p.goal_kcal,
+    protein: p.goal_protein,
+    carbs: p.goal_carbs,
+    fat: p.goal_fat,
+  };
+}
+
 export function sumEntries(entries: LogEntry[]) {
   return entries.reduce(
     (a, e) => ({
