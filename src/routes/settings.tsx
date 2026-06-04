@@ -220,6 +220,24 @@ function SettingsPage() {
         />
       </Section>
 
+      <Section title="Cele tygodniowe">
+        <Row label="Inne cele na każdy dzień tygodnia">
+          <Switch
+            checked={!!profile.weekly_targets_enabled}
+            onCheckedChange={(v) => setWeeklyEnabled(v)}
+          />
+        </Row>
+        <p className="px-4 pb-2 pt-1 text-[11px] text-muted-foreground">
+          Dla cyklizacji węglowodanów — kcal liczone z B×4 + W×4 + T×9.
+        </p>
+        {profile.weekly_targets_enabled && (
+          <WeeklyEditor
+            value={profile.weekly_macro_targets ?? seedWeeklyFromProfile(profile)}
+            onChange={(idx, m) => setWeeklyDay(idx, m)}
+          />
+        )}
+      </Section>
+
       <Section title="Aktywność">
         <Row label="Uwzględniaj spalone kcal">
           <Switch
