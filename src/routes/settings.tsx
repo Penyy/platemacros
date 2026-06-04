@@ -7,9 +7,11 @@ import {
   type Theme,
   type LogEntry,
   type Meal,
+  type DayMacro,
   usePlate,
   readLegacyLocalStorage,
   clearLegacyLocalStorage,
+  seedWeeklyFromProfile,
 } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
