@@ -62,10 +62,20 @@ function TodayPage() {
     () => entries.filter((e) => e.date === selected),
     [entries, selected]
   );
+  const prevDate = useMemo(() => {
+    const d = new Date(selected + "T00:00:00");
+    d.setDate(d.getDate() - 1);
+    return ymd(d);
+  }, [selected]);
+  const prevEntries = useMemo(
+    () => entries.filter((e) => e.date === prevDate),
+    [entries, prevDate]
+  );
   const sum = useMemo(() => sumEntries(dayEntries), [dayEntries]);
+  const dayGoals = useMemo(() => getDayGoals(profile, selected), [profile, selected]);
   const burned = burnedMap[selected] ?? 0;
   const adjustedGoal =
-    profile.include_burned ? profile.goal_kcal + burned : profile.goal_kcal;
+    profile.include_burned ? dayGoals.kcal + burned : dayGoals.kcal;
   const remaining = adjustedGoal - sum.kcal;
 
   const dateLabel = formatDate(new Date(selected + "T00:00:00"));
