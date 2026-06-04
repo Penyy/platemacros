@@ -6,6 +6,7 @@ import { WeekStrip } from "@/components/WeekStrip";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import {
   type Meal,
+  getDayGoals,
   sumEntries,
   usePlate,
   ymd,
@@ -61,10 +62,20 @@ function TodayPage() {
     () => entries.filter((e) => e.date === selected),
     [entries, selected]
   );
+  const prevDate = useMemo(() => {
+    const d = new Date(selected + "T00:00:00");
+    d.setDate(d.getDate() - 1);
+    return ymd(d);
+  }, [selected]);
+  const prevEntries = useMemo(
+    () => entries.filter((e) => e.date === prevDate),
+    [entries, prevDate]
+  );
   const sum = useMemo(() => sumEntries(dayEntries), [dayEntries]);
+  const dayGoals = useMemo(() => getDayGoals(profile, selected), [profile, selected]);
   const burned = burnedMap[selected] ?? 0;
   const adjustedGoal =
-    profile.include_burned ? profile.goal_kcal + burned : profile.goal_kcal;
+    profile.include_burned ? dayGoals.kcal + burned : dayGoals.kcal;
   const remaining = adjustedGoal - sum.kcal;
 
   const dateLabel = formatDate(new Date(selected + "T00:00:00"));
@@ -101,9 +112,9 @@ function TodayPage() {
           protein={sum.protein}
           carbs={sum.carbs}
           fat={sum.fat}
-          goalP={profile.goal_protein}
-          goalC={profile.goal_carbs}
-          goalF={profile.goal_fat}
+          goalP={dayGoals.protein}
+          goalC={dayGoals.carbs}
+          goalF={dayGoals.fat}
         />
         <BurnedRow
           value={burned}
@@ -121,6 +132,7 @@ function TodayPage() {
             meal={m}
             date={selected}
             entries={dayEntries.filter((e) => e.meal === m)}
+            prevDayHasEntries={prevEntries.some((e) => e.meal === m)}
             onAdd={(meal) => openAdd(meal)}
           />
         ))}

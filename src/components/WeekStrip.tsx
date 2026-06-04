@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { usePlate, ymd, sumEntries } from "@/lib/store";
+import { usePlate, ymd, sumEntries, getDayGoals } from "@/lib/store";
 
 interface Props {
   selected: string;
@@ -81,7 +81,7 @@ export function WeekStrip({ selected, onSelect, weekOffset, setWeekOffset }: Pro
   base.setDate(base.getDate() + weekOffset * 7);
 
   const entries = usePlate((s) => s.entries);
-  const goalKcal = usePlate((s) => s.profile.goal_kcal);
+  const profile = usePlate((s) => s.profile);
   const includeBurned = usePlate((s) => s.profile.include_burned);
   const burnedMap = usePlate((s) => s.burned);
 
@@ -108,7 +108,8 @@ export function WeekStrip({ selected, onSelect, weekOffset, setWeekOffset }: Pro
           const isFuture = d > today && !isToday;
           const dayKcal = sumEntries(entries.filter((e) => e.date === s)).kcal;
           const dayBurned = burnedMap[s] ?? 0;
-          const effGoal = includeBurned ? goalKcal + dayBurned : goalKcal;
+          const dayGoalKcal = getDayGoals(profile, s).kcal;
+          const effGoal = includeBurned ? dayGoalKcal + dayBurned : dayGoalKcal;
           const pct = effGoal ? dayKcal / effGoal : 0;
           return (
             <button

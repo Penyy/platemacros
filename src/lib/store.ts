@@ -33,6 +33,14 @@ export interface BodyProfile {
   goal: GoalKind;
 }
 
+export interface DayMacro {
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+// key: "0"=Mon ... "6"=Sun
+export type WeeklyMacroTargets = Record<string, DayMacro>;
+
 export interface Profile {
   theme: Theme;
   goal_kcal: number;
@@ -41,6 +49,8 @@ export interface Profile {
   goal_fat: number;
   body?: BodyProfile;
   include_burned?: boolean;
+  weekly_targets_enabled?: boolean;
+  weekly_macro_targets?: WeeklyMacroTargets;
 }
 
 export interface Product {
@@ -79,6 +89,8 @@ interface State {
   setGoals: (g: Partial<Pick<Profile, "goal_kcal" | "goal_protein" | "goal_carbs" | "goal_fat">>) => void;
   setBody: (b: Partial<BodyProfile>) => void;
   setIncludeBurned: (v: boolean) => void;
+  setWeeklyEnabled: (v: boolean) => void;
+  setWeeklyDay: (dayIdx: number, m: Partial<DayMacro>) => void;
   setBurned: (date: string, kcal: number) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
   removeEntry: (id: string) => void;
@@ -157,7 +169,10 @@ export const usePlate = create<State>()((set, get) => ({
         supabase.from("daily_burned").select("date,burned_kcal").eq("user_id", uid),
       ]);
 
-      const prof = profRes.data;
+      const prof = profRes.data as (typeof profRes.data & {
+        weekly_targets_enabled?: boolean | null;
+        weekly_macro_targets?: Json | null;
+      });
       const profile: Profile = prof
         ? {
             theme: (prof.theme as Theme) ?? "system",
@@ -167,6 +182,9 @@ export const usePlate = create<State>()((set, get) => ({
             goal_fat: Number(prof.goal_fat) || 70,
             include_burned: !!prof.consider_burned,
             body: (prof.activity_profile as BodyProfile | null) ?? undefined,
+            weekly_targets_enabled: !!prof.weekly_targets_enabled,
+            weekly_macro_targets:
+              (prof.weekly_macro_targets as WeeklyMacroTargets | null) ?? undefined,
           }
         : defaultProfile;
 
@@ -259,6 +277,57 @@ export const usePlate = create<State>()((set, get) => ({
     void supabase
       .from("profiles")
       .update({ consider_burned: v })
+      .eq("id", uid)
+      .then(({ error }) => {
+        if (error) netToast(error);
+      });
+  },
+
+  setWeeklyEnabled: (v) => {
+    set((s) => {
+      const cur = s.profile.weekly_macro_targets;
+      const seeded: WeeklyMacroTargets = cur ?? seedWeeklyFromProfile(s.profile);
+      return {
+        profile: {
+          ...s.profile,
+          weekly_targets_enabled: v,
+          weekly_macro_targets: seeded,
+        },
+      };
+    });
+    const uid = get().userId;
+    if (!uid) return;
+    const wmt = get().profile.weekly_macro_targets ?? null;
+    void supabase
+      .from("profiles")
+      .update({
+        weekly_targets_enabled: v,
+        weekly_macro_targets: wmt as unknown as Json,
+      } as never)
+      .eq("id", uid)
+      .then(({ error }) => {
+        if (error) netToast(error);
+      });
+  },
+
+  setWeeklyDay: (dayIdx, m) => {
+    set((s) => {
+      const base = s.profile.weekly_macro_targets ?? seedWeeklyFromProfile(s.profile);
+      const k = String(dayIdx);
+      const cur = base[k] ?? {
+        protein: s.profile.goal_protein,
+        carbs: s.profile.goal_carbs,
+        fat: s.profile.goal_fat,
+      };
+      const next = { ...base, [k]: { ...cur, ...m } };
+      return { profile: { ...s.profile, weekly_macro_targets: next } };
+    });
+    const uid = get().userId;
+    if (!uid) return;
+    const wmt = get().profile.weekly_macro_targets ?? null;
+    void supabase
+      .from("profiles")
+      .update({ weekly_macro_targets: wmt as unknown as Json } as never)
       .eq("id", uid)
       .then(({ error }) => {
         if (error) netToast(error);
@@ -574,6 +643,44 @@ export function ymd(d: Date) {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+}
+
+export function seedWeeklyFromProfile(p: Profile): WeeklyMacroTargets {
+  const out: WeeklyMacroTargets = {};
+  for (let i = 0; i < 7; i++) {
+    out[String(i)] = { protein: p.goal_protein, carbs: p.goal_carbs, fat: p.goal_fat };
+  }
+  return out;
+}
+
+// 0=Mon ... 6=Sun
+export function weekdayIndex(dateStr: string): number {
+  const d = new Date(dateStr + "T00:00:00");
+  return (d.getDay() + 6) % 7;
+}
+
+export interface DayGoals {
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export function getDayGoals(p: Profile, dateStr: string): DayGoals {
+  if (p.weekly_targets_enabled && p.weekly_macro_targets) {
+    const k = String(weekdayIndex(dateStr));
+    const d = p.weekly_macro_targets[k];
+    if (d) {
+      const kcal = Math.round(d.protein * 4 + d.carbs * 4 + d.fat * 9);
+      return { kcal, protein: d.protein, carbs: d.carbs, fat: d.fat };
+    }
+  }
+  return {
+    kcal: p.goal_kcal,
+    protein: p.goal_protein,
+    carbs: p.goal_carbs,
+    fat: p.goal_fat,
+  };
 }
 
 export function sumEntries(entries: LogEntry[]) {
