@@ -421,3 +421,59 @@ function ThemeSelect({
     </div>
   );
 }
+
+const DAY_LABELS = ["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Niedz"];
+
+function WeeklyEditor({
+  value,
+  onChange,
+}: {
+  value: Record<string, DayMacro>;
+  onChange: (dayIdx: number, m: Partial<DayMacro>) => void;
+}) {
+  return (
+    <div className="px-3 pb-3">
+      <div className="grid grid-cols-[36px_1fr_1fr_1fr_auto] items-center gap-1 px-1 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+        <span></span>
+        <span className="text-center">B</span>
+        <span className="text-center">W</span>
+        <span className="text-center">T</span>
+        <span className="pl-2 text-right">kcal</span>
+      </div>
+      <div className="space-y-1">
+        {DAY_LABELS.map((label, i) => {
+          const d = value[String(i)] ?? { protein: 0, carbs: 0, fat: 0 };
+          const kcal = Math.round(d.protein * 4 + d.carbs * 4 + d.fat * 9);
+          return (
+            <div
+              key={i}
+              className="grid grid-cols-[36px_1fr_1fr_1fr_auto] items-center gap-1 rounded-xl bg-foreground/5 px-2 py-1.5"
+            >
+              <span className="text-[11px] font-semibold text-muted-foreground">{label}</span>
+              <MacroInput value={d.protein} onChange={(v) => onChange(i, { protein: v })} />
+              <MacroInput value={d.carbs} onChange={(v) => onChange(i, { carbs: v })} />
+              <MacroInput value={d.fat} onChange={(v) => onChange(i, { fat: v })} />
+              <span className="num-tight pl-2 text-right text-[12px] font-semibold">
+                {kcal}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function MacroInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <input
+      inputMode="numeric"
+      value={value || ""}
+      onChange={(e) => {
+        const n = Number(e.target.value.replace(/[^\d]/g, ""));
+        onChange(Number.isNaN(n) ? 0 : n);
+      }}
+      className="num-tight w-full rounded-md bg-background px-1.5 py-1 text-center text-[13px] font-semibold outline-none focus:ring-1 focus:ring-primary"
+    />
+  );
+}
