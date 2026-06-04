@@ -112,9 +112,9 @@ function TodayPage() {
           protein={sum.protein}
           carbs={sum.carbs}
           fat={sum.fat}
-          goalP={profile.goal_protein}
-          goalC={profile.goal_carbs}
-          goalF={profile.goal_fat}
+          goalP={dayGoals.protein}
+          goalC={dayGoals.carbs}
+          goalF={dayGoals.fat}
         />
         <BurnedRow
           value={burned}
@@ -132,6 +132,7 @@ function TodayPage() {
             meal={m}
             date={selected}
             entries={dayEntries.filter((e) => e.meal === m)}
+            prevDayHasEntries={prevEntries.some((e) => e.meal === m)}
             onAdd={(meal) => openAdd(meal)}
           />
         ))}
