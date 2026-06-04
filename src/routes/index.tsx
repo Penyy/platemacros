@@ -6,6 +6,7 @@ import { WeekStrip } from "@/components/WeekStrip";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import {
   type Meal,
+  getDayGoals,
   sumEntries,
   usePlate,
   ymd,
