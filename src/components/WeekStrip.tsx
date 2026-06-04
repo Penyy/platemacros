@@ -81,7 +81,7 @@ export function WeekStrip({ selected, onSelect, weekOffset, setWeekOffset }: Pro
   base.setDate(base.getDate() + weekOffset * 7);
 
   const entries = usePlate((s) => s.entries);
-  const goalKcal = usePlate((s) => s.profile.goal_kcal);
+  const profile = usePlate((s) => s.profile);
   const includeBurned = usePlate((s) => s.profile.include_burned);
   const burnedMap = usePlate((s) => s.burned);
 
