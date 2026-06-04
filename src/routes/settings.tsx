@@ -73,6 +73,8 @@ function SettingsPage() {
   const setTheme = usePlate((s) => s.setTheme);
   const setGoals = usePlate((s) => s.setGoals);
   const setIncludeBurned = usePlate((s) => s.setIncludeBurned);
+  const setWeeklyEnabled = usePlate((s) => s.setWeeklyEnabled);
+  const setWeeklyDay = usePlate((s) => s.setWeeklyDay);
   const replaceAll = usePlate((s) => s.replaceAll);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [legacy, setLegacy] = useState<ReturnType<typeof readLegacyLocalStorage>>(null);
