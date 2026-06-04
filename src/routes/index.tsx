@@ -119,6 +119,7 @@ function TodayPage() {
           <MealCard
             key={m}
             meal={m}
+            date={selected}
             entries={dayEntries.filter((e) => e.meal === m)}
             onAdd={(meal) => openAdd(meal)}
           />
