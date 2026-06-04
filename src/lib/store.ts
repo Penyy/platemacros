@@ -89,6 +89,8 @@ interface State {
   setGoals: (g: Partial<Pick<Profile, "goal_kcal" | "goal_protein" | "goal_carbs" | "goal_fat">>) => void;
   setBody: (b: Partial<BodyProfile>) => void;
   setIncludeBurned: (v: boolean) => void;
+  setWeeklyEnabled: (v: boolean) => void;
+  setWeeklyDay: (dayIdx: number, m: Partial<DayMacro>) => void;
   setBurned: (date: string, kcal: number) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
   removeEntry: (id: string) => void;
