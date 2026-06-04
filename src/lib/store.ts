@@ -82,6 +82,7 @@ interface State {
   setBurned: (date: string, kcal: number) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
   removeEntry: (id: string) => void;
+  repeatMealFromPrevDay: (date: string, meal: Meal) => number;
   addProduct: (p: Omit<Product, "id" | "created_at">) => void;
   updateProduct: (id: string, p: Partial<Omit<Product, "id" | "created_at">>) => void;
   removeProduct: (id: string) => void;
