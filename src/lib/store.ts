@@ -169,7 +169,10 @@ export const usePlate = create<State>()((set, get) => ({
         supabase.from("daily_burned").select("date,burned_kcal").eq("user_id", uid),
       ]);
 
-      const prof = profRes.data;
+      const prof = profRes.data as (typeof profRes.data & {
+        weekly_targets_enabled?: boolean | null;
+        weekly_macro_targets?: Json | null;
+      });
       const profile: Profile = prof
         ? {
             theme: (prof.theme as Theme) ?? "system",
@@ -179,6 +182,9 @@ export const usePlate = create<State>()((set, get) => ({
             goal_fat: Number(prof.goal_fat) || 70,
             include_burned: !!prof.consider_burned,
             body: (prof.activity_profile as BodyProfile | null) ?? undefined,
+            weekly_targets_enabled: !!prof.weekly_targets_enabled,
+            weekly_macro_targets:
+              (prof.weekly_macro_targets as WeeklyMacroTargets | null) ?? undefined,
           }
         : defaultProfile;
 
