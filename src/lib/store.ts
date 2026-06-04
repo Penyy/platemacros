@@ -82,6 +82,7 @@ interface State {
   setBurned: (date: string, kcal: number) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
   removeEntry: (id: string) => void;
+  repeatMealFromPrevDay: (date: string, meal: Meal) => number;
   addProduct: (p: Omit<Product, "id" | "created_at">) => void;
   updateProduct: (id: string, p: Partial<Omit<Product, "id" | "created_at">>) => void;
   removeProduct: (id: string) => void;
@@ -334,6 +335,46 @@ export const usePlate = create<State>()((set, get) => ({
       .then(({ error }) => {
         if (error) netToast(error);
       });
+  },
+
+  repeatMealFromPrevDay: (date, meal) => {
+    const d = new Date(date + "T00:00:00");
+    d.setDate(d.getDate() - 1);
+    const prev = ymd(d);
+    const src = get().entries.filter((e) => e.date === prev && e.meal === meal);
+    if (src.length === 0) return 0;
+    const uid = get().userId;
+    const now = Date.now();
+    const clones: LogEntry[] = src.map((e, i) => ({
+      ...e,
+      id: newId(),
+      date,
+      created_at: now + i,
+    }));
+    set((s) => ({ entries: [...s.entries, ...clones] }));
+    if (uid) {
+      void supabase
+        .from("food_entries")
+        .insert(
+          clones.map((c) => ({
+            id: c.id,
+            user_id: uid,
+            date: c.date,
+            meal: c.meal,
+            name: c.name,
+            grams: c.grams ?? null,
+            kcal: c.kcal,
+            protein: c.protein,
+            carbs: c.carbs,
+            fat: c.fat,
+            sub_items: (c.sub_items ?? null) as Json,
+          }))
+        )
+        .then(({ error }) => {
+          if (error) netToast(error);
+        });
+    }
+    return clones.length;
   },
 
   addProduct: (p) => {

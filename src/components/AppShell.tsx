@@ -42,6 +42,26 @@ export function AppShell({ children }: Props) {
     };
   }, [setOnline]);
 
+  // Auto-select numeric inputs on focus/tap (iOS Safari friendly)
+  useEffect(() => {
+    const isNumeric = (el: EventTarget | null): el is HTMLInputElement => {
+      if (!(el instanceof HTMLInputElement)) return false;
+      const m = el.inputMode;
+      return m === "numeric" || m === "decimal" || el.type === "number";
+    };
+    const selectAll = (el: HTMLInputElement) => {
+      setTimeout(() => { try { el.select(); } catch { /* noop */ } }, 0);
+    };
+    const onFocusIn = (e: FocusEvent) => { if (isNumeric(e.target)) selectAll(e.target as HTMLInputElement); };
+    const onClick = (e: MouseEvent) => { if (isNumeric(e.target)) selectAll(e.target as HTMLInputElement); };
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("click", onClick);
+    return () => {
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("click", onClick);
+    };
+  }, []);
+
   if (!authReady) {
     return (
       <div className="ambient-bg flex min-h-screen items-center justify-center">
