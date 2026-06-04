@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
 import { Plus, Coffee, UtensilsCrossed, Moon, Apple, Trash2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
@@ -22,9 +23,10 @@ interface Props {
   entries: LogEntry[];
   onAdd: (m: Meal) => void;
   date: string;
+  prevDayHasEntries?: boolean;
 }
 
-export function MealCard({ meal, entries, onAdd, date }: Props) {
+export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Props) {
   const Icon = MEAL_ICON[meal];
   const sum = sumEntries(entries);
   const remove = usePlate((s) => s.removeEntry);
@@ -68,15 +70,17 @@ export function MealCard({ meal, entries, onAdd, date }: Props) {
           <div className="text-xl font-bold">{Math.round(sum.kcal)}</div>
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground">kcal</div>
         </div>
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={handleRepeat}
-          className="grid h-9 w-9 place-items-center rounded-full bg-foreground/10 text-foreground/80"
-          aria-label="Powtórz z wczoraj"
-          title="Powtórz z wczoraj"
-        >
-          <RotateCcw size={16} />
-        </motion.button>
+        {prevDayHasEntries && (
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={handleRepeat}
+            className="grid h-9 w-9 place-items-center rounded-full bg-foreground/10 text-foreground/80"
+            aria-label="Powtórz z wczoraj"
+            title="Powtórz z wczoraj"
+          >
+            <RotateCcw size={16} />
+          </motion.button>
+        )}
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => onAdd(meal)}
@@ -108,9 +112,14 @@ export function MealCard({ meal, entries, onAdd, date }: Props) {
   );
 }
 
+const DELETE_THRESHOLD = 90;
+
 function SwipeRow({ entry: e, onDelete }: { entry: LogEntry; onDelete: () => void }) {
   const x = useMotionValue(0);
-  const actionOpacity = useTransform(x, [-80, -20, 0], [1, 0.4, 0]);
+  const armed = useRef(false);
+  // background reveal width follows finger (positive distance)
+  const revealOpacity = useTransform(x, (v) => Math.min(1, Math.abs(Math.min(0, v)) / 60));
+  const labelOpacity = useTransform(x, (v) => (v <= -DELETE_THRESHOLD ? 1 : 0.6));
 
   return (
     <motion.li
@@ -121,30 +130,46 @@ function SwipeRow({ entry: e, onDelete }: { entry: LogEntry; onDelete: () => voi
       className="relative overflow-hidden"
     >
       <motion.div
-        style={{ opacity: actionOpacity }}
-        className="pointer-events-none absolute inset-y-0 right-0 flex items-center"
+        style={{ opacity: revealOpacity }}
+        className="pointer-events-none absolute inset-0 flex items-center justify-end gap-2 pr-4 text-white"
+        aria-hidden
       >
-        <button
-          onClick={onDelete}
-          className="pointer-events-auto m-1 grid h-[calc(100%-0.5rem)] place-items-center rounded-xl bg-[color:var(--protein)] px-4 text-white"
-          aria-label="Usuń"
+        <span
+          className="absolute inset-0"
+          style={{ background: "#FF3B30" }}
+        />
+        <motion.div
+          style={{ opacity: labelOpacity }}
+          className="relative flex items-center gap-2 text-sm font-semibold"
         >
           <Trash2 size={16} />
-        </button>
+          <span>Usuń</span>
+        </motion.div>
       </motion.div>
       <motion.div
         drag="x"
         dragDirectionLock
         style={{ x }}
-        dragConstraints={{ left: -96, right: 0 }}
+        dragConstraints={{ left: -160, right: 0 }}
         dragElastic={{ left: 0.1, right: 0 }}
+        onDrag={(_, info) => {
+          if (!armed.current && info.offset.x <= -DELETE_THRESHOLD) {
+            armed.current = true;
+            if (typeof navigator !== "undefined" && navigator.vibrate) {
+              try { navigator.vibrate(10); } catch { /* noop */ }
+            }
+          } else if (armed.current && info.offset.x > -DELETE_THRESHOLD) {
+            armed.current = false;
+          }
+        }}
         onDragEnd={(_, info) => {
-          if (info.offset.x < -160 || info.velocity.x < -500) {
-            onDelete();
-          } else if (info.offset.x < -56) {
-            x.set(-88);
+          if (info.offset.x <= -DELETE_THRESHOLD || info.velocity.x < -800) {
+            // animate off and delete
+            x.set(-400);
+            setTimeout(onDelete, 120);
           } else {
             x.set(0);
+            armed.current = false;
           }
         }}
         className="relative flex items-center gap-3 bg-card py-2 touch-pan-y"
