@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { usePlate, ymd, sumEntries } from "@/lib/store";
+import { usePlate, ymd, sumEntries, getDayGoals } from "@/lib/store";
 
 interface Props {
   selected: string;
