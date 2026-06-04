@@ -283,6 +283,57 @@ export const usePlate = create<State>()((set, get) => ({
       });
   },
 
+  setWeeklyEnabled: (v) => {
+    set((s) => {
+      const cur = s.profile.weekly_macro_targets;
+      const seeded: WeeklyMacroTargets = cur ?? seedWeeklyFromProfile(s.profile);
+      return {
+        profile: {
+          ...s.profile,
+          weekly_targets_enabled: v,
+          weekly_macro_targets: seeded,
+        },
+      };
+    });
+    const uid = get().userId;
+    if (!uid) return;
+    const wmt = get().profile.weekly_macro_targets ?? null;
+    void supabase
+      .from("profiles")
+      .update({
+        weekly_targets_enabled: v,
+        weekly_macro_targets: wmt as unknown as Json,
+      } as never)
+      .eq("id", uid)
+      .then(({ error }) => {
+        if (error) netToast(error);
+      });
+  },
+
+  setWeeklyDay: (dayIdx, m) => {
+    set((s) => {
+      const base = s.profile.weekly_macro_targets ?? seedWeeklyFromProfile(s.profile);
+      const k = String(dayIdx);
+      const cur = base[k] ?? {
+        protein: s.profile.goal_protein,
+        carbs: s.profile.goal_carbs,
+        fat: s.profile.goal_fat,
+      };
+      const next = { ...base, [k]: { ...cur, ...m } };
+      return { profile: { ...s.profile, weekly_macro_targets: next } };
+    });
+    const uid = get().userId;
+    if (!uid) return;
+    const wmt = get().profile.weekly_macro_targets ?? null;
+    void supabase
+      .from("profiles")
+      .update({ weekly_macro_targets: wmt as unknown as Json } as never)
+      .eq("id", uid)
+      .then(({ error }) => {
+        if (error) netToast(error);
+      });
+  },
+
   setBurned: (date, kcal) => {
     set((s) => {
       const next = { ...s.burned };
