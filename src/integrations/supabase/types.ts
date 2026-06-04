@@ -128,6 +128,8 @@ export type Database = {
           id: string
           theme: string
           updated_at: string
+          weekly_macro_targets: Json | null
+          weekly_targets_enabled: boolean
         }
         Insert: {
           activity_profile?: Json | null
@@ -140,6 +142,8 @@ export type Database = {
           id: string
           theme?: string
           updated_at?: string
+          weekly_macro_targets?: Json | null
+          weekly_targets_enabled?: boolean
         }
         Update: {
           activity_profile?: Json | null
@@ -152,6 +156,8 @@ export type Database = {
           id?: string
           theme?: string
           updated_at?: string
+          weekly_macro_targets?: Json | null
+          weekly_targets_enabled?: boolean
         }
         Relationships: []
       }
