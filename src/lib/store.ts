@@ -33,6 +33,14 @@ export interface BodyProfile {
   goal: GoalKind;
 }
 
+export interface DayMacro {
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+// key: "0"=Mon ... "6"=Sun
+export type WeeklyMacroTargets = Record<string, DayMacro>;
+
 export interface Profile {
   theme: Theme;
   goal_kcal: number;
@@ -41,6 +49,8 @@ export interface Profile {
   goal_fat: number;
   body?: BodyProfile;
   include_burned?: boolean;
+  weekly_targets_enabled?: boolean;
+  weekly_macro_targets?: WeeklyMacroTargets;
 }
 
 export interface Product {
