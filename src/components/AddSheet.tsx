@@ -1,13 +1,13 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import {
-  Camera,
   Layers,
   Zap,
   PencilLine,
   Search,
   Sparkles,
   ScanLine,
+  MessageCircle,
   X,
 } from "lucide-react";
 import { type Meal, MEAL_LABEL, type Product, usePlate, ymd } from "@/lib/store";
@@ -15,8 +15,9 @@ import { ScanLabelFlow } from "./ScanLabelFlow";
 import { CompoundMealFlow } from "./CompoundMealFlow";
 import { EstimateMealFlow } from "./EstimateMealFlow";
 import { BarcodeScanFlow } from "./BarcodeScanFlow";
+import { AssistantFlow } from "./AssistantFlow";
 
-type Mode = "menu" | "quick" | "manual" | "scan" | "search" | "compound" | "estimate" | "barcode";
+type Mode = "menu" | "quick" | "manual" | "scan" | "search" | "compound" | "estimate" | "barcode" | "assistant";
 
 interface Props {
   open: boolean;
