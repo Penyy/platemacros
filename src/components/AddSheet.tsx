@@ -182,10 +182,12 @@ function guessMeal(): Meal {
   return "snack";
 }
 
-function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan" | "search" | "compound" | "estimate" | "barcode") => void }) {
-  const items = [
+type PickMode = "quick" | "manual" | "search" | "compound" | "estimate" | "barcode" | "assistant";
+
+function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
+  const items: { id: PickMode; label: string; icon: typeof ScanLine; soon: boolean }[] = [
+    { id: "assistant", label: "Zapytaj AI", icon: MessageCircle, soon: false },
     { id: "barcode", label: "Skanuj kod kreskowy", icon: ScanLine, soon: false },
-    { id: "scan", label: "Skanuj etykietę", icon: Camera, soon: false },
     { id: "estimate", label: "Oszacuj ze zdjęcia (AI)", icon: Sparkles, soon: false },
     { id: "compound", label: "Złożony posiłek", icon: Layers, soon: false },
     { id: "search", label: "Szukaj produktu", icon: Search, soon: false },
@@ -202,7 +204,7 @@ function MenuGrid({ onPick }: { onPick: (m: "quick" | "manual" | "scan" | "searc
             key={it.id}
             whileTap={disabled ? undefined : { scale: 0.96 }}
             disabled={disabled}
-            onClick={() => !disabled && onPick(it.id as "quick" | "manual" | "scan" | "search" | "compound" | "estimate" | "barcode")}
+            onClick={() => !disabled && onPick(it.id)}
             className={`group relative flex flex-col items-start gap-2 rounded-2xl border border-border/60 bg-card p-3 text-left transition ${
               disabled ? "opacity-50" : "active:bg-accent"
             }`}
