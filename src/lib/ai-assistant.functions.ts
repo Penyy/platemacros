@@ -425,7 +425,7 @@ export const askAssistant = createServerFn({ method: "POST" })
     await classifyTopic(data.message);
 
     if (data.imageBase64) {
-      return handleLabelPath(data.imageBase64, data.mimeType ?? "image/jpeg", apiKey);
+      return handlePhotoPath(data.imageBase64, data.mimeType ?? "image/jpeg", apiKey);
     }
     return handleTextPath(data.message, data.history ?? [], data.dayContext, apiKey);
   });
