@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { Loader2, RotateCcw, ScanLine, Image as ImageIcon } from "lucide-react";
+import { Loader2, RotateCcw, ScanLine, Image as ImageIcon, Flashlight } from "lucide-react";
 import { BrowserMultiFormatReader, type IScannerControls } from "@zxing/browser";
+import { BarcodeFormat, DecodeHintType } from "@zxing/library";
 import { toast } from "sonner";
 import { type Meal, MEAL_LABEL, usePlate } from "@/lib/store";
 
@@ -36,11 +37,13 @@ function round1(x: number) {
 
 async function fetchOpenFoodFacts(barcode: string): Promise<OFFProduct | null> {
   const res = await fetch(
-    `https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(barcode)}.json`
+    `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(
+      barcode,
+    )}.json?fields=product_name,generic_name,brands,nutriments`,
   );
   if (!res.ok) throw new Error("HTTP " + res.status);
   const json = await res.json();
-  if (json.status !== 1 || !json.product) return null;
+  if (json.status === 0 || !json.product) return null;
   const p = json.product;
   const n = p.nutriments ?? {};
   let kcal = Number(n["energy-kcal_100g"]);
@@ -48,8 +51,14 @@ async function fetchOpenFoodFacts(barcode: string): Promise<OFFProduct | null> {
     const kj = Number(n["energy_100g"]);
     if (Number.isFinite(kj) && kj > 0) kcal = kj / 4.184;
   }
+  const baseName = (p.product_name || p.generic_name || "Produkt").toString().trim();
+  const brand = (p.brands || "").toString().split(",")[0]?.trim();
+  const name = (brand && !baseName.toLowerCase().includes(brand.toLowerCase())
+    ? `${brand} ${baseName}`
+    : baseName
+  ).slice(0, 80);
   return {
-    name: (p.product_name || p.generic_name || "Produkt").toString().trim().slice(0, 80),
+    name,
     kcal: round1(Number.isFinite(kcal) ? kcal : 0),
     protein: round1(Number(n["proteins_100g"]) || 0),
     carbs: round1(Number(n["carbohydrates_100g"]) || 0),
@@ -57,16 +66,34 @@ async function fetchOpenFoodFacts(barcode: string): Promise<OFFProduct | null> {
   };
 }
 
+function buildHints() {
+  const hints = new Map();
+  hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+    BarcodeFormat.EAN_13,
+    BarcodeFormat.EAN_8,
+    BarcodeFormat.UPC_A,
+    BarcodeFormat.UPC_E,
+  ]);
+  hints.set(DecodeHintType.TRY_HARDER, true);
+  return hints;
+}
+
 export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const lastHitRef = useRef<{ code: string; at: number } | null>(null);
   const [phase, setPhase] = useState<Phase>("scan");
   const [scannerError, setScannerError] = useState<string | null>(null);
   const [barcode, setBarcode] = useState<string | null>(null);
   const [product, setProduct] = useState<OFFProduct | null>(null);
   const [grams, setGrams] = useState("100");
   const [saveToLib, setSaveToLib] = useState(false);
+  const [status, setStatus] = useState("Nakieruj na kod kreskowy");
+  const [flashHit, setFlashHit] = useState(false);
+  const [torchOn, setTorchOn] = useState(false);
+  const [torchSupported, setTorchSupported] = useState(false);
   const addProduct = usePlate((s) => s.addProduct);
 
   const stopScanner = () => {
@@ -76,10 +103,36 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
       /* noop */
     }
     controlsRef.current = null;
+    if (streamRef.current) {
+      for (const t of streamRef.current.getTracks()) {
+        try {
+          t.stop();
+        } catch {
+          /* noop */
+        }
+      }
+      streamRef.current = null;
+    }
+    setTorchOn(false);
+    setTorchSupported(false);
+  };
+
+  const toggleTorch = async () => {
+    const track = streamRef.current?.getVideoTracks()[0];
+    if (!track) return;
+    try {
+      await track.applyConstraints({
+        advanced: [{ torch: !torchOn } as unknown as MediaTrackConstraintSet],
+      });
+      setTorchOn((v) => !v);
+    } catch {
+      toast.error("Latarka niedostępna na tym urządzeniu.");
+    }
   };
 
   const lookup = async (code: string) => {
     setBarcode(code);
+    setStatus("Szukam produktu…");
     setPhase("loading");
     try {
       const p = await fetchOpenFoodFacts(code);
@@ -98,10 +151,14 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
   useEffect(() => {
     if (phase !== "scan") return;
     let cancelled = false;
-    const reader = new BrowserMultiFormatReader();
+    const reader = new BrowserMultiFormatReader(buildHints(), {
+      delayBetweenScanAttempts: 120,
+    });
     setScannerError(null);
+    setStatus("Nakieruj na kod kreskowy");
+    lastHitRef.current = null;
 
-    // iOS Safari fix: ensure required attributes BEFORE stream is attached
+    // iOS Safari fix
     const v = videoRef.current;
     if (v) {
       v.setAttribute("playsinline", "true");
@@ -114,20 +171,55 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     (async () => {
       try {
         if (!videoRef.current) return;
-        const controls = await reader.decodeFromVideoDevice(
-          undefined,
+        // High-res rear camera with continuous autofocus when supported
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            advanced: [
+              { focusMode: "continuous" } as unknown as MediaTrackConstraintSet,
+            ],
+          },
+          audio: false,
+        });
+        if (cancelled) {
+          for (const t of stream.getTracks()) t.stop();
+          return;
+        }
+        streamRef.current = stream;
+
+        // Torch capability detection
+        const track = stream.getVideoTracks()[0];
+        const caps = (track?.getCapabilities?.() ?? {}) as MediaTrackCapabilities & {
+          torch?: boolean;
+        };
+        if (caps.torch) setTorchSupported(true);
+
+        const controls = await reader.decodeFromStream(
+          stream,
           videoRef.current,
           (result, _err, ctrl) => {
             if (cancelled) return;
-            if (result) {
-              const code = result.getText().trim();
-              if (code) {
-                ctrl.stop();
-                controlsRef.current = null;
-                void lookup(code);
-              }
+            if (!result) return;
+            const code = result.getText().trim();
+            if (!code) return;
+            const now = Date.now();
+            const last = lastHitRef.current;
+            if (last && last.code === code && now - last.at < 2000) return;
+            lastHitRef.current = { code, at: now };
+            // visual + haptic feedback, keep scanner running until lookup completes
+            setFlashHit(true);
+            try {
+              navigator.vibrate?.(10);
+            } catch {
+              /* noop */
             }
-          }
+            setTimeout(() => setFlashHit(false), 250);
+            ctrl.stop();
+            controlsRef.current = null;
+            void lookup(code);
+          },
         );
         if (cancelled) {
           controls.stop();
@@ -135,13 +227,12 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
         }
         controlsRef.current = controls;
 
-        // iOS Safari: explicitly call play() after srcObject is set
         const vid = videoRef.current;
         if (vid) {
           try {
             await vid.play();
           } catch {
-            /* play() may reject if already playing — safe to ignore */
+            /* noop */
           }
         }
       } catch (e: unknown) {
@@ -155,6 +246,8 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     };
   }, [phase]);
 
+  // Always release camera when component unmounts
+  useEffect(() => () => stopScanner(), []);
 
   const onFileFallback = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -163,7 +256,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     setPhase("loading");
     try {
       const url = URL.createObjectURL(file);
-      const reader = new BrowserMultiFormatReader();
+      const reader = new BrowserMultiFormatReader(buildHints());
       try {
         const result = await reader.decodeFromImageUrl(url);
         URL.revokeObjectURL(url);
@@ -200,24 +293,53 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
             muted
             {...({ "webkit-playsinline": "true" } as Record<string, string>)}
             className="absolute inset-0 h-full w-full object-cover"
-
           />
 
           {/* Scanner frame overlay */}
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="relative h-[55%] w-[80%] rounded-xl">
-              <div className="absolute -top-px left-0 h-6 w-6 rounded-tl-xl border-l-2 border-t-2 border-white" />
-              <div className="absolute -top-px right-0 h-6 w-6 rounded-tr-xl border-r-2 border-t-2 border-white" />
-              <div className="absolute -bottom-px left-0 h-6 w-6 rounded-bl-xl border-b-2 border-l-2 border-white" />
-              <div className="absolute -bottom-px right-0 h-6 w-6 rounded-br-xl border-b-2 border-r-2 border-white" />
+            <motion.div
+              animate={{
+                boxShadow: flashHit
+                  ? "0 0 0 9999px rgba(0,0,0,0.55), 0 0 0 3px rgb(34,197,94)"
+                  : "0 0 0 9999px rgba(0,0,0,0.45)",
+              }}
+              transition={{ duration: 0.15 }}
+              className="relative h-[55%] w-[80%] rounded-xl"
+            >
+              <div
+                className={`absolute -top-px left-0 h-6 w-6 rounded-tl-xl border-l-2 border-t-2 ${flashHit ? "border-emerald-400" : "border-white"}`}
+              />
+              <div
+                className={`absolute -top-px right-0 h-6 w-6 rounded-tr-xl border-r-2 border-t-2 ${flashHit ? "border-emerald-400" : "border-white"}`}
+              />
+              <div
+                className={`absolute -bottom-px left-0 h-6 w-6 rounded-bl-xl border-b-2 border-l-2 ${flashHit ? "border-emerald-400" : "border-white"}`}
+              />
+              <div
+                className={`absolute -bottom-px right-0 h-6 w-6 rounded-br-xl border-b-2 border-r-2 ${flashHit ? "border-emerald-400" : "border-white"}`}
+              />
               <motion.div
                 initial={{ top: "10%" }}
                 animate={{ top: ["10%", "90%", "10%"] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
                 className="absolute left-2 right-2 h-0.5 rounded-full bg-primary shadow-[0_0_12px_rgba(255,255,255,0.7)]"
               />
-            </div>
+            </motion.div>
           </div>
+
+          {torchSupported && (
+            <button
+              type="button"
+              onClick={toggleTorch}
+              aria-label="Latarka"
+              className={`absolute right-2 top-2 grid h-9 w-9 place-items-center rounded-full backdrop-blur ${
+                torchOn ? "bg-yellow-400 text-black" : "bg-black/50 text-white"
+              }`}
+            >
+              <Flashlight size={16} />
+            </button>
+          )}
+
           {scannerError && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/70 px-4 text-center text-xs text-white">
               <ScanLine size={20} />
@@ -226,9 +348,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           )}
         </div>
 
-        <p className="text-center text-xs text-muted-foreground">
-          Wyceluj kamerę w kod kreskowy produktu
-        </p>
+        <p className="text-center text-xs text-muted-foreground">{status}</p>
 
         <input
           ref={fileRef}
@@ -251,6 +371,8 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
       </div>
     );
   }
+
+
 
   if (phase === "loading") {
     return (
