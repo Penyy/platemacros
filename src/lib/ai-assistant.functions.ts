@@ -71,22 +71,34 @@ const AskInputSchema = z.object({
 });
 
 // Output kinds
-const LabelSchema = z.object({
+const MacrosSchema = z.object({
+  kcal: z.number(),
+  protein: z.number(),
+  carbs: z.number(),
+  fat: z.number(),
+});
+
+const PhotoSchema = z.object({
+  type: z.enum(["etykieta", "posilek"]),
   name: z.string(),
-  per100: z.object({
-    kcal: z.number().nullable(),
-    protein: z.number().nullable(),
-    carbs: z.number().nullable(),
-    fat: z.number().nullable(),
-  }),
+  per100: MacrosSchema.nullable().optional(),
+  total: MacrosSchema.nullable().optional(),
   confidence: z.number().min(0).max(1),
 });
-export type ScannedLabel = z.infer<typeof LabelSchema>;
+export type PhotoRecognition = z.infer<typeof PhotoSchema>;
+
+// kept for back-compat with UI imports
+export type ScannedLabel = {
+  name: string;
+  per100: { kcal: number | null; protein: number | null; carbs: number | null; fat: number | null };
+  confidence: number;
+};
 
 export type AssistantResult =
   | { kind: "text"; text: string }
   | { kind: "actions"; actions: FoodAction[]; text: string }
-  | { kind: "label"; label: ScannedLabel };
+  | { kind: "label"; label: ScannedLabel }
+  | { kind: "meal"; name: string; total: { kcal: number; protein: number; carbs: number; fat: number }; confidence: number };
 
 // ============================================================
 // Prompts
