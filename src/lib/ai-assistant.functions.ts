@@ -71,43 +71,58 @@ const AskInputSchema = z.object({
 });
 
 // Output kinds
-const LabelSchema = z.object({
+const MacrosSchema = z.object({
+  kcal: z.number(),
+  protein: z.number(),
+  carbs: z.number(),
+  fat: z.number(),
+});
+
+const PhotoSchema = z.object({
+  type: z.enum(["etykieta", "posilek"]),
   name: z.string(),
-  per100: z.object({
-    kcal: z.number().nullable(),
-    protein: z.number().nullable(),
-    carbs: z.number().nullable(),
-    fat: z.number().nullable(),
-  }),
+  per100: MacrosSchema.nullable().optional(),
+  total: MacrosSchema.nullable().optional(),
   confidence: z.number().min(0).max(1),
 });
-export type ScannedLabel = z.infer<typeof LabelSchema>;
+export type PhotoRecognition = z.infer<typeof PhotoSchema>;
+
+// kept for back-compat with UI imports
+export type ScannedLabel = {
+  name: string;
+  per100: { kcal: number | null; protein: number | null; carbs: number | null; fat: number | null };
+  confidence: number;
+};
 
 export type AssistantResult =
   | { kind: "text"; text: string }
   | { kind: "actions"; actions: FoodAction[]; text: string }
-  | { kind: "label"; label: ScannedLabel };
+  | { kind: "label"; label: ScannedLabel }
+  | { kind: "meal"; name: string; total: { kcal: number; protein: number; carbs: number; fat: number }; confidence: number };
 
 // ============================================================
 // Prompts
 // ============================================================
 
-const SYSTEM_INSTRUCTION = `Jesteś asystentem aplikacji Plate do śledzenia makroskładników. Pomagasz WYŁĄCZNIE z: (a) pytaniami o makro, kalorie i wartości odżywcze produktów/posiłków, (b) postępem użytkownika względem celów dnia, (c) logowaniem jedzenia do dziennika. Odpowiadasz zawsze po polsku, krótko i konkretnie. Każdy temat spoza tego zakresu — w tym zdrowie, medycyna, anatomia, ćwiczenia, ogólna wiedza — odrzucasz dokładnie jednym zdaniem: 'Pomagam tylko z makro i jedzeniem w Plate.' Nie tłumaczysz, nie rozwijasz, nie dajesz porad medycznych.
+const SYSTEM_INSTRUCTION = `Jesteś asystentem żywieniowym aplikacji Plate. Twoim zadaniem jest POMAGAĆ z jedzeniem, makro, kaloriami, wartościami odżywczymi, doborem i rekomendacją posiłków oraz logowaniem jedzenia. Odpowiadaj pomocnie i konkretnie na WSZYSTKO co dotyczy jedzenia, odżywiania, makroskładników, diety i celów użytkownika — w tym pytania typu 'co zjeść', 'co dojeść na białko', 'czy to się zmieści w mój cel', rekomendacje produktów i posiłków. Odpowiadasz po polsku, krótko i konkretnie, korzystając z danych dnia użytkownika. Odmawiasz TYLKO gdy pytanie ewidentnie NIE ma związku z jedzeniem/odżywianiem (np. anatomia, medycyna, polityka, ogólna wiedza) — wtedy jednym zdaniem: 'Pomagam tylko z jedzeniem i makro w Plate.' W razie wątpliwości ZAWSZE pomagaj.
 
 Reguły logowania jedzenia:
 - Gdy użytkownik prosi o dodanie jedzenia, ZAWSZE wywołuj funkcję addFoodEntry (lub addMultipleEntries dla wielu pozycji), nie pisz tylko tekstu.
 - Jeśli posiłek nie został wskazany, wywnioskuj z pory dnia (5-10 śniadanie, 11-14 obiad, 15-20 kolacja, reszta przekąski).
 - Jeśli dokładne makro nie jest znane, podaj najlepsze przybliżenie dla podanej porcji.
 - Wartości kcal i makro w funkcjach to CAŁKOWITE wartości dla porcji, NIE na 100 g.
-- Po wywołaniu funkcji dodaj krótki komentarz potwierdzający (np. "Dodano: 2 jajka — 156 kcal").
 
-Reguły odpowiedzi na pytania o postęp:
+Reguły odpowiedzi na pytania o postęp i rekomendacje:
 - Korzystaj z dostarczonego kontekstu dnia (cele, spożycie, pozostało).
-- Odpowiadaj zwięźle (1-2 zdania), z konkretnymi liczbami.`;
+- Odpowiadaj zwięźle (1-2 zdania), z konkretnymi liczbami i konkretnymi produktami.`;
 
 const FEW_SHOT_HISTORY = [
+  { role: "user" as const, text: "Co dojeść na białko?" },
+  { role: "model" as const, text: "Zostało Ci ~40 g białka — dobrze wejdzie skyr (180 g ≈ 20 g B), pierś z kurczaka (120 g ≈ 28 g B) albo odżywka białkowa (30 g ≈ 22 g B)." },
+  { role: "user" as const, text: "Czy zmieszczę się w cel jak zjem batona Snickers?" },
+  { role: "model" as const, text: "Snickers 50 g to ~250 kcal — sprawdź swoje 'pozostało kcal'; jeśli masz ≥250 kcal w zapasie, zmieścisz się." },
   { role: "user" as const, text: "Co to jelito grube?" },
-  { role: "model" as const, text: "Pomagam tylko z makro i jedzeniem w Plate." },
+  { role: "model" as const, text: "Pomagam tylko z jedzeniem i makro w Plate." },
 ];
 
 // ============================================================
@@ -234,16 +249,28 @@ async function classifyTopic(_message: string): Promise<"in_scope" | "out_of_sco
 }
 
 // ============================================================
-// Path A: Image (nutrition label)
+// Path A: Image (auto-detect etykieta vs posiłek)
 // ============================================================
 
-async function handleLabelPath(
+async function handlePhotoPath(
   imageBase64: string,
   mimeType: string,
   apiKey: string,
 ): Promise<AssistantResult> {
   const base64 = imageBase64.startsWith("data:") ? imageBase64.split(",")[1] ?? "" : imageBase64;
-  const prompt = `Odczytaj wartości odżywcze Z ETYKIETY na zdjęciu, w przeliczeniu na 100 g/100 ml. Nie zgaduj, nie wymyślaj. Wartości niewidoczne na etykiecie → null.`;
+  const prompt = `Rozpoznaj czy zdjęcie to ETYKIETA wartości odżywczych, czy zdjęcie GOTOWEGO POSIŁKU. Jeśli etykieta — odczytaj wartości per 100g/100ml do pola per100 (wartości niewidoczne → null). Jeśli posiłek — oszacuj makro całej widocznej porcji do pola total. Nie zgaduj wartości z etykiety, ale posiłek możesz szacować. name = krótka polska nazwa produktu lub dania.`;
+
+  const macroSchema = {
+    type: "object",
+    properties: {
+      kcal: { type: "number" },
+      protein: { type: "number" },
+      carbs: { type: "number" },
+      fat: { type: "number" },
+    },
+    required: ["kcal", "protein", "carbs", "fat"],
+    nullable: true,
+  };
 
   const body = {
     contents: [
@@ -257,43 +284,61 @@ async function handleLabelPath(
     ],
     generationConfig: {
       responseMimeType: "application/json",
-      temperature: 0.1,
+      temperature: 0.2,
       responseSchema: {
         type: "object",
         properties: {
+          type: { type: "string", enum: ["etykieta", "posilek"] },
           name: { type: "string" },
-          per100: {
-            type: "object",
-            properties: {
-              kcal: { type: "number", nullable: true },
-              protein: { type: "number", nullable: true },
-              carbs: { type: "number", nullable: true },
-              fat: { type: "number", nullable: true },
-            },
-            required: ["kcal", "protein", "carbs", "fat"],
-          },
+          per100: macroSchema,
+          total: macroSchema,
           confidence: { type: "number" },
         },
-        required: ["name", "per100", "confidence"],
+        required: ["type", "name", "confidence"],
       },
     },
   };
 
-  const tryOnce = async () => {
+  const tryOnce = async (): Promise<AssistantResult> => {
     const resp = await callGemini(body, apiKey);
     const raw = resp.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
     if (!raw) throw new Error("AI_EMPTY");
-    const parsed = JSON.parse(stripFences(raw));
-    return LabelSchema.parse(parsed);
+    const parsed = PhotoSchema.parse(JSON.parse(stripFences(raw)));
+    if (parsed.type === "etykieta") {
+      const per = parsed.per100 ?? { kcal: null, protein: null, carbs: null, fat: null };
+      return {
+        kind: "label",
+        label: {
+          name: parsed.name,
+          per100: {
+            kcal: per?.kcal ?? null,
+            protein: per?.protein ?? null,
+            carbs: per?.carbs ?? null,
+            fat: per?.fat ?? null,
+          },
+          confidence: parsed.confidence,
+        },
+      };
+    }
+    const total = parsed.total ?? { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+    return {
+      kind: "meal",
+      name: parsed.name,
+      total: {
+        kcal: total.kcal ?? 0,
+        protein: total.protein ?? 0,
+        carbs: total.carbs ?? 0,
+        fat: total.fat ?? 0,
+      },
+      confidence: parsed.confidence,
+    };
   };
 
-  let label: ScannedLabel;
   try {
-    label = await tryOnce();
+    return await tryOnce();
   } catch {
-    label = await tryOnce(); // 1 retry
+    return await tryOnce(); // 1 retry
   }
-  return { kind: "label", label };
 }
 
 // ============================================================
@@ -380,7 +425,7 @@ export const askAssistant = createServerFn({ method: "POST" })
     await classifyTopic(data.message);
 
     if (data.imageBase64) {
-      return handleLabelPath(data.imageBase64, data.mimeType ?? "image/jpeg", apiKey);
+      return handlePhotoPath(data.imageBase64, data.mimeType ?? "image/jpeg", apiKey);
     }
     return handleTextPath(data.message, data.history ?? [], data.dayContext, apiKey);
   });

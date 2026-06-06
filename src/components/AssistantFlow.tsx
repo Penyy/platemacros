@@ -27,7 +27,15 @@ type HistoryItem =
   | { id: string; kind: "user"; text: string }
   | { id: string; kind: "text"; text: string }
   | { id: string; kind: "actions"; text: string; actions: FoodAction[] }
-  | { id: string; kind: "label"; label: ScannedLabel; preview: string };
+  | { id: string; kind: "label"; label: ScannedLabel; preview: string }
+  | {
+      id: string;
+      kind: "meal";
+      name: string;
+      total: { kcal: number; protein: number; carbs: number; fat: number };
+      confidence: number;
+      preview: string;
+    };
 
 const CHIPS = ["Ile mi zostało?", "Co dojeść na białko?", "Dodaj posiłek"];
 
@@ -165,11 +173,11 @@ export function AssistantFlow({ defaultMeal }: Props) {
     try {
       const dataUrl = await shrinkImage(file);
       const base64 = dataUrl.split(",")[1] ?? "";
-      const userItem: HistoryItem = { id: nid(), kind: "user", text: "📷 etykieta" };
+      const userItem: HistoryItem = { id: nid(), kind: "user", text: "📷 zdjęcie" };
       setHistory((h) => [...h, userItem]);
       const result = (await ask({
         data: {
-          message: "Odczytaj etykietę",
+          message: "Rozpoznaj zdjęcie",
           history: [],
           dayContext,
           imageBase64: base64,
@@ -180,6 +188,29 @@ export function AssistantFlow({ defaultMeal }: Props) {
         setHistory((h) => [
           ...h,
           { id: nid(), kind: "label", label: result.label, preview: dataUrl },
+        ]);
+      } else if (result.kind === "meal") {
+        // auto-add the meal entry immediately
+        const m = defaultMeal ?? guessMeal();
+        addEntry({
+          date: today,
+          meal: m,
+          name: result.name || "Posiłek ze zdjęcia",
+          kcal: Math.round(result.total.kcal * 10) / 10,
+          protein: Math.round(result.total.protein * 10) / 10,
+          carbs: Math.round(result.total.carbs * 10) / 10,
+          fat: Math.round(result.total.fat * 10) / 10,
+        });
+        setHistory((h) => [
+          ...h,
+          {
+            id: nid(),
+            kind: "meal",
+            name: result.name,
+            total: result.total,
+            confidence: result.confidence,
+            preview: dataUrl,
+          },
         ]);
       } else if (result.kind === "text") {
         setHistory((h) => [...h, { id: nid(), kind: "text", text: result.text }]);
@@ -286,7 +317,7 @@ export function AssistantFlow({ defaultMeal }: Props) {
       {busy && (
         <div className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
           <Loader2 size={12} className="animate-spin" />
-          {busy === "image" ? "Analizuję etykietę…" : "Myślę…"}
+          {busy === "image" ? "Analizuję zdjęcie…" : "Myślę…"}
         </div>
       )}
 
@@ -343,6 +374,25 @@ function HistoryRow({
               </span>
             </div>
           ))}
+        </div>
+      </div>
+    );
+  }
+  if (item.kind === "meal") {
+    return (
+      <div className="space-y-2 rounded-2xl bg-foreground/5 p-3">
+        <div className="flex items-start gap-2">
+          <img src={item.preview} alt="" className="h-12 w-12 rounded-lg object-cover" />
+          <div className="flex-1">
+            <div className="text-sm font-semibold">{item.name || "Posiłek"}</div>
+            <div className="num-tight text-[11px] text-muted-foreground">
+              szacunek: {Math.round(item.total.kcal)} kcal · B{Math.round(item.total.protein)} · W
+              {Math.round(item.total.carbs)} · T{Math.round(item.total.fat)}
+            </div>
+            <div className="mt-0.5 text-[10px] text-muted-foreground/80">
+              Dodano automatycznie (szacunek AI)
+            </div>
+          </div>
         </div>
       </div>
     );
