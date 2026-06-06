@@ -249,16 +249,28 @@ async function classifyTopic(_message: string): Promise<"in_scope" | "out_of_sco
 }
 
 // ============================================================
-// Path A: Image (nutrition label)
+// Path A: Image (auto-detect etykieta vs posiłek)
 // ============================================================
 
-async function handleLabelPath(
+async function handlePhotoPath(
   imageBase64: string,
   mimeType: string,
   apiKey: string,
 ): Promise<AssistantResult> {
   const base64 = imageBase64.startsWith("data:") ? imageBase64.split(",")[1] ?? "" : imageBase64;
-  const prompt = `Odczytaj wartości odżywcze Z ETYKIETY na zdjęciu, w przeliczeniu na 100 g/100 ml. Nie zgaduj, nie wymyślaj. Wartości niewidoczne na etykiecie → null.`;
+  const prompt = `Rozpoznaj czy zdjęcie to ETYKIETA wartości odżywczych, czy zdjęcie GOTOWEGO POSIŁKU. Jeśli etykieta — odczytaj wartości per 100g/100ml do pola per100 (wartości niewidoczne → null). Jeśli posiłek — oszacuj makro całej widocznej porcji do pola total. Nie zgaduj wartości z etykiety, ale posiłek możesz szacować. name = krótka polska nazwa produktu lub dania.`;
+
+  const macroSchema = {
+    type: "object",
+    properties: {
+      kcal: { type: "number" },
+      protein: { type: "number" },
+      carbs: { type: "number" },
+      fat: { type: "number" },
+    },
+    required: ["kcal", "protein", "carbs", "fat"],
+    nullable: true,
+  };
 
   const body = {
     contents: [
@@ -272,43 +284,61 @@ async function handleLabelPath(
     ],
     generationConfig: {
       responseMimeType: "application/json",
-      temperature: 0.1,
+      temperature: 0.2,
       responseSchema: {
         type: "object",
         properties: {
+          type: { type: "string", enum: ["etykieta", "posilek"] },
           name: { type: "string" },
-          per100: {
-            type: "object",
-            properties: {
-              kcal: { type: "number", nullable: true },
-              protein: { type: "number", nullable: true },
-              carbs: { type: "number", nullable: true },
-              fat: { type: "number", nullable: true },
-            },
-            required: ["kcal", "protein", "carbs", "fat"],
-          },
+          per100: macroSchema,
+          total: macroSchema,
           confidence: { type: "number" },
         },
-        required: ["name", "per100", "confidence"],
+        required: ["type", "name", "confidence"],
       },
     },
   };
 
-  const tryOnce = async () => {
+  const tryOnce = async (): Promise<AssistantResult> => {
     const resp = await callGemini(body, apiKey);
     const raw = resp.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
     if (!raw) throw new Error("AI_EMPTY");
-    const parsed = JSON.parse(stripFences(raw));
-    return LabelSchema.parse(parsed);
+    const parsed = PhotoSchema.parse(JSON.parse(stripFences(raw)));
+    if (parsed.type === "etykieta") {
+      const per = parsed.per100 ?? { kcal: null, protein: null, carbs: null, fat: null };
+      return {
+        kind: "label",
+        label: {
+          name: parsed.name,
+          per100: {
+            kcal: per?.kcal ?? null,
+            protein: per?.protein ?? null,
+            carbs: per?.carbs ?? null,
+            fat: per?.fat ?? null,
+          },
+          confidence: parsed.confidence,
+        },
+      };
+    }
+    const total = parsed.total ?? { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+    return {
+      kind: "meal",
+      name: parsed.name,
+      total: {
+        kcal: total.kcal ?? 0,
+        protein: total.protein ?? 0,
+        carbs: total.carbs ?? 0,
+        fat: total.fat ?? 0,
+      },
+      confidence: parsed.confidence,
+    };
   };
 
-  let label: ScannedLabel;
   try {
-    label = await tryOnce();
+    return await tryOnce();
   } catch {
-    label = await tryOnce(); // 1 retry
+    return await tryOnce(); // 1 retry
   }
-  return { kind: "label", label };
 }
 
 // ============================================================
