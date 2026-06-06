@@ -27,7 +27,15 @@ type HistoryItem =
   | { id: string; kind: "user"; text: string }
   | { id: string; kind: "text"; text: string }
   | { id: string; kind: "actions"; text: string; actions: FoodAction[] }
-  | { id: string; kind: "label"; label: ScannedLabel; preview: string };
+  | { id: string; kind: "label"; label: ScannedLabel; preview: string }
+  | {
+      id: string;
+      kind: "meal";
+      name: string;
+      total: { kcal: number; protein: number; carbs: number; fat: number };
+      confidence: number;
+      preview: string;
+    };
 
 const CHIPS = ["Ile mi zostało?", "Co dojeść na białko?", "Dodaj posiłek"];
 
