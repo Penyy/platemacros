@@ -378,6 +378,25 @@ function HistoryRow({
       </div>
     );
   }
+  if (item.kind === "meal") {
+    return (
+      <div className="space-y-2 rounded-2xl bg-foreground/5 p-3">
+        <div className="flex items-start gap-2">
+          <img src={item.preview} alt="" className="h-12 w-12 rounded-lg object-cover" />
+          <div className="flex-1">
+            <div className="text-sm font-semibold">{item.name || "Posiłek"}</div>
+            <div className="num-tight text-[11px] text-muted-foreground">
+              szacunek: {Math.round(item.total.kcal)} kcal · B{Math.round(item.total.protein)} · W
+              {Math.round(item.total.carbs)} · T{Math.round(item.total.fat)}
+            </div>
+            <div className="mt-0.5 text-[10px] text-muted-foreground/80">
+              Dodano automatycznie (szacunek AI)
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return <LabelCard item={item} onAdd={onAddLabel} defaultMeal={defaultMeal} />;
 }
 
