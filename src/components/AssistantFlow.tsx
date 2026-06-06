@@ -317,7 +317,7 @@ export function AssistantFlow({ defaultMeal }: Props) {
       {busy && (
         <div className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
           <Loader2 size={12} className="animate-spin" />
-          {busy === "image" ? "Analizuję etykietę…" : "Myślę…"}
+          {busy === "image" ? "Analizuję zdjęcie…" : "Myślę…"}
         </div>
       )}
 
