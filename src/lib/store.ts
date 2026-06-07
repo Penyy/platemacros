@@ -582,6 +582,7 @@ export const usePlate = create<State>()((set, get) => ({
 
 export const MEAL_LABEL: Record<Meal, string> = {
   breakfast: "Śniadanie",
+  second_breakfast: "Lunch",
   lunch: "Obiad",
   dinner: "Kolacja",
   snack: "Przekąska",
