@@ -142,16 +142,6 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                   }}
                 />
               )}
-              {mode === "estimate" && (
-                <EstimateMealFlow
-                  meal={meal}
-                  setMeal={setMeal}
-                  onSubmit={(payload) => {
-                    addEntry({ ...payload, date, meal });
-                    close();
-                  }}
-                />
-              )}
               {mode === "barcode" && (
                 <BarcodeScanFlow
                   meal={meal}
