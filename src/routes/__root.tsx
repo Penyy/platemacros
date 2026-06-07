@@ -13,6 +13,7 @@ import { AppShell } from "@/components/AppShell";
 import { ThemeManager } from "@/components/ThemeManager";
 import { KeyboardScrollManager } from "@/components/KeyboardScrollManager";
 import { KeyboardInsetManager } from "@/components/KeyboardInsetManager";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
