@@ -6,7 +6,7 @@ import {
   PencilLine,
   Search,
   ScanLine,
-  MessageCircle,
+  Sparkles,
   X,
 } from "lucide-react";
 import { type Meal, MEAL_LABEL, type Product, usePlate, ymd } from "@/lib/store";
