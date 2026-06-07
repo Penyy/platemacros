@@ -26,7 +26,7 @@ export const Route = createFileRoute("/")({
   component: TodayPage,
 });
 
-const MEALS: Meal[] = ["breakfast", "lunch", "dinner", "snack"];
+const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
 function formatDate(d: Date) {
   return d.toLocaleDateString("pl-PL", {
