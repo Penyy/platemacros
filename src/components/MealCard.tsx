@@ -279,14 +279,11 @@ function SwipeRow({ entry: e, onDelete }: { entry: LogEntry; onDelete: () => voi
       handleMove(t.clientX, t.clientY, ev);
     };
     const onTouchEnd = () => {
-      if (!g.current.active && g.current.mode !== "horizontal") {
-        // gesture was either never started or marked vertical — nothing to commit
-        if (g.current.mode === "horizontal") {
-          handleEnd();
-        }
-        return;
+      if (g.current.mode === "horizontal" && g.current.moved) {
+        handleEnd();
+      } else {
+        g.current.active = false;
       }
-      handleEnd();
     };
 
     el.addEventListener("touchstart", onTouchStart, { passive: true });
