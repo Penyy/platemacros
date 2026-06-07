@@ -93,6 +93,7 @@ interface State {
   setWeeklyDay: (dayIdx: number, m: Partial<DayMacro>) => void;
   setBurned: (date: string, kcal: number) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
+  updateEntry: (id: string, patch: Partial<Omit<LogEntry, "id" | "created_at">>) => void;
   removeEntry: (id: string) => void;
   repeatMealFromPrevDay: (date: string, meal: Meal) => number;
   addProduct: (p: Omit<Product, "id" | "created_at">) => void;
