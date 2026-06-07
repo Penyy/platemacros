@@ -192,6 +192,7 @@ export const usePlate = create<State>()((set, get) => ({
       const prof = profRes.data as (typeof profRes.data & {
         weekly_targets_enabled?: boolean | null;
         weekly_macro_targets?: Json | null;
+        assistant_settings?: Json | null;
       });
       const profile: Profile = prof
         ? {
@@ -205,6 +206,10 @@ export const usePlate = create<State>()((set, get) => ({
             weekly_targets_enabled: !!prof.weekly_targets_enabled,
             weekly_macro_targets:
               (prof.weekly_macro_targets as WeeklyMacroTargets | null) ?? undefined,
+            assistant: {
+              ...defaultAssistantSettings,
+              ...((prof.assistant_settings as Partial<AssistantSettings> | null) ?? {}),
+            },
           }
         : defaultProfile;
 
