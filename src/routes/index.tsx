@@ -56,6 +56,13 @@ function TodayPage() {
   const today = useMemo(() => ymd(new Date()), []);
   const [selected, setSelected] = useState<string>(today);
   const [calOpen, setCalOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [burnedOpen, setBurnedOpen] = useState(false);
+
+  useEffect(() => {
+    startNotificationScheduler();
+  }, []);
+
 
   const profile = usePlate((s) => s.profile);
   const entries = usePlate((s) => s.entries);
