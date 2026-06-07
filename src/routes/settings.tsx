@@ -256,6 +256,41 @@ function SettingsPage() {
         </p>
       </Section>
 
+      <Section title="Asystent AI">
+        <Row label="Auto-dodaj ze zdjęcia z opisem">
+          <Switch
+            checked={(profile.assistant ?? defaultAssistantSettings).autoAddPhoto}
+            onCheckedChange={(v) => setAssistant({ autoAddPhoto: v })}
+          />
+        </Row>
+        <p className="px-4 pb-2 pt-1 text-[11px] text-muted-foreground">
+          Gdy włączone, zdjęcie posiłku z opisem dodaje się bez dodatkowego potwierdzenia.
+        </p>
+        <Row label="Asystent może dodawać wpisy">
+          <Switch
+            checked={(profile.assistant ?? defaultAssistantSettings).allowAddEntries}
+            onCheckedChange={(v) => setAssistant({ allowAddEntries: v })}
+          />
+        </Row>
+        <p className="px-4 pb-2 pt-1 text-[11px] text-muted-foreground">
+          Gdy wyłączone, AI tylko odpowiada — nie zapisuje nic do dziennika.
+        </p>
+        <Row label="Domyślny posiłek">
+          <DefaultMealSelect
+            value={(profile.assistant ?? defaultAssistantSettings).defaultMeal}
+            onChange={(v) => setAssistant({ defaultMeal: v })}
+          />
+        </Row>
+        <Row label="Długość odpowiedzi">
+          <ResponseLengthSelect
+            value={(profile.assistant ?? defaultAssistantSettings).responseLength}
+            onChange={(v) => setAssistant({ responseLength: v })}
+          />
+        </Row>
+      </Section>
+
+
+
 
       <Section title="Dane">
         <button
