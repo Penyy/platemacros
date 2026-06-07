@@ -129,6 +129,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeManager />
       <KeyboardScrollManager />
+      <KeyboardInsetManager />
       <AppShell>
         <Outlet />
       </AppShell>
