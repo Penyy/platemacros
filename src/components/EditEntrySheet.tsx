@@ -36,22 +36,50 @@ export function EditEntrySheet({ entry, onClose }: Props) {
     setProtein(String(round1(entry.protein)));
     setCarbs(String(round1(entry.carbs)));
     setFat(String(round1(entry.fat)));
+    setSaveToLibrary(false);
   }, [entry]);
 
   const save = () => {
     if (!entry) return;
     const g = grams.trim() === "" ? undefined : numOr(grams, entry.grams ?? 0);
+    const finalName = name.trim() || entry.name;
+    const finalKcal = numOr(kcal, entry.kcal);
+    const finalProtein = numOr(protein, entry.protein);
+    const finalCarbs = numOr(carbs, entry.carbs);
+    const finalFat = numOr(fat, entry.fat);
     updateEntry(entry.id, {
-      name: name.trim() || entry.name,
+      name: finalName,
       meal,
       grams: g,
-      kcal: numOr(kcal, entry.kcal),
-      protein: numOr(protein, entry.protein),
-      carbs: numOr(carbs, entry.carbs),
-      fat: numOr(fat, entry.fat),
+      kcal: finalKcal,
+      protein: finalProtein,
+      carbs: finalCarbs,
+      fat: finalFat,
     });
+
+    if (saveToLibrary) {
+      const hasGrams = g !== undefined && g > 0;
+      const factor = hasGrams ? 100 / (g as number) : 1;
+      const macros = {
+        kcal: round1(finalKcal * factor),
+        protein: round1(finalProtein * factor),
+        carbs: round1(finalCarbs * factor),
+        fat: round1(finalFat * factor),
+      };
+      const norm = finalName.trim().toLowerCase();
+      const existing = products.find((p) => p.name.trim().toLowerCase() === norm);
+      if (existing) {
+        updateProduct(existing.id, { name: finalName, ...macros });
+      } else {
+        addProduct({ name: finalName, ...macros });
+      }
+      toast.success("Dodano do Twoich produktów");
+    }
+
     onClose();
   };
+
+
 
   return (
     <AnimatePresence>
