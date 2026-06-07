@@ -131,11 +131,17 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
         <ul className="mt-3 divide-y divide-border/60">
           <AnimatePresence initial={false}>
             {entries.map((e) => (
-              <SwipeRow key={e.id} entry={e} onDelete={() => handleDelete(e)} />
+              <SwipeRow
+                key={e.id}
+                entry={e}
+                onDelete={() => handleDelete(e)}
+                onTap={() => setEditing(e)}
+              />
             ))}
           </AnimatePresence>
         </ul>
       )}
+      <EditEntrySheet entry={editing} onClose={() => setEditing(null)} />
     </motion.div>
   );
 }
