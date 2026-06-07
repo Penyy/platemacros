@@ -391,12 +391,13 @@ export function Plate3D({
 
   return (
     <div className="flex flex-col items-center w-full">
-      <div className="h-[320px] w-full">
+      <div className="h-[320px] w-full" style={{ touchAction: "pan-y" }}>
         {mounted && (
           <Canvas
             shadows
             dpr={[1, 2]}
             gl={{ alpha: true, antialias: true }}
+            style={{ touchAction: "pan-y" }}
           >
             <PerspectiveCamera makeDefault fov={32} position={[0, 3.3, 5.2]} />
             <ambientLight intensity={0.6} />
