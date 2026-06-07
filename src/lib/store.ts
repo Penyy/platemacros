@@ -393,6 +393,32 @@ export const usePlate = create<State>()((set, get) => ({
       });
   },
 
+  updateEntry: (id, patch) => {
+    set((s) => ({
+      entries: s.entries.map((x) => (x.id === id ? { ...x, ...patch } : x)),
+    }));
+    const uid = get().userId;
+    if (!uid) return;
+    const dbPatch: Record<string, unknown> = {};
+    if (patch.date !== undefined) dbPatch.date = patch.date;
+    if (patch.meal !== undefined) dbPatch.meal = patch.meal;
+    if (patch.name !== undefined) dbPatch.name = patch.name;
+    if (patch.grams !== undefined) dbPatch.grams = patch.grams ?? null;
+    if (patch.kcal !== undefined) dbPatch.kcal = patch.kcal;
+    if (patch.protein !== undefined) dbPatch.protein = patch.protein;
+    if (patch.carbs !== undefined) dbPatch.carbs = patch.carbs;
+    if (patch.fat !== undefined) dbPatch.fat = patch.fat;
+    if (patch.sub_items !== undefined) dbPatch.sub_items = (patch.sub_items ?? null) as Json;
+    void supabase
+      .from("food_entries")
+      .update(dbPatch as never)
+      .eq("id", id)
+      .eq("user_id", uid)
+      .then(({ error }) => {
+        if (error) netToast(error);
+      });
+  },
+
   removeEntry: (id) => {
     set((s) => ({ entries: s.entries.filter((x) => x.id !== id) }));
     const uid = get().userId;
