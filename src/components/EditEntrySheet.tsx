@@ -1,7 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { toast } from "sonner";
 import { type LogEntry, type Meal, MEAL_LABEL, usePlate } from "@/lib/store";
+
+
 
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
@@ -12,6 +15,10 @@ interface Props {
 
 export function EditEntrySheet({ entry, onClose }: Props) {
   const updateEntry = usePlate((s) => s.updateEntry);
+  const products = usePlate((s) => s.products);
+  const addProduct = usePlate((s) => s.addProduct);
+  const updateProduct = usePlate((s) => s.updateProduct);
+  const [saveToLibrary, setSaveToLibrary] = useState(false);
   const [name, setName] = useState("");
   const [meal, setMeal] = useState<Meal>("breakfast");
   const [grams, setGrams] = useState("");
@@ -29,22 +36,50 @@ export function EditEntrySheet({ entry, onClose }: Props) {
     setProtein(String(round1(entry.protein)));
     setCarbs(String(round1(entry.carbs)));
     setFat(String(round1(entry.fat)));
+    setSaveToLibrary(false);
   }, [entry]);
 
   const save = () => {
     if (!entry) return;
     const g = grams.trim() === "" ? undefined : numOr(grams, entry.grams ?? 0);
+    const finalName = name.trim() || entry.name;
+    const finalKcal = numOr(kcal, entry.kcal);
+    const finalProtein = numOr(protein, entry.protein);
+    const finalCarbs = numOr(carbs, entry.carbs);
+    const finalFat = numOr(fat, entry.fat);
     updateEntry(entry.id, {
-      name: name.trim() || entry.name,
+      name: finalName,
       meal,
       grams: g,
-      kcal: numOr(kcal, entry.kcal),
-      protein: numOr(protein, entry.protein),
-      carbs: numOr(carbs, entry.carbs),
-      fat: numOr(fat, entry.fat),
+      kcal: finalKcal,
+      protein: finalProtein,
+      carbs: finalCarbs,
+      fat: finalFat,
     });
+
+    if (saveToLibrary) {
+      const hasGrams = g !== undefined && g > 0;
+      const factor = hasGrams ? 100 / (g as number) : 1;
+      const macros = {
+        kcal: round1(finalKcal * factor),
+        protein: round1(finalProtein * factor),
+        carbs: round1(finalCarbs * factor),
+        fat: round1(finalFat * factor),
+      };
+      const norm = finalName.trim().toLowerCase();
+      const existing = products.find((p) => p.name.trim().toLowerCase() === norm);
+      if (existing) {
+        updateProduct(existing.id, { name: finalName, ...macros });
+      } else {
+        addProduct({ name: finalName, ...macros });
+      }
+      toast.success("Dodano do Twoich produktów");
+    }
+
     onClose();
   };
+
+
 
   return (
     <AnimatePresence>
@@ -113,7 +148,18 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                   <NumField label="Tłuszcz (g)" value={fat} setValue={setFat} />
                 </div>
 
+                <label className="mt-2 flex cursor-pointer items-center gap-3 rounded-2xl bg-foreground/5 px-3 py-2.5">
+                  <input
+                    type="checkbox"
+                    checked={saveToLibrary}
+                    onChange={(e) => setSaveToLibrary(e.target.checked)}
+                    className="h-4 w-4 accent-primary"
+                  />
+                  <span className="text-[13px] font-medium">Dodaj do moich produktów</span>
+                </label>
+
                 <div className="mt-2 flex gap-2 pt-2">
+
                   <button
                     onClick={onClose}
                     className="flex-1 rounded-full bg-foreground/10 px-4 py-3 text-sm font-semibold"
