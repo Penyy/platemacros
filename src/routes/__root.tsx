@@ -11,6 +11,7 @@ import {
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/AppShell";
 import { ThemeManager } from "@/components/ThemeManager";
+import { KeyboardScrollManager } from "@/components/KeyboardScrollManager";
 
 function NotFoundComponent() {
   return (
@@ -120,6 +121,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeManager />
+      <KeyboardScrollManager />
       <AppShell>
         <Outlet />
       </AppShell>
