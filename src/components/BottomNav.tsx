@@ -1,6 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Home, BarChart3, BookOpen, Settings as Cog, Plus } from "lucide-react";
+import { Home, BarChart3, BookOpen, Settings as Cog } from "lucide-react";
 
 interface Props {
   onAdd: () => void;
