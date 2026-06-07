@@ -279,6 +279,24 @@ export function AssistantFlow({ defaultMeal }: Props) {
         onChange={onPickImage}
       />
 
+      {pendingImage && (
+        <div className="flex items-center gap-2 rounded-2xl bg-foreground/5 p-2">
+          <img src={pendingImage.dataUrl} alt="" className="h-12 w-12 rounded-lg object-cover" />
+          <div className="flex-1 text-xs text-muted-foreground">
+            Zdjęcie gotowe. Możesz dodać opis (np. „duża porcja, ok. 300 g") albo wyślij od razu.
+          </div>
+          <button
+            type="button"
+            onClick={() => setPendingImage(null)}
+            disabled={!!busy}
+            className="grid h-7 w-7 place-items-center rounded-full bg-foreground/10"
+            aria-label="Usuń zdjęcie"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -292,14 +310,17 @@ export function AssistantFlow({ defaultMeal }: Props) {
             autoFocus
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Opisz co zjadłeś albo zapytaj o makro…"
+            placeholder={
+              pendingImage
+                ? "Dodaj opis do zdjęcia (opcjonalnie)…"
+                : "Opisz co zjadłeś albo zapytaj o makro…"
+            }
             disabled={!!busy}
             className="flex-1 bg-transparent text-[15px] outline-none placeholder:text-muted-foreground/70"
-            defaultValue={defaultMeal ? "" : undefined}
           />
           <button
             type="submit"
-            disabled={!input.trim() || !!busy}
+            disabled={(!input.trim() && !pendingImage) || !!busy}
             className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"
             aria-label="Wyślij"
           >
@@ -310,12 +331,36 @@ export function AssistantFlow({ defaultMeal }: Props) {
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={!!busy}
-          className="grid h-11 w-11 place-items-center rounded-2xl bg-foreground/10 disabled:opacity-40"
-          aria-label="Zrób zdjęcie etykiety"
+          className={`grid h-11 w-11 place-items-center rounded-2xl disabled:opacity-40 ${
+            pendingImage ? "bg-primary text-primary-foreground" : "bg-foreground/10"
+          }`}
+          aria-label="Zrób zdjęcie"
         >
           <Camera size={18} />
         </button>
       </form>
+
+      {history.length === 0 && !busy && (
+        <div className="rounded-2xl border border-border/60 bg-card/60 p-3 text-sm">
+          <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <MessageCircle size={12} /> Mogę pomóc na 3 sposoby
+          </div>
+          <ul className="space-y-1 text-[13px] leading-snug text-foreground/85">
+            <li className="flex gap-2">
+              <Sparkles size={14} className="mt-0.5 shrink-0 text-primary" />
+              <span><b>Opisz co zjadłeś</b> — dodam z makro (np. „2 jajka i tost")</span>
+            </li>
+            <li className="flex gap-2">
+              <Camera size={14} className="mt-0.5 shrink-0 text-primary" />
+              <span><b>Zrób zdjęcie</b> posiłku lub etykiety — rozpoznam i dodam</span>
+            </li>
+            <li className="flex gap-2">
+              <MessageCircle size={14} className="mt-0.5 shrink-0 text-primary" />
+              <span><b>Zapytaj o makro</b> — ile Ci zostało, co dojeść na białko</span>
+            </li>
+          </ul>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-1.5">
         {CHIPS.map((c) => (
