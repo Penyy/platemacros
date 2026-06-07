@@ -433,7 +433,6 @@ export function Plate3D({
               autoRotateSpeed={0.4}
               minPolarAngle={polar}
               maxPolarAngle={polar}
-              touches={{ ONE: undefined as unknown as number, TWO: undefined as unknown as number }}
             />
           </Canvas>
         )}
