@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
-import { Download, Upload, LogOut, CloudUpload } from "lucide-react";
+import { Download, Upload, LogOut, CloudUpload, MessageSquare } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Switch } from "@/components/ui/switch";
+import { FeedbackSheet } from "@/components/FeedbackSheet";
 import {
   type Theme,
   type LogEntry,
