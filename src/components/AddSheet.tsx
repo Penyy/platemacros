@@ -74,8 +74,6 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                     ? "Szukaj produktu"
                     : mode === "compound"
                     ? "Złożony posiłek"
-                    : mode === "estimate"
-                    ? "Oszacuj ze zdjęcia"
                     : mode === "barcode"
                     ? "Skanuj kod kreskowy"
                     : mode === "assistant"
