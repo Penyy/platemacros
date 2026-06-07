@@ -140,51 +140,16 @@ function TodayPage() {
         />
       </section>
 
-      {/* This week */}
-      {weekTotal > 0 && (
-        <section className="px-[18px]">
-          <div className="surface-card p-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-[17px] font-bold tracking-tight">Ten tydzień</h2>
-                <p className="mt-0.5 text-[12px] text-muted-foreground">
-                  Średnio {weekAvg} kcal / dzień
-                </p>
-              </div>
-              <div className="num-tight text-[22px] font-extrabold tracking-tight">
-                {(weekTotal / 1000).toFixed(1).replace(".", ",")}k
-              </div>
-            </div>
-            <WeekBars data={weekData} max={weekMax} />
-          </div>
-        </section>
-      )}
-
       {/* Macros */}
       <section className="px-[18px]">
         <div className="surface-card p-4">
           <h2 className="text-[17px] font-bold tracking-tight">Makra</h2>
-          <div className="mt-3 space-y-3">
-            <MacroRow label="Białko" cur={Math.round(sum.protein)} goal={dayGoals.protein} color="var(--ink)" />
-            <MacroRow label="Węglowodany" cur={Math.round(sum.carbs)} goal={dayGoals.carbs} color="var(--accent-yellow)" />
-            <MacroRow label="Tłuszcz" cur={Math.round(sum.fat)} goal={dayGoals.fat} color="var(--light-gray, #C9C3B6)" />
+          <div className="mt-3 space-y-3.5">
+            <MacroRow label="Białko" cur={Math.round(sum.protein)} goal={dayGoals.protein} color="var(--macro-protein)" />
+            <MacroRow label="Węglowodany" cur={Math.round(sum.carbs)} goal={dayGoals.carbs} color="var(--macro-carbs)" />
+            <MacroRow label="Tłuszcz" cur={Math.round(sum.fat)} goal={dayGoals.fat} color="var(--macro-fat)" />
           </div>
         </div>
-      </section>
-
-      {/* Meals */}
-      <section className="space-y-3 px-[18px]">
-        <h2 className="text-[17px] font-bold tracking-tight px-1">Posiłki</h2>
-        {MEALS.map((m) => (
-          <MealCard
-            key={m}
-            meal={m}
-            date={selected}
-            entries={dayEntries.filter((e) => e.meal === m)}
-            prevDayHasEntries={prevEntries.some((e) => e.meal === m)}
-            onAdd={(meal) => openAdd(meal)}
-          />
-        ))}
       </section>
 
       {/* Ask AI */}
@@ -214,9 +179,25 @@ function TodayPage() {
         </button>
         {openAssistant ? null : null}
       </section>
+
+      {/* Meals */}
+      <section className="space-y-3 px-[18px]">
+        <h2 className="text-[17px] font-bold tracking-tight px-1">Posiłki</h2>
+        {MEALS.map((m) => (
+          <MealCard
+            key={m}
+            meal={m}
+            date={selected}
+            entries={dayEntries.filter((e) => e.meal === m)}
+            prevDayHasEntries={prevEntries.some((e) => e.meal === m)}
+            onAdd={(meal) => openAdd(meal)}
+          />
+        ))}
+      </section>
     </div>
   );
 }
+
 
 /* ---------- Subcomponents ---------- */
 
