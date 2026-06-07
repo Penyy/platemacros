@@ -269,21 +269,16 @@ const inputCls =
   "w-full rounded-xl border border-border/60 bg-card px-3 py-2.5 text-base outline-none focus:border-primary num-tight";
 
 function QuickForm({
-  meal,
-  setMeal,
   onSubmit,
 }: {
-  meal: Meal;
-  setMeal: (m: Meal) => void;
   onSubmit: (p: FormPayload) => void;
 }) {
-  const [name, setName] = useState("");
   const [kcal, setKcal] = useState("");
   const [p, setP] = useState("");
   const [c, setC] = useState("");
   const [f, setF] = useState("");
 
-  const valid = name.trim() && Number(kcal) > 0;
+  const valid = Number(kcal) > 0;
 
   return (
     <form
@@ -292,7 +287,7 @@ function QuickForm({
         e.preventDefault();
         if (!valid) return;
         onSubmit({
-          name: name.trim(),
+          name: "Szybki wpis",
           kcal: Number(kcal),
           protein: Number(p) || 0,
           carbs: Number(c) || 0,
@@ -300,17 +295,6 @@ function QuickForm({
         });
       }}
     >
-      <MealPicker meal={meal} setMeal={setMeal} />
-
-      <input
-        autoFocus
-        className="w-full rounded-2xl bg-muted px-4 py-3 text-[15px] font-semibold outline-none placeholder:text-muted-foreground/70 focus:ring-2 focus:ring-ring"
-        value={name}
-        maxLength={80}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Nazwa, np. Jogurt naturalny"
-      />
-
       {/* Hero kcal field */}
       <div
         className="rounded-2xl bg-card p-4"
@@ -324,6 +308,7 @@ function QuickForm({
         </div>
         <div className="mt-1 flex items-baseline gap-2">
           <input
+            autoFocus
             className="num-tight w-full bg-transparent text-[40px] font-extrabold leading-none tracking-tight outline-none placeholder:text-foreground/20"
             inputMode="numeric"
             value={kcal}
@@ -334,10 +319,10 @@ function QuickForm({
         </div>
       </div>
 
-      {/* Optional macros */}
+      {/* Optional macros — three equal columns */}
       <div className="grid grid-cols-3 gap-2">
         <MacroField color="var(--macro-protein)" label="Białko" value={p} onChange={setP} />
-        <MacroField color="var(--macro-carbs)" label="Węglowodany" value={c} onChange={setC} />
+        <MacroField color="var(--macro-carbs)" label="Węgl." value={c} onChange={setC} />
         <MacroField color="var(--macro-fat)" label="Tłuszcz" value={f} onChange={setF} />
       </div>
 
