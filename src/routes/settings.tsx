@@ -8,10 +8,14 @@ import {
   type LogEntry,
   type Meal,
   type DayMacro,
+  type AssistantDefaultMeal,
+  type AssistantResponseLength,
+  defaultAssistantSettings,
   usePlate,
   readLegacyLocalStorage,
   clearLegacyLocalStorage,
   seedWeeklyFromProfile,
+  MEAL_LABEL,
 } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
