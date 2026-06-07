@@ -163,18 +163,20 @@ function TodayPage() {
         </div>
       </section>
 
-      {/* Dark hero: kcal ring + macros */}
+      {/* Light hero: kcal ring + macros */}
       <section className="px-[18px]">
-        <HeroDark
+        <HeroLight
           consumed={Math.round(sum.kcal)}
           goal={Math.max(1, Math.round(adjustedGoal))}
           remaining={remaining}
           burned={burned}
+          onEditBurned={() => setBurnedOpen(true)}
           protein={{ cur: Math.round(sum.protein), goal: dayGoals.protein }}
           carbs={{ cur: Math.round(sum.carbs), goal: dayGoals.carbs }}
           fat={{ cur: Math.round(sum.fat), goal: dayGoals.fat }}
         />
       </section>
+
 
       {/* Meals */}
       <section className="space-y-3 px-[18px]">
