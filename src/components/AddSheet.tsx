@@ -99,7 +99,7 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
               {mode === "quick" && (
                 <QuickForm
                   onSubmit={(payload) => {
-                    const m = guessMeal();
+                    const m = defaultMeal ?? guessMeal();
                     addEntry({ ...payload, date, meal: m });
                     close();
                   }}
