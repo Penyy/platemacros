@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Pencil, Plus, Trash2, X, Check, Search } from "lucide-react";
+import { Plus, Trash2, X, Check, Search } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { usePlate, type Product } from "@/lib/store";
 
@@ -145,47 +145,57 @@ function ProductsPage() {
                   />
                 </li>
               ) : (
-                <li
-                  key={p.id}
-                  className="flex items-center gap-2 rounded-[20px] bg-card p-3.5"
-                  style={{ boxShadow: "var(--shadow-card)" }}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div
-                      className="truncate text-[15px]"
-                      style={{ fontWeight: 700, color: "var(--ink)" }}
+                <li key={p.id}>
+                  <div
+                    className="flex items-stretch rounded-[20px] bg-card"
+                    style={{ boxShadow: "var(--shadow-card)" }}
+                  >
+                    <button
+                      onClick={() => {
+                        setEditingId(p.id);
+                        setEditDraft(toDraft(p));
+                      }}
+                      className="flex flex-1 items-center gap-3 p-3.5 text-left active:opacity-80"
+                      aria-label={`Edytuj ${p.name}`}
                     >
-                      {p.name}
-                    </div>
-                    <div
-                      className="num-tight mt-0.5 text-[11.5px]"
-                      style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
+                      <div className="flex-1 min-w-0">
+                        <div
+                          className="truncate text-[15px]"
+                          style={{ fontWeight: 700, color: "var(--ink)" }}
+                        >
+                          {p.name}
+                        </div>
+                        <div
+                          className="num-tight mt-0.5 text-[11.5px]"
+                          style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
+                        >
+                          B {round1(p.protein)} · W {round1(p.carbs)} · T {round1(p.fat)} g / 100 g
+                        </div>
+                      </div>
+                      <div
+                        className="num-tight shrink-0 pr-1 text-right text-[15px]"
+                        style={{ fontWeight: 800, color: "var(--ink)" }}
+                      >
+                        {Math.round(p.kcal)}
+                        <span
+                          className="ml-0.5 text-[10px]"
+                          style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+                        >
+                          kcal
+                        </span>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm(`Usunąć „${p.name}”?`)) removeProduct(p.id);
+                      }}
+                      className="grid w-12 place-items-center rounded-r-[20px]"
+                      style={{ color: "var(--muted-foreground)" }}
+                      aria-label="Usuń"
                     >
-                      {Math.round(p.kcal)} kcal · B {round1(p.protein)} · W{" "}
-                      {round1(p.carbs)} · T {round1(p.fat)} / 100 g
-                    </div>
+                      <Trash2 size={15} strokeWidth={1.9} />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => {
-                      setEditingId(p.id);
-                      setEditDraft(toDraft(p));
-                    }}
-                    className="grid h-9 w-9 place-items-center rounded-full"
-                    style={{ background: "var(--hairline)", color: "var(--ink)" }}
-                    aria-label="Edytuj"
-                  >
-                    <Pencil size={15} strokeWidth={1.9} />
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (confirm(`Usunąć „${p.name}”?`)) removeProduct(p.id);
-                    }}
-                    className="grid h-9 w-9 place-items-center rounded-full"
-                    style={{ background: "var(--hairline)", color: "var(--macro-protein)" }}
-                    aria-label="Usuń"
-                  >
-                    <Trash2 size={15} strokeWidth={1.9} />
-                  </button>
                 </li>
               )
             )}

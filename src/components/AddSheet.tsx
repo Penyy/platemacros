@@ -643,24 +643,36 @@ function SearchForm({
 
   return (
     <div className="space-y-3">
-      <input
-        autoFocus
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Szukaj w bibliotece…"
-        className={inputCls}
-      />
+      <div
+        className="flex items-center gap-2 rounded-full bg-card px-4 py-2.5"
+        style={{ boxShadow: "var(--shadow-card)" }}
+      >
+        <Search size={16} className="shrink-0" style={{ color: "var(--muted-foreground)" }} />
+        <input
+          autoFocus
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Szukaj w bibliotece"
+          className="flex-1 bg-transparent text-[15px] outline-none placeholder:text-[color:var(--muted-foreground)]"
+          style={{ color: "var(--ink)", fontWeight: 500 }}
+        />
+      </div>
       {products.length === 0 ? (
-        <p className="px-1 py-2 text-center text-sm text-muted-foreground">
-          Twoja biblioteka jest pusta. Dodaj produkty w „Moje produkty”
-          (Profil).
+        <p
+          className="px-1 py-2 text-center text-[13px]"
+          style={{ color: "var(--muted-foreground)" }}
+        >
+          Twoja biblioteka jest pusta. Dodaj produkty w „Moje produkty”.
         </p>
       ) : results.length === 0 ? (
-        <p className="px-1 py-2 text-center text-sm text-muted-foreground">
-          Brak wyników.
+        <p
+          className="px-1 py-2 text-center text-[13px]"
+          style={{ color: "var(--muted-foreground)" }}
+        >
+          Brak wyników — dodaj produkt w „Moje produkty”.
         </p>
       ) : (
-        <ul className="max-h-[50vh] space-y-1.5 overflow-y-auto pr-1">
+        <ul className="max-h-[52vh] space-y-2 overflow-y-auto pr-1">
           {results.map((p) => (
             <li key={p.id}>
               <button
@@ -669,14 +681,34 @@ function SearchForm({
                   setSelected(p);
                   setGrams("100");
                 }}
-                className="flex w-full items-center gap-2 rounded-xl border border-border/60 bg-card p-3 text-left active:bg-accent"
+                className="flex w-full items-center gap-3 rounded-[20px] bg-card p-3.5 text-left active:opacity-80"
+                style={{ boxShadow: "var(--shadow-card)" }}
               >
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold">{p.name}</div>
-                  <div className="num-tight mt-0.5 text-[11px] text-muted-foreground">
-                    {Math.round(p.kcal)} kcal · B {Math.round(p.protein)} · W{" "}
-                    {Math.round(p.carbs)} · T {Math.round(p.fat)} / 100 g
+                  <div
+                    className="truncate text-[15px]"
+                    style={{ fontWeight: 700, color: "var(--ink)" }}
+                  >
+                    {p.name}
                   </div>
+                  <div
+                    className="num-tight mt-0.5 text-[11.5px]"
+                    style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
+                  >
+                    B {Math.round(p.protein)} · W {Math.round(p.carbs)} · T {Math.round(p.fat)} g / 100 g
+                  </div>
+                </div>
+                <div
+                  className="num-tight shrink-0 text-right text-[15px]"
+                  style={{ fontWeight: 800, color: "var(--ink)" }}
+                >
+                  {Math.round(p.kcal)}
+                  <span
+                    className="ml-0.5 text-[10px]"
+                    style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+                  >
+                    kcal
+                  </span>
                 </div>
               </button>
             </li>
