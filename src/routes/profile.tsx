@@ -104,9 +104,9 @@ function ProfilePage() {
             <div style={{ width: `${pct(fK)}%`, background: "var(--fat)" }} />
           </div>
           <ul className="mt-3 grid grid-cols-3 gap-2 text-center">
-            <Row label="Białko" g={p.goal_protein} pct={pct(pK)} color="var(--protein)" />
-            <Row label="Węgle" g={p.goal_carbs} pct={pct(cK)} color="var(--carbs)" />
-            <Row label="Tłuszcz" g={p.goal_fat} pct={pct(fK)} color="var(--fat)" />
+            <Row label="Białko" g={p.goal_protein} color="var(--protein)" />
+            <Row label="Węglowodany" g={p.goal_carbs} color="var(--carbs)" />
+            <Row label="Tłuszcz" g={p.goal_fat} color="var(--fat)" />
           </ul>
         </div>
 
@@ -212,12 +212,10 @@ function ProfilePage() {
 function Row({
   label,
   g,
-  pct,
   color,
 }: {
   label: string;
   g: number;
-  pct: number;
   color: string;
 }) {
   return (
@@ -229,8 +227,7 @@ function Row({
         </span>
       </div>
       <div className="num-tight mt-0.5 text-sm">
-        <span className="font-semibold">{g} g</span>{" "}
-        <span className="text-muted-foreground">· {pct}%</span>
+        <span className="font-semibold">{g} g</span>
       </div>
     </li>
   );

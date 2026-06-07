@@ -144,7 +144,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                   <NumField label="Gramatura (g)" value={grams} setValue={setGrams} />
                   <NumField label="Kalorie (kcal)" value={kcal} setValue={setKcal} />
                   <NumField label="Białko (g)" value={protein} setValue={setProtein} />
-                  <NumField label="Węgle (g)" value={carbs} setValue={setCarbs} />
+                  <NumField label="Węglowodany (g)" value={carbs} setValue={setCarbs} />
                   <NumField label="Tłuszcz (g)" value={fat} setValue={setFat} />
                 </div>
 

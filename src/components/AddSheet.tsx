@@ -328,7 +328,7 @@ function QuickForm({
             onChange={(e) => setP(e.target.value.replace(",", "."))}
           />
         </Field>
-        <Field label="Węgle (g)">
+        <Field label="Węglowodany (g)">
           <input
             className={inputCls}
             inputMode="decimal"
