@@ -156,7 +156,7 @@ export const usePlate = create<State>()((set, get) => ({
   products: [],
   addSheet: { open: false },
 
-  openAdd: (meal) => set({ addSheet: { open: true, meal } }),
+  openAdd: (meal, date) => set({ addSheet: { open: true, meal, date } }),
   closeAdd: () => set((s) => ({ addSheet: { ...s.addSheet, open: false } })),
 
   setAuth: (userId) => {
