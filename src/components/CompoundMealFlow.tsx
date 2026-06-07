@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { scanNutritionLabel, type NutritionLabel } from "@/lib/nutrition.functions";
 import { type Meal, MEAL_LABEL } from "@/lib/store";
 
-const MEALS: Meal[] = ["breakfast", "lunch", "dinner", "snack"];
+const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
 interface Ingredient {
   id: string;
