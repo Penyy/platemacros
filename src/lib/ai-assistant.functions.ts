@@ -62,12 +62,23 @@ const HistorySchema = z
   )
   .max(10);
 
+const SettingsSchema = z.object({
+  autoAddPhoto: z.boolean().default(true),
+  allowAddEntries: z.boolean().default(true),
+  defaultMeal: z
+    .enum(["auto", "breakfast", "second_breakfast", "lunch", "dinner", "snack"])
+    .default("auto"),
+  responseLength: z.enum(["short", "detailed"]).default("short"),
+});
+export type AssistantCallSettings = z.infer<typeof SettingsSchema>;
+
 const AskInputSchema = z.object({
   message: z.string().max(1000),
   history: HistorySchema.optional().default([]),
   dayContext: DayContextSchema,
   imageBase64: z.string().min(100).max(8_000_000).optional(),
   mimeType: z.string().optional(),
+  settings: SettingsSchema.optional(),
 });
 
 // Output kinds
