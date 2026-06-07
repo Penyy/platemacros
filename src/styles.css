@@ -97,34 +97,52 @@
 }
 
 .dark {
-  /* keep dark fallbacks usable; app primarily ships light */
-  --background: oklch(0.16 0.008 85);
-  --foreground: oklch(0.98 0.003 85);
+  /* Warm-black dark theme — full token set, no leftover light surfaces */
+  --ink: #F2EEE6;
+  --hairline: rgba(255,255,255,0.08);
+  --light-gray: #A39C8E;
+  --cream: #211F19;                            /* hero/elevated card */
 
-  --card: oklch(0.21 0.01 85);
-  --card-foreground: oklch(0.98 0.003 85);
+  --accent-yellow: #F4B500;
+  --accent-yellow-soft: #F6C840;
 
-  --muted: oklch(0.24 0.01 85);
-  --muted-foreground: oklch(0.7 0.015 85);
+  --background: #15140F;                       /* page bg */
+  --foreground: #F2EEE6;
 
-  --accent: oklch(0.26 0.01 85);
-  --accent-foreground: oklch(0.98 0.003 85);
+  --card: #211F19;                             /* elevated surface */
+  --card-foreground: #F2EEE6;
 
-  --primary: oklch(0.97 0.003 85);
-  --primary-foreground: oklch(0.18 0.01 85);
+  --muted: #2A2823;                            /* second surface / input bg */
+  --muted-foreground: #A39C8E;
 
-  --border: oklch(1 0 0 / 0.1);
-  --ring: oklch(0.85 0.01 85);
+  --accent: #2A2823;
+  --accent-foreground: #F2EEE6;
 
-  --protein: oklch(0.98 0.003 85);
-  --carbs: var(--accent-yellow);
-  --fat: oklch(0.6 0.01 85);
+  --primary: #F2EEE6;                          /* light CTA on dark */
+  --primary-foreground: #15140F;
 
-  --glass: oklch(0.22 0.01 85 / 0.55);
-  --glass-border: oklch(1 0 0 / 0.12);
+  --border: rgba(255,255,255,0.08);
+  --ring: rgba(255,255,255,0.25);
 
-  --page-gradient: linear-gradient(180deg, #14140F 0%, #14140F 46%, #2A1F08 100%);
+  --macro-protein: #E15B4C;
+  --macro-carbs: #EF8B2C;
+  --macro-fat: #5C8AA6;
+  --protein: var(--macro-protein);
+  --protein-soft: #2A2823;
+  --carbs: var(--macro-carbs);
+  --carbs-soft: #2A2823;
+  --fat: var(--macro-fat);
+  --fat-soft: #2A2823;
+
+  --glass: rgba(33,31,25,0.55);
+  --glass-border: rgba(255,255,255,0.08);
+
+  --shadow-card: 0 12px 30px rgba(0,0,0,0.35),
+                 0 2px 8px rgba(0,0,0,0.25);
+
+  --page-gradient: linear-gradient(180deg, #15140F 0%, #15140F 60%, #1B180E 100%);
 }
+
 
 @layer base {
   * {
