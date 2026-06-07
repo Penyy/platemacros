@@ -54,6 +54,14 @@ function PlateModel({ onTopY }: { onTopY: (y: number) => void }) {
   return <primitive object={prepared.root} />;
 }
 
+function AutoRotate({ speed = 0.2, children }: { speed?: number; children: React.ReactNode }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame((_, delta) => {
+    if (ref.current) ref.current.rotation.y += speed * delta;
+  });
+  return <group ref={ref}>{children}</group>;
+}
+
 /* ---------- Apple variants ---------- */
 
 type AppleVariantKind = "whole" | "half" | "slice";
@@ -386,17 +394,18 @@ export function Plate3D({
   const unit = goalKcal > 0 ? goalKcal / 5 : 0;
   const appleCount = hasFood && unit > 0 ? Math.min(11, Math.floor(consumedKcal / unit)) : 0;
 
-  const polar = Math.PI * 0.32;
-
   return (
     <div className="flex flex-col items-center w-full">
-      <div className="h-[320px] w-full" style={{ touchAction: "pan-y" }}>
+      <div
+        className="h-[320px] w-full"
+        style={{ pointerEvents: "none", touchAction: "pan-y" }}
+      >
         {mounted && (
           <Canvas
             shadows
             dpr={[1, 2]}
             gl={{ alpha: true, antialias: true }}
-            style={{ touchAction: "pan-y" }}
+            style={{ pointerEvents: "none", touchAction: "pan-y" }}
           >
             <PerspectiveCamera makeDefault fov={32} position={[0, 3.3, 5.2]} />
             <ambientLight intensity={0.6} />
@@ -409,14 +418,16 @@ export function Plate3D({
             />
             <Suspense fallback={null}>
               <Environment preset="studio" />
-              <PlateModel onTopY={setPlateTopY} />
-              {appleCount > 0 && (
-                <ApplesLayer
-                  count={appleCount}
-                  plateTopY={plateTopY}
-                  dayKey={dayKey}
-                />
-              )}
+              <AutoRotate speed={0.2}>
+                <PlateModel onTopY={setPlateTopY} />
+                {appleCount > 0 && (
+                  <ApplesLayer
+                    count={appleCount}
+                    plateTopY={plateTopY}
+                    dayKey={dayKey}
+                  />
+                )}
+              </AutoRotate>
               <ContactShadows
                 position={[0, 0, 0]}
                 opacity={0.35}
@@ -424,15 +435,6 @@ export function Plate3D({
                 scale={10}
               />
             </Suspense>
-            <OrbitControls
-              target={[0, 0.2, 0]}
-              enablePan={false}
-              enableZoom={false}
-              autoRotate
-              autoRotateSpeed={0.4}
-              minPolarAngle={polar}
-              maxPolarAngle={polar}
-            />
           </Canvas>
         )}
       </div>
