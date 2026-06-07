@@ -35,6 +35,7 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
   const remove = usePlate((s) => s.removeEntry);
   const addEntry = usePlate((s) => s.addEntry);
   const repeatMeal = usePlate((s) => s.repeatMealFromPrevDay);
+  const [editing, setEditing] = useState<LogEntry | null>(null);
 
   const pK = sum.protein * 4;
   const cK = sum.carbs * 4;
