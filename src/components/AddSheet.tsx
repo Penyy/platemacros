@@ -146,14 +146,16 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                 />
               )}
               {mode === "barcode" && (
-                <BarcodeScanFlow
-                  meal={meal}
-                  setMeal={setMeal}
-                  onSubmit={(payload) => {
-                    addEntry({ ...payload, date, meal });
-                    close();
-                  }}
-                />
+                <Suspense fallback={<div className="py-12 text-center text-sm text-muted-foreground">Ładowanie skanera…</div>}>
+                  <BarcodeScanFlow
+                    meal={meal}
+                    setMeal={setMeal}
+                    onSubmit={(payload) => {
+                      addEntry({ ...payload, date, meal });
+                      close();
+                    }}
+                  />
+                </Suspense>
               )}
               {mode === "assistant" && (
                 <AssistantFlow defaultMeal={meal} onClose={close} />
