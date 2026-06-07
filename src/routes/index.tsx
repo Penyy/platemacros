@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { Bell, Settings as Cog, User, Camera, ArrowUp, ArrowUpRight, Flame, Activity, UtensilsCrossed } from "lucide-react";
 import { MealCard } from "@/components/MealCard";
 import {
