@@ -319,7 +319,7 @@ function QuickForm({
         </div>
       </div>
 
-      {/* Optional macros — three equal columns */}
+      {/* Optional macros — same field style as Calories above */}
       <div className="grid grid-cols-3 gap-2">
         <MacroField color="var(--macro-protein)" label="Białko" value={p} onChange={setP} />
         <MacroField color="var(--macro-carbs)" label="Węgl." value={c} onChange={setC} />
@@ -343,7 +343,13 @@ function MacroField({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="block min-w-0 rounded-2xl bg-muted p-3">
+    <label
+      className="block min-w-0 rounded-2xl bg-card p-3"
+      style={{
+        border: "1px solid var(--hairline)",
+        boxShadow: "var(--shadow-card)",
+      }}
+    >
       <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
         <span
           className="inline-block h-2 w-2 shrink-0 rounded-full"
@@ -352,13 +358,16 @@ function MacroField({
         />
         <span className="truncate">{label}</span>
       </span>
-      <input
-        className="num-tight mt-1 w-full min-w-0 bg-transparent text-[18px] font-extrabold tracking-tight outline-none placeholder:text-[10px] placeholder:font-medium placeholder:text-foreground/35"
-        inputMode="decimal"
-        value={value}
-        onChange={(e) => onChange(e.target.value.replace(",", "."))}
-        placeholder="opcjonalnie"
-      />
+      <div className="mt-1 flex items-baseline gap-1">
+        <input
+          className="num-tight w-full min-w-0 bg-transparent text-[22px] font-extrabold leading-none tracking-tight outline-none placeholder:text-foreground/20"
+          inputMode="decimal"
+          value={value}
+          onChange={(e) => onChange(e.target.value.replace(",", "."))}
+          placeholder="0"
+        />
+        <span className="text-[11px] font-semibold text-muted-foreground">g</span>
+      </div>
     </label>
   );
 }
