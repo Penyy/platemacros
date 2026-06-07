@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useMemo, useRef, useState } from "react";
-import { Camera, Loader2, Send, Sparkles } from "lucide-react";
+import { Camera, Loader2, MessageCircle, Send, Sparkles, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
