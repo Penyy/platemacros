@@ -12,6 +12,7 @@ import appCss from "../styles.css?url";
 import { AppShell } from "@/components/AppShell";
 import { ThemeManager } from "@/components/ThemeManager";
 import { KeyboardScrollManager } from "@/components/KeyboardScrollManager";
+import { KeyboardInsetManager } from "@/components/KeyboardInsetManager";
 
 function NotFoundComponent() {
   return (
