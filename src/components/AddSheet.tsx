@@ -6,7 +6,7 @@ import {
   PencilLine,
   Search,
   ScanLine,
-  MessageCircle,
+  Sparkles,
   X,
 } from "lucide-react";
 import { type Meal, MEAL_LABEL, type Product, usePlate, ymd } from "@/lib/store";
@@ -63,7 +63,7 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
             transition={{ type: "spring", stiffness: 320, damping: 32 }}
             className="fixed inset-x-0 bottom-0 z-50 mx-auto flex w-full max-w-[430px] flex-col"
           >
-            <div className="glass mx-2 mb-2 rounded-[28px] p-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
+            <div className="mx-2 mb-[max(env(safe-area-inset-bottom),1rem)] rounded-[28px] bg-card p-5 pb-[max(env(safe-area-inset-bottom),1.25rem)]" style={{ boxShadow: "var(--shadow-card)" }}>
               <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-foreground/20" />
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-xl font-bold tracking-tight">
@@ -80,7 +80,7 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                     : mode === "barcode"
                     ? "Skanuj kod kreskowy"
                     : mode === "assistant"
-                    ? "Zapytaj AI"
+                    ? "PlateAI"
                     : "Skanuj etykietę"}
                 </h2>
                 <button
@@ -181,7 +181,7 @@ type PickMode = "quick" | "manual" | "search" | "compound" | "barcode" | "assist
 
 function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
   const items: { id: PickMode; label: string; icon: typeof ScanLine; soon: boolean }[] = [
-    { id: "assistant", label: "Zapytaj AI", icon: MessageCircle, soon: false },
+    { id: "assistant", label: "PlateAI", icon: Sparkles, soon: false },
     { id: "barcode", label: "Skanuj kod kreskowy", icon: ScanLine, soon: false },
     { id: "compound", label: "Złożony posiłek", icon: Layers, soon: false },
     { id: "search", label: "Szukaj produktu", icon: Search, soon: false },
@@ -189,7 +189,7 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
     { id: "manual", label: "Wpisz ręcznie", icon: PencilLine, soon: false },
   ];
   return (
-    <div className="grid grid-cols-2 gap-2.5">
+    <div className="grid grid-cols-2 gap-3">
       {items.map((it) => {
         const Icon = it.icon;
         const disabled = it.soon;
@@ -199,12 +199,13 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
             whileTap={disabled ? undefined : { scale: 0.96 }}
             disabled={disabled}
             onClick={() => !disabled && onPick(it.id)}
-            className={`group relative flex flex-col items-start gap-2 rounded-2xl border border-border/60 bg-card p-3 text-left transition ${
-              disabled ? "opacity-50" : "active:bg-accent"
+            className={`group relative flex flex-col items-start gap-3 rounded-2xl p-4 text-left transition ${
+              disabled ? "opacity-50" : "active:opacity-80"
             }`}
+            style={{ background: "var(--muted)" }}
           >
-            <Icon size={20} />
-            <div className="text-sm font-semibold leading-tight">{it.label}</div>
+            <Icon size={24} strokeWidth={1.7} />
+            <div className="text-[14px] font-bold leading-tight tracking-tight">{it.label}</div>
             {it.soon && (
               <span className="absolute right-2 top-2 rounded-full bg-foreground/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-muted-foreground">
                 Wkrótce
@@ -286,7 +287,7 @@ function QuickForm({
 
   return (
     <form
-      className="space-y-3"
+      className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
         if (!valid) return;
@@ -300,53 +301,80 @@ function QuickForm({
       }}
     >
       <MealPicker meal={meal} setMeal={setMeal} />
-      <Field label="Nazwa">
-        <input
-          autoFocus
-          className={inputCls}
-          value={name}
-          maxLength={80}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="np. Jogurt naturalny"
-        />
-      </Field>
-      <Field label="Kalorie (kcal)">
-        <input
-          className={inputCls}
-          inputMode="numeric"
-          value={kcal}
-          onChange={(e) => setKcal(e.target.value.replace(",", "."))}
-          placeholder="0"
-        />
-      </Field>
-      <div className="grid grid-cols-3 gap-2">
-        <Field label="Białko (g)">
+
+      <input
+        autoFocus
+        className="w-full rounded-2xl bg-muted px-4 py-3 text-[15px] font-semibold outline-none placeholder:text-muted-foreground/70 focus:ring-2 focus:ring-ring"
+        value={name}
+        maxLength={80}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Nazwa, np. Jogurt naturalny"
+      />
+
+      {/* Hero kcal field */}
+      <div
+        className="rounded-2xl bg-card p-4"
+        style={{
+          border: "2px solid var(--accent-yellow)",
+          boxShadow: "var(--shadow-card)",
+        }}
+      >
+        <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+          Kalorie
+        </div>
+        <div className="mt-1 flex items-baseline gap-2">
           <input
-            className={inputCls}
-            inputMode="decimal"
-            value={p}
-            onChange={(e) => setP(e.target.value.replace(",", "."))}
+            className="num-tight w-full bg-transparent text-[40px] font-extrabold leading-none tracking-tight outline-none placeholder:text-foreground/20"
+            inputMode="numeric"
+            value={kcal}
+            onChange={(e) => setKcal(e.target.value.replace(",", "."))}
+            placeholder="0"
           />
-        </Field>
-        <Field label="Węglowodany (g)">
-          <input
-            className={inputCls}
-            inputMode="decimal"
-            value={c}
-            onChange={(e) => setC(e.target.value.replace(",", "."))}
-          />
-        </Field>
-        <Field label="Tłuszcz (g)">
-          <input
-            className={inputCls}
-            inputMode="decimal"
-            value={f}
-            onChange={(e) => setF(e.target.value.replace(",", "."))}
-          />
-        </Field>
+          <span className="text-[13px] font-semibold text-muted-foreground">kcal</span>
+        </div>
       </div>
+
+      {/* Optional macros */}
+      <div className="grid grid-cols-3 gap-2">
+        <MacroField color="var(--macro-protein)" label="Białko" value={p} onChange={setP} />
+        <MacroField color="var(--macro-carbs)" label="Węglowodany" value={c} onChange={setC} />
+        <MacroField color="var(--macro-fat)" label="Tłuszcz" value={f} onChange={setF} />
+      </div>
+
       <SubmitButton disabled={!valid}>Dodaj do dziennika</SubmitButton>
     </form>
+  );
+}
+
+function MacroField({
+  color,
+  label,
+  value,
+  onChange,
+}: {
+  color: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="block rounded-2xl bg-muted p-3">
+      <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+        <span
+          className="inline-block h-2 w-2 rounded-full"
+          style={{ background: color }}
+          aria-hidden
+        />
+        {label}
+      </span>
+      <input
+        className="num-tight mt-1 w-full bg-transparent text-[18px] font-extrabold tracking-tight outline-none placeholder:text-foreground/25"
+        inputMode="decimal"
+        value={value}
+        onChange={(e) => onChange(e.target.value.replace(",", "."))}
+        placeholder="opcjonalnie"
+      />
+    </label>
   );
 }
 
@@ -490,7 +518,7 @@ function SubmitButton({
       whileTap={{ scale: 0.97 }}
       type="submit"
       disabled={disabled}
-      className="mt-1 w-full rounded-2xl bg-primary py-3 text-base font-semibold text-primary-foreground disabled:opacity-40"
+      className="mt-2 w-full rounded-full bg-primary py-4 text-[15px] font-bold tracking-tight text-primary-foreground disabled:opacity-40"
     >
       {children}
     </motion.button>

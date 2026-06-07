@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Bell, Settings as Cog, User, Camera, ArrowUp, ArrowUpRight, Flame, Activity, UtensilsCrossed } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Bell, Settings as Cog, User, ArrowUpRight, Flame } from "lucide-react";
 import { MealCard } from "@/components/MealCard";
 import {
   type Meal,
@@ -9,7 +9,6 @@ import {
   usePlate,
   ymd,
 } from "@/lib/store";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -49,28 +48,6 @@ function polishDate(d: Date) {
 
 function TodayPage() {
   const [selected] = useState(() => ymd(new Date()));
-  const [userName, setUserName] = useState<string>("");
-  const [openAssistant, setOpenAssistant] = useState(false);
-
-  useEffect(() => {
-    void supabase.auth.getUser().then(({ data }) => {
-      const meta = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
-      const candidates = [
-        meta.full_name,
-        meta.name,
-        meta.given_name,
-        meta.first_name,
-        data.user?.email?.split("@")[0],
-      ];
-      const found = candidates.find(
-        (x): x is string => typeof x === "string" && x.trim().length > 0
-      );
-      if (found) {
-        const first = String(found).split(/[\s.]+/)[0];
-        setUserName(first.charAt(0).toUpperCase() + first.slice(1));
-      }
-    });
-  }, []);
 
   const profile = usePlate((s) => s.profile);
   const entries = usePlate((s) => s.entries);
@@ -112,23 +89,9 @@ function TodayPage() {
         </div>
       </header>
 
-      {/* Greeting */}
+      {/* Date */}
       <section className="px-[18px]">
-        <h1 className="text-[34px] font-extrabold leading-[1.05] tracking-tight text-foreground">
-          Cześć{userName ? `, ${userName}` : ""}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">{dateLabel}</p>
-      </section>
-
-      {/* Three stats */}
-      <section className="px-[18px]">
-        <div className="flex items-stretch rounded-[20px] bg-transparent">
-          <StatCol icon={UtensilsCrossed} label="Zjedzone" value={Math.round(sum.kcal)} />
-          <Divider />
-          <StatCol icon={Activity} label="Pozostało" value={remaining} />
-          <Divider />
-          <StatCol icon={Flame} label="Spalone" value={burned} />
-        </div>
+        <p className="text-sm text-muted-foreground">{dateLabel}</p>
       </section>
 
       {/* Plate dial hero */}
@@ -136,6 +99,8 @@ function TodayPage() {
         <PlateDial
           consumed={Math.round(sum.kcal)}
           goal={Math.max(1, Math.round(adjustedGoal))}
+          remaining={remaining}
+          burned={burned}
         />
       </section>
 
@@ -151,37 +116,8 @@ function TodayPage() {
         </div>
       </section>
 
-      {/* Ask AI */}
-      <section className="px-[18px]">
-        <button
-          onClick={() => { setOpenAssistant(true); openAdd(undefined); }}
-          className="surface-card flex w-full items-center gap-3 p-4 text-left"
-        >
-          <div className="flex-1">
-            <div className="text-[15px] font-bold tracking-tight">Zapytaj AI</div>
-            <div className="mt-0.5 text-[12px] text-muted-foreground">
-              Opisz posiłek lub zrób zdjęcie
-            </div>
-          </div>
-          <span
-            className="grid h-10 w-10 place-items-center rounded-full"
-            style={{ background: "var(--muted)" }}
-          >
-            <Camera size={18} strokeWidth={1.8} />
-          </span>
-          <span
-            className="grid h-10 w-10 place-items-center rounded-full text-primary-foreground"
-            style={{ background: "var(--ink)" }}
-          >
-            <ArrowUp size={18} strokeWidth={2.2} />
-          </span>
-        </button>
-        {openAssistant ? null : null}
-      </section>
-
       {/* Meals */}
       <section className="space-y-3 px-[18px]">
-        <h2 className="text-[17px] font-bold tracking-tight px-1">Posiłki</h2>
         {MEALS.map((m) => (
           <MealCard
             key={m}
@@ -244,46 +180,28 @@ function LinkCircle({ to, children, ...rest }: { to: string; children: React.Rea
   );
 }
 
-function StatCol({
-  icon: Icon,
-  label,
-  value,
+function PlateDial({
+  consumed,
+  goal,
+  remaining,
+  burned,
 }: {
-  icon: React.ComponentType<{ size?: number; strokeWidth?: number }>;
-  label: string;
-  value: number;
+  consumed: number;
+  goal: number;
+  remaining: number;
+  burned: number;
 }) {
-  return (
-    <div className="flex flex-1 flex-col px-1.5">
-      <div className="num-tight text-[28px] font-extrabold leading-none tracking-tight">
-        {value}
-      </div>
-      <div className="mt-1.5 flex items-center gap-1 text-muted-foreground">
-        <Icon size={13} strokeWidth={1.8} />
-        <span className="text-[11px] font-semibold">{label}</span>
-      </div>
-    </div>
-  );
-}
-
-function Divider() {
-  return <div className="w-px self-stretch" style={{ background: "var(--hairline)" }} />;
-}
-
-function PlateDial({ consumed, goal }: { consumed: number; goal: number }) {
   const size = 240;
   const stroke = 18;
   const r = (size - stroke) / 2;
   const cx = size / 2;
   const cy = size / 2;
   const pct = Math.max(0, Math.min(1, consumed / goal));
-  // arc spans from -135deg to +135deg (270deg total)
   const startAngle = -135;
   const totalArc = 270;
   const endAngle = startAngle + totalArc * pct;
   const trackPath = describeArc(cx, cy, r, startAngle, startAngle + totalArc);
   const progPath = describeArc(cx, cy, r, startAngle, endAngle);
-  const remaining = Math.max(0, goal - consumed);
 
   return (
     <div className="surface-hero relative p-5">
@@ -299,7 +217,6 @@ function PlateDial({ consumed, goal }: { consumed: number; goal: number }) {
       </div>
       <div className="relative mt-2 grid place-items-center">
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-          {/* dotted plate rim */}
           <circle
             cx={cx}
             cy={cy}
@@ -310,7 +227,6 @@ function PlateDial({ consumed, goal }: { consumed: number; goal: number }) {
             strokeWidth="1.2"
             strokeDasharray="1.5 4"
           />
-          {/* track */}
           <path
             d={trackPath}
             fill="none"
@@ -318,7 +234,6 @@ function PlateDial({ consumed, goal }: { consumed: number; goal: number }) {
             strokeWidth={stroke}
             strokeLinecap="round"
           />
-          {/* progress */}
           {pct > 0.001 && (
             <path
               d={progPath}
@@ -343,6 +258,11 @@ function PlateDial({ consumed, goal }: { consumed: number; goal: number }) {
             Pozostało {remaining}
           </div>
         </div>
+      </div>
+      {/* Spalone — discreet bottom-right */}
+      <div className="mt-2 flex items-center justify-end gap-1 text-[11px] text-muted-foreground">
+        <Flame size={11} strokeWidth={1.6} />
+        <span className="num-tight">Spalone {burned} kcal</span>
       </div>
     </div>
   );

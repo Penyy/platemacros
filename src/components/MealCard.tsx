@@ -58,17 +58,8 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
       className="surface-card p-4"
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-[17px] font-bold tracking-tight">{MEAL_LABEL[meal]}</div>
-          {!isEmpty && (
-            <div className="num-tight mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] font-semibold text-muted-foreground">
-              <MacroDot color="var(--macro-protein)" label="Białko" value={Math.round(sum.protein)} />
-              <MacroDot color="var(--macro-carbs)" label="Węglowodany" value={Math.round(sum.carbs)} />
-              <MacroDot color="var(--macro-fat)" label="Tłuszcz" value={Math.round(sum.fat)} />
-            </div>
-          )}
-        </div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-[17px] font-bold tracking-tight">{MEAL_LABEL[meal]}</div>
         <div className="flex items-center gap-2">
           {!isEmpty && (
             <div className="num-tight text-right">
@@ -76,6 +67,15 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
               <span className="ml-1 text-[11px] font-semibold text-muted-foreground">kcal</span>
             </div>
           )}
+          <button
+            onClick={() => onAdd(meal)}
+            className="grid h-8 w-8 place-items-center rounded-full text-foreground"
+            style={{ background: "var(--muted)" }}
+            aria-label="Dodaj pozycję"
+            title="Dodaj pozycję"
+          >
+            <Plus size={15} strokeWidth={2.2} />
+          </button>
           {prevDayHasEntries && isEmpty && (
             <button
               onClick={handleRepeat}
@@ -92,27 +92,29 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
 
       {/* Entries list */}
       {!isEmpty ? (
-        <ul className="mt-3 space-y-1">
-          <AnimatePresence initial={false}>
-            {entries.map((e) => (
-              <SwipeRow
-                key={e.id}
-                entry={e}
-                onDelete={() => handleDelete(e)}
-                onTap={() => setEditing(e)}
-              />
-            ))}
-          </AnimatePresence>
-          <li className="mt-2">
-            <button
-              onClick={() => onAdd(meal)}
-              className="flex w-full items-center justify-center gap-1.5 rounded-2xl py-2.5 text-[13px] font-semibold text-muted-foreground"
-              style={{ background: "var(--muted)" }}
-            >
-              <Plus size={15} strokeWidth={2} /> Dodaj pozycję
-            </button>
-          </li>
-        </ul>
+        <>
+          <ul
+            className="mt-2 divide-y"
+            style={{ borderColor: "var(--hairline)" }}
+          >
+            <AnimatePresence initial={false}>
+              {entries.map((e) => (
+                <SwipeRow
+                  key={e.id}
+                  entry={e}
+                  onDelete={() => handleDelete(e)}
+                  onTap={() => setEditing(e)}
+                />
+              ))}
+            </AnimatePresence>
+          </ul>
+          {/* Meal macro summary pills */}
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            <MacroPill color="var(--macro-protein)" label="B" value={Math.round(sum.protein)} />
+            <MacroPill color="var(--macro-carbs)" label="W" value={Math.round(sum.carbs)} />
+            <MacroPill color="var(--macro-fat)" label="T" value={Math.round(sum.fat)} />
+          </div>
+        </>
       ) : (
         <button
           onClick={() => onAdd(meal)}
@@ -125,6 +127,22 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
 
       <EditEntrySheet entry={editing} onClose={() => setEditing(null)} />
     </motion.div>
+  );
+}
+
+function MacroPill({ color, label, value }: { color: string; label: string; value: number }) {
+  return (
+    <span
+      className="num-tight inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold"
+      style={{
+        color,
+        background: `color-mix(in oklab, ${color} 12%, white)`,
+      }}
+    >
+      <span>{label}</span>
+      <span>{value}</span>
+      <span className="font-semibold opacity-70">g</span>
+    </span>
   );
 }
 
@@ -346,10 +364,8 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
               </span>
             ) : null}
           </div>
-          <div className="num-tight mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] font-semibold text-muted-foreground">
-            <MacroDot color="var(--macro-protein)" label="Białko" value={Math.round(e.protein)} />
-            <MacroDot color="var(--macro-carbs)" label="Węglowodany" value={Math.round(e.carbs)} />
-            <MacroDot color="var(--macro-fat)" label="Tłuszcz" value={Math.round(e.fat)} />
+          <div className="num-tight mt-1 text-[12px] font-medium text-muted-foreground">
+            B {Math.round(e.protein)} · W {Math.round(e.carbs)} · T {Math.round(e.fat)} g
           </div>
         </div>
         <div className="num-tight text-right">
@@ -361,17 +377,4 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
   );
 }
 
-function MacroDot({ color, label, value }: { color: string; label: string; value: number }) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span
-        className="inline-block h-2 w-2 rounded-full"
-        style={{ background: color }}
-        aria-hidden
-      />
-      <span className="text-foreground/80">{label}</span>
-      <span className="num-tight">{value} g</span>
-    </span>
-  );
-}
 
