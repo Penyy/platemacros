@@ -10,6 +10,7 @@ import {
   type ScannedLabel,
 } from "@/lib/ai-assistant.functions";
 import {
+  defaultAssistantSettings,
   getDayGoals,
   type Meal,
   MEAL_LABEL,
