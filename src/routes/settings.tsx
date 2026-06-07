@@ -8,10 +8,14 @@ import {
   type LogEntry,
   type Meal,
   type DayMacro,
+  type AssistantDefaultMeal,
+  type AssistantResponseLength,
+  defaultAssistantSettings,
   usePlate,
   readLegacyLocalStorage,
   clearLegacyLocalStorage,
   seedWeeklyFromProfile,
+  MEAL_LABEL,
 } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -76,6 +80,7 @@ function SettingsPage() {
   const setIncludeBurned = usePlate((s) => s.setIncludeBurned);
   const setWeeklyEnabled = usePlate((s) => s.setWeeklyEnabled);
   const setWeeklyDay = usePlate((s) => s.setWeeklyDay);
+  const setAssistant = usePlate((s) => s.setAssistant);
   const replaceAll = usePlate((s) => s.replaceAll);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [legacy, setLegacy] = useState<ReturnType<typeof readLegacyLocalStorage>>(null);
@@ -250,6 +255,41 @@ function SettingsPage() {
           Gdy włączone, spalone kalorie powiększają dzienny cel (cel + spalone − zjedzone).
         </p>
       </Section>
+
+      <Section title="Asystent AI">
+        <Row label="Auto-dodaj ze zdjęcia z opisem">
+          <Switch
+            checked={(profile.assistant ?? defaultAssistantSettings).autoAddPhoto}
+            onCheckedChange={(v) => setAssistant({ autoAddPhoto: v })}
+          />
+        </Row>
+        <p className="px-4 pb-2 pt-1 text-[11px] text-muted-foreground">
+          Gdy włączone, zdjęcie posiłku z opisem dodaje się bez dodatkowego potwierdzenia.
+        </p>
+        <Row label="Asystent może dodawać wpisy">
+          <Switch
+            checked={(profile.assistant ?? defaultAssistantSettings).allowAddEntries}
+            onCheckedChange={(v) => setAssistant({ allowAddEntries: v })}
+          />
+        </Row>
+        <p className="px-4 pb-2 pt-1 text-[11px] text-muted-foreground">
+          Gdy wyłączone, AI tylko odpowiada — nie zapisuje nic do dziennika.
+        </p>
+        <Row label="Domyślny posiłek">
+          <DefaultMealSelect
+            value={(profile.assistant ?? defaultAssistantSettings).defaultMeal}
+            onChange={(v) => setAssistant({ defaultMeal: v })}
+          />
+        </Row>
+        <Row label="Długość odpowiedzi">
+          <ResponseLengthSelect
+            value={(profile.assistant ?? defaultAssistantSettings).responseLength}
+            onChange={(v) => setAssistant({ responseLength: v })}
+          />
+        </Row>
+      </Section>
+
+
 
 
       <Section title="Dane">
@@ -476,5 +516,56 @@ function MacroInput({ value, onChange }: { value: number; onChange: (v: number) 
       }}
       className="num-tight w-full rounded-md bg-background px-1.5 py-1 text-center text-[13px] font-semibold outline-none focus:ring-1 focus:ring-primary"
     />
+  );
+}
+
+function DefaultMealSelect({
+  value,
+  onChange,
+}: {
+  value: AssistantDefaultMeal;
+  onChange: (v: AssistantDefaultMeal) => void;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as AssistantDefaultMeal)}
+      className="rounded-lg border border-border/60 bg-card px-2 py-1 text-[13px]"
+    >
+      <option value="auto">Wnioskuj z pory</option>
+      {(Object.keys(MEAL_LABEL) as Meal[]).map((m) => (
+        <option key={m} value={m}>
+          {MEAL_LABEL[m]}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function ResponseLengthSelect({
+  value,
+  onChange,
+}: {
+  value: AssistantResponseLength;
+  onChange: (v: AssistantResponseLength) => void;
+}) {
+  const opts: { v: AssistantResponseLength; l: string }[] = [
+    { v: "short", l: "Krótkie" },
+    { v: "detailed", l: "Szczegółowe" },
+  ];
+  return (
+    <div className="flex gap-0.5 rounded-full bg-foreground/5 p-0.5">
+      {opts.map((o) => (
+        <button
+          key={o.v}
+          onClick={() => onChange(o.v)}
+          className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+            value === o.v ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+          }`}
+        >
+          {o.l}
+        </button>
+      ))}
+    </div>
   );
 }

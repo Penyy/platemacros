@@ -41,6 +41,23 @@ export interface DayMacro {
 // key: "0"=Mon ... "6"=Sun
 export type WeeklyMacroTargets = Record<string, DayMacro>;
 
+export type AssistantDefaultMeal = "auto" | Meal;
+export type AssistantResponseLength = "short" | "detailed";
+
+export interface AssistantSettings {
+  autoAddPhoto: boolean;
+  allowAddEntries: boolean;
+  defaultMeal: AssistantDefaultMeal;
+  responseLength: AssistantResponseLength;
+}
+
+export const defaultAssistantSettings: AssistantSettings = {
+  autoAddPhoto: true,
+  allowAddEntries: true,
+  defaultMeal: "auto",
+  responseLength: "short",
+};
+
 export interface Profile {
   theme: Theme;
   goal_kcal: number;
@@ -51,6 +68,7 @@ export interface Profile {
   include_burned?: boolean;
   weekly_targets_enabled?: boolean;
   weekly_macro_targets?: WeeklyMacroTargets;
+  assistant?: AssistantSettings;
 }
 
 export interface Product {
@@ -91,6 +109,7 @@ interface State {
   setIncludeBurned: (v: boolean) => void;
   setWeeklyEnabled: (v: boolean) => void;
   setWeeklyDay: (dayIdx: number, m: Partial<DayMacro>) => void;
+  setAssistant: (patch: Partial<AssistantSettings>) => void;
   setBurned: (date: string, kcal: number) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
   updateEntry: (id: string, patch: Partial<Omit<LogEntry, "id" | "created_at">>) => void;
@@ -173,6 +192,7 @@ export const usePlate = create<State>()((set, get) => ({
       const prof = profRes.data as (typeof profRes.data & {
         weekly_targets_enabled?: boolean | null;
         weekly_macro_targets?: Json | null;
+        assistant_settings?: Json | null;
       });
       const profile: Profile = prof
         ? {
@@ -186,6 +206,10 @@ export const usePlate = create<State>()((set, get) => ({
             weekly_targets_enabled: !!prof.weekly_targets_enabled,
             weekly_macro_targets:
               (prof.weekly_macro_targets as WeeklyMacroTargets | null) ?? undefined,
+            assistant: {
+              ...defaultAssistantSettings,
+              ...((prof.assistant_settings as Partial<AssistantSettings> | null) ?? {}),
+            },
           }
         : defaultProfile;
 
@@ -334,6 +358,26 @@ export const usePlate = create<State>()((set, get) => ({
         if (error) netToast(error);
       });
   },
+
+  setAssistant: (patch) => {
+    set((s) => ({
+      profile: {
+        ...s.profile,
+        assistant: { ...defaultAssistantSettings, ...(s.profile.assistant ?? {}), ...patch },
+      },
+    }));
+    const uid = get().userId;
+    if (!uid) return;
+    const next = get().profile.assistant ?? defaultAssistantSettings;
+    void supabase
+      .from("profiles")
+      .update({ assistant_settings: next as unknown as Json } as never)
+      .eq("id", uid)
+      .then(({ error }) => {
+        if (error) netToast(error);
+      });
+  },
+
 
   setBurned: (date, kcal) => {
     set((s) => {

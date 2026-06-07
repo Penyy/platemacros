@@ -10,6 +10,7 @@ import {
   type ScannedLabel,
 } from "@/lib/ai-assistant.functions";
 import {
+  defaultAssistantSettings,
   getDayGoals,
   type Meal,
   MEAL_LABEL,
@@ -35,6 +36,8 @@ type HistoryItem =
       total: { kcal: number; protein: number; carbs: number; fat: number };
       confidence: number;
       preview: string;
+      pending?: boolean;
+      added?: boolean;
     };
 
 const CHIPS = ["Ile mi zostało?", "Co dojeść na białko?", "Dodaj posiłek"];
@@ -63,6 +66,9 @@ export function AssistantFlow({ defaultMeal }: Props) {
   const entries = usePlate((s) => s.entries);
   const burnedMap = usePlate((s) => s.burned);
   const addEntry = usePlate((s) => s.addEntry);
+  const assistantSettings = profile.assistant ?? defaultAssistantSettings;
+  const effectiveDefaultMeal: Meal | undefined =
+    defaultMeal ?? (assistantSettings.defaultMeal !== "auto" ? assistantSettings.defaultMeal : undefined);
 
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -134,6 +140,7 @@ export function AssistantFlow({ defaultMeal }: Props) {
           dayContext,
           imageBase64: image.base64,
           mimeType: "image/jpeg",
+          settings: assistantSettings,
         },
       })) as AssistantResult;
       if (result.kind === "label") {
@@ -142,16 +149,19 @@ export function AssistantFlow({ defaultMeal }: Props) {
           { id: nid(), kind: "label", label: result.label, preview: image.dataUrl },
         ]);
       } else if (result.kind === "meal") {
-        const m = defaultMeal ?? guessMeal();
-        addEntry({
-          date: today,
-          meal: m,
-          name: result.name || "Posiłek ze zdjęcia",
-          kcal: Math.round(result.total.kcal * 10) / 10,
-          protein: Math.round(result.total.protein * 10) / 10,
-          carbs: Math.round(result.total.carbs * 10) / 10,
-          fat: Math.round(result.total.fat * 10) / 10,
-        });
+        const autoAdd = assistantSettings.autoAddPhoto && !!trimmedNote;
+        if (autoAdd) {
+          const m = effectiveDefaultMeal ?? guessMeal();
+          addEntry({
+            date: today,
+            meal: m,
+            name: result.name || "Posiłek ze zdjęcia",
+            kcal: Math.round(result.total.kcal * 10) / 10,
+            protein: Math.round(result.total.protein * 10) / 10,
+            carbs: Math.round(result.total.carbs * 10) / 10,
+            fat: Math.round(result.total.fat * 10) / 10,
+          });
+        }
         setHistory((h) => [
           ...h,
           {
@@ -161,6 +171,8 @@ export function AssistantFlow({ defaultMeal }: Props) {
             total: result.total,
             confidence: result.confidence,
             preview: image.dataUrl,
+            pending: !autoAdd,
+            added: autoAdd,
           },
         ]);
       } else if (result.kind === "text") {
@@ -197,6 +209,7 @@ export function AssistantFlow({ defaultMeal }: Props) {
           message: trimmed,
           history: sessionHistory,
           dayContext,
+          settings: assistantSettings,
         },
       })) as AssistantResult;
 
@@ -405,7 +418,32 @@ export function AssistantFlow({ defaultMeal }: Props) {
           .slice()
           .reverse()
           .map((it) => (
-            <HistoryRow key={it.id} item={it} onAddLabel={onAddLabel} defaultMeal={defaultMeal} />
+            <HistoryRow
+              key={it.id}
+              item={it}
+              onAddLabel={onAddLabel}
+              defaultMeal={effectiveDefaultMeal}
+              onConfirmMeal={(id, meal) => {
+                const target = history.find((h) => h.id === id);
+                if (!target || target.kind !== "meal" || target.added) return;
+                addEntry({
+                  date: today,
+                  meal,
+                  name: target.name || "Posiłek ze zdjęcia",
+                  kcal: Math.round(target.total.kcal * 10) / 10,
+                  protein: Math.round(target.total.protein * 10) / 10,
+                  carbs: Math.round(target.total.carbs * 10) / 10,
+                  fat: Math.round(target.total.fat * 10) / 10,
+                });
+                setHistory((hs) =>
+                  hs.map((h) =>
+                    h.id === id && h.kind === "meal"
+                      ? { ...h, pending: false, added: true }
+                      : h,
+                  ),
+                );
+              }}
+            />
           ))}
       </div>
     </div>
@@ -416,10 +454,12 @@ function HistoryRow({
   item,
   onAddLabel,
   defaultMeal,
+  onConfirmMeal,
 }: {
   item: HistoryItem;
   onAddLabel: (it: HistoryItem & { kind: "label" }, grams: number, meal: Meal) => void;
   defaultMeal?: Meal;
+  onConfirmMeal: (id: string, meal: Meal) => void;
 }) {
   if (item.kind === "user") {
     return (
@@ -459,24 +499,67 @@ function HistoryRow({
   }
   if (item.kind === "meal") {
     return (
-      <div className="space-y-2 rounded-2xl bg-foreground/5 p-3">
-        <div className="flex items-start gap-2">
-          <img src={item.preview} alt="" className="h-12 w-12 rounded-lg object-cover" />
-          <div className="flex-1">
-            <div className="text-sm font-semibold">{item.name || "Posiłek"}</div>
-            <div className="num-tight text-[11px] text-muted-foreground">
-              szacunek: {Math.round(item.total.kcal)} kcal · B{Math.round(item.total.protein)} · W
-              {Math.round(item.total.carbs)} · T{Math.round(item.total.fat)}
-            </div>
-            <div className="mt-0.5 text-[10px] text-muted-foreground/80">
-              Dodano automatycznie (szacunek AI)
-            </div>
-          </div>
-        </div>
-      </div>
+      <MealPhotoCard item={item} defaultMeal={defaultMeal} onConfirm={onConfirmMeal} />
     );
   }
   return <LabelCard item={item} onAdd={onAddLabel} defaultMeal={defaultMeal} />;
+}
+
+function MealPhotoCard({
+  item,
+  defaultMeal,
+  onConfirm,
+}: {
+  item: HistoryItem & { kind: "meal" };
+  defaultMeal?: Meal;
+  onConfirm: (id: string, meal: Meal) => void;
+}) {
+  const [meal, setMeal] = useState<Meal>(defaultMeal ?? guessMeal());
+  return (
+    <div className="space-y-2 rounded-2xl bg-foreground/5 p-3">
+      <div className="flex items-start gap-2">
+        <img src={item.preview} alt="" className="h-12 w-12 rounded-lg object-cover" />
+        <div className="flex-1">
+          <div className="text-sm font-semibold">{item.name || "Posiłek"}</div>
+          <div className="num-tight text-[11px] text-muted-foreground">
+            szacunek: {Math.round(item.total.kcal)} kcal · B{Math.round(item.total.protein)} · W
+            {Math.round(item.total.carbs)} · T{Math.round(item.total.fat)}
+          </div>
+          {item.added ? (
+            <div className="mt-0.5 text-[10px] text-muted-foreground/80">
+              Dodano (szacunek AI)
+            </div>
+          ) : (
+            <div className="mt-0.5 text-[10px] text-muted-foreground/80">
+              Do potwierdzenia
+            </div>
+          )}
+        </div>
+      </div>
+      {item.pending && !item.added && (
+        <div className="flex items-center gap-2">
+          <select
+            value={meal}
+            onChange={(e) => setMeal(e.target.value as Meal)}
+            className="flex-1 rounded-lg border border-border/60 bg-card px-2 py-1.5 text-sm"
+          >
+            {(Object.keys(MEAL_LABEL) as Meal[]).map((m) => (
+              <option key={m} value={m}>
+                {MEAL_LABEL[m]}
+              </option>
+            ))}
+          </select>
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => onConfirm(item.id, meal)}
+            className="rounded-xl bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground"
+          >
+            Dodaj
+          </motion.button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function LabelCard({
