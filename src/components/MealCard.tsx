@@ -195,6 +195,11 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
   };
   const onPointerUp = (ev: React.PointerEvent<HTMLDivElement>) => {
     if (ev.pointerType !== "mouse" || !g.current.active) return;
+    if (g.current.mode === "undecided" && !g.current.moved && onTapRef.current) {
+      onTapRef.current();
+      g.current.active = false;
+      return;
+    }
     handleEnd();
   };
 
