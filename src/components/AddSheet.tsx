@@ -343,17 +343,17 @@ function MacroField({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="block rounded-2xl bg-muted p-3">
-      <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+    <label className="block min-w-0 rounded-2xl bg-muted p-3">
+      <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
         <span
-          className="inline-block h-2 w-2 rounded-full"
+          className="inline-block h-2 w-2 shrink-0 rounded-full"
           style={{ background: color }}
           aria-hidden
         />
-        {label}
+        <span className="truncate">{label}</span>
       </span>
       <input
-        className="num-tight mt-1 w-full bg-transparent text-[18px] font-extrabold tracking-tight outline-none placeholder:text-foreground/25"
+        className="num-tight mt-1 w-full min-w-0 bg-transparent text-[18px] font-extrabold tracking-tight outline-none placeholder:text-[10px] placeholder:font-medium placeholder:text-foreground/35"
         inputMode="decimal"
         value={value}
         onChange={(e) => onChange(e.target.value.replace(",", "."))}
