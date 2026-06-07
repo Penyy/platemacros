@@ -407,7 +407,12 @@ export function Plate3D({
             gl={{ alpha: true, antialias: true }}
             style={{ pointerEvents: "none", touchAction: "pan-y" }}
           >
-            <PerspectiveCamera makeDefault fov={32} position={[0, 3.3, 5.2]} />
+            <PerspectiveCamera
+              makeDefault
+              fov={32}
+              position={[0, 3.3, 5.2]}
+              onUpdate={(self) => self.lookAt(0, 0.2, 0)}
+            />
             <ambientLight intensity={0.6} />
             <directionalLight
               position={[4, 8, 5]}
