@@ -1,9 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { Loader2, RotateCcw, ScanLine, Image as ImageIcon, Flashlight } from "lucide-react";
-import { BrowserMultiFormatReader, type IScannerControls } from "@zxing/browser";
-import pkg from "@zxing/library";
-const { BarcodeFormat, DecodeHintType } = pkg;
+import { Loader2, RotateCcw, ScanLine, Image as ImageIcon, Flashlight, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { type Meal, MEAL_LABEL, usePlate } from "@/lib/store";
 
@@ -30,7 +27,7 @@ interface OFFProduct {
   fat: number;
 }
 
-type Phase = "scan" | "loading" | "review" | "notfound" | "neterror";
+type Phase = "scan" | "loading" | "review" | "notfound" | "neterror" | "fatal";
 
 function round1(x: number) {
   return Math.round(x * 10) / 10;
@@ -67,7 +64,21 @@ async function fetchOpenFoodFacts(barcode: string): Promise<OFFProduct | null> {
   };
 }
 
-function buildHints() {
+// Loaded lazily so SSR / unsupported environments never touch the lib at import time.
+type ZxingMod = typeof import("@zxing/browser");
+type LibMod = typeof import("@zxing/library");
+let zxingModPromise: Promise<{ z: ZxingMod; lib: LibMod }> | null = null;
+function loadZxing() {
+  if (!zxingModPromise) {
+    zxingModPromise = Promise.all([import("@zxing/browser"), import("@zxing/library")]).then(
+      ([z, lib]) => ({ z, lib }),
+    );
+  }
+  return zxingModPromise;
+}
+
+function buildHints(lib: LibMod) {
+  const { BarcodeFormat, DecodeHintType } = lib;
   const hints = new Map();
   hints.set(DecodeHintType.POSSIBLE_FORMATS, [
     BarcodeFormat.EAN_13,
@@ -82,11 +93,12 @@ function buildHints() {
 export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const controlsRef = useRef<IScannerControls | null>(null);
+  const controlsRef = useRef<{ stop: () => void } | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const lastHitRef = useRef<{ code: string; at: number } | null>(null);
   const [phase, setPhase] = useState<Phase>("scan");
   const [scannerError, setScannerError] = useState<string | null>(null);
+  const [fatalError, setFatalError] = useState<string | null>(null);
   const [barcode, setBarcode] = useState<string | null>(null);
   const [product, setProduct] = useState<OFFProduct | null>(null);
   const [grams, setGrams] = useState("100");
@@ -148,18 +160,20 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     }
   };
 
-  // start live camera scanner
+  // start live camera scanner — client only
   useEffect(() => {
     if (phase !== "scan") return;
+    if (typeof window === "undefined") return;
+    if (!navigator?.mediaDevices?.getUserMedia) {
+      setScannerError("Kamera niedostępna w tej przeglądarce.");
+      return;
+    }
+
     let cancelled = false;
-    const reader = new BrowserMultiFormatReader(buildHints(), {
-      delayBetweenScanAttempts: 120,
-    });
     setScannerError(null);
     setStatus("Nakieruj na kod kreskowy");
     lastHitRef.current = null;
 
-    // iOS Safari fix
     const v = videoRef.current;
     if (v) {
       v.setAttribute("playsinline", "true");
@@ -171,34 +185,22 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
 
     (async () => {
       try {
-        if (!videoRef.current) return;
-        // High-res rear camera with continuous autofocus when supported
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: "environment" },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            advanced: [
-              { focusMode: "continuous" } as unknown as MediaTrackConstraintSet,
-            ],
-          },
-          audio: false,
+        const { z, lib } = await loadZxing();
+        if (cancelled || !videoRef.current) return;
+
+        const reader = new z.BrowserMultiFormatReader(buildHints(lib), {
+          delayBetweenScanAttempts: 120,
         });
-        if (cancelled) {
-          for (const t of stream.getTracks()) t.stop();
-          return;
-        }
-        streamRef.current = stream;
 
-        // Torch capability detection
-        const track = stream.getVideoTracks()[0];
-        const caps = (track?.getCapabilities?.() ?? {}) as MediaTrackCapabilities & {
-          torch?: boolean;
-        };
-        if (caps.torch) setTorchSupported(true);
-
-        const controls = await reader.decodeFromStream(
-          stream,
+        const controls = await reader.decodeFromConstraints(
+          {
+            video: {
+              facingMode: { ideal: "environment" },
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+            },
+            audio: false,
+          },
           videoRef.current,
           (result, _err, ctrl) => {
             if (cancelled) return;
@@ -209,7 +211,6 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
             const last = lastHitRef.current;
             if (last && last.code === code && now - last.at < 2000) return;
             lastHitRef.current = { code, at: now };
-            // visual + haptic feedback, keep scanner running until lookup completes
             setFlashHit(true);
             try {
               navigator.vibrate?.(10);
@@ -217,30 +218,63 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
               /* noop */
             }
             setTimeout(() => setFlashHit(false), 250);
-            ctrl.stop();
+            try {
+              ctrl.stop();
+            } catch {
+              /* noop */
+            }
             controlsRef.current = null;
             void lookup(code);
           },
         );
+
         if (cancelled) {
-          controls.stop();
+          try { controls.stop(); } catch { /* noop */ }
           return;
         }
         controlsRef.current = controls;
 
-        const vid = videoRef.current;
-        if (vid) {
-          try {
-            await vid.play();
-          } catch {
-            /* noop */
+        // Capture stream from the video element to enable torch / cleanup
+        const stream = (videoRef.current.srcObject as MediaStream | null) ?? null;
+        if (stream) {
+          streamRef.current = stream;
+          const track = stream.getVideoTracks()[0];
+          // continuous autofocus — best effort, never crash
+          if (track) {
+            try {
+              await track.applyConstraints({
+                advanced: [
+                  { focusMode: "continuous" } as unknown as MediaTrackConstraintSet,
+                ],
+              });
+            } catch {
+              /* device doesn't support — ignore */
+            }
+            try {
+              const caps = (track.getCapabilities?.() ?? {}) as MediaTrackCapabilities & {
+                torch?: boolean;
+              };
+              if (caps.torch) setTorchSupported(true);
+            } catch {
+              /* noop */
+            }
           }
         }
       } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : String(e);
-        setScannerError(msg || "Brak dostępu do kamery");
+        if (cancelled) return;
+        const err = e as { name?: string; message?: string };
+        let msg = "Nie udało się uruchomić skanera — dodaj ręcznie.";
+        if (err?.name === "NotAllowedError" || err?.name === "SecurityError") {
+          msg = "Brak dostępu do kamery — sprawdź uprawnienia lub dodaj ręcznie.";
+        } else if (err?.name === "NotFoundError" || err?.name === "OverconstrainedError") {
+          msg = "Nie znaleziono kamery — dodaj ręcznie.";
+        } else if (err?.name === "NotReadableError") {
+          msg = "Kamera jest używana przez inną aplikację.";
+        }
+        setScannerError(msg);
       }
     })();
+
     return () => {
       cancelled = true;
       stopScanner();
@@ -256,8 +290,9 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     if (!file) return;
     setPhase("loading");
     try {
+      const { z, lib } = await loadZxing();
       const url = URL.createObjectURL(file);
-      const reader = new BrowserMultiFormatReader(buildHints());
+      const reader = new z.BrowserMultiFormatReader(buildHints(lib));
       try {
         const result = await reader.decodeFromImageUrl(url);
         URL.revokeObjectURL(url);
@@ -280,10 +315,26 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     setProduct(null);
     setBarcode(null);
     setGrams("100");
+    setScannerError(null);
     setPhase("scan");
   };
 
-  if (phase === "scan") {
+  // Catch-all render guard so a child throw doesn't bubble to the app shell
+  try {
+    if (fatalError) {
+      return (
+        <div className="space-y-3 py-6 text-center">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-foreground/10">
+            <AlertTriangle size={20} />
+          </div>
+          <div className="text-sm font-semibold">Nie udało się uruchomić skanera</div>
+          <p className="text-xs text-muted-foreground">{fatalError}</p>
+          <ManualFallback meal={meal} setMeal={setMeal} onSubmit={onSubmit} onCancel={() => { setFatalError(null); reset(); }} />
+        </div>
+      );
+    }
+
+    if (phase === "scan") {
     return (
       <div className="space-y-3">
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-black">
@@ -342,9 +393,9 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           )}
 
           {scannerError && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/70 px-4 text-center text-xs text-white">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/80 px-4 text-center text-xs text-white">
               <ScanLine size={20} />
-              <div>Brak dostępu do kamery. Użyj zdjęcia z galerii.</div>
+              <div>{scannerError}</div>
             </div>
           )}
         </div>
@@ -367,6 +418,10 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           <ImageIcon size={16} />
           Zrób zdjęcie kodu zamiast skanowania
         </button>
+
+        {scannerError && (
+          <ManualFallback meal={meal} setMeal={setMeal} onSubmit={onSubmit} onCancel={reset} />
+        )}
 
         <MealPicker meal={meal} setMeal={setMeal} />
       </div>
@@ -545,6 +600,20 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
       </motion.button>
     </form>
   );
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (!fatalError) {
+      // Defer state update to next tick to avoid setState-in-render warning
+      queueMicrotask(() => setFatalError(msg));
+    }
+    return (
+      <div className="space-y-3 py-6 text-center">
+        <div className="text-sm font-semibold">Nie udało się uruchomić skanera</div>
+        <p className="text-xs text-muted-foreground">{msg}</p>
+        <ManualFallback meal={meal} setMeal={setMeal} onSubmit={onSubmit} onCancel={reset} />
+      </div>
+    );
+  }
 }
 
 function ManualFallback({
