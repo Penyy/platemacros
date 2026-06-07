@@ -492,31 +492,50 @@ function HistoryRow({
 }) {
   if (item.kind === "user") {
     return (
-      <div className="ml-auto max-w-[80%] rounded-2xl bg-primary/15 px-3 py-1.5 text-sm">
+      <div
+        className="ml-auto max-w-[80%] rounded-2xl px-3.5 py-2 text-[14px]"
+        style={{ background: "var(--ink)", color: "var(--card)", fontWeight: 500 }}
+      >
         {item.text}
       </div>
     );
   }
   if (item.kind === "text") {
     return (
-      <div className="max-w-[90%] rounded-2xl bg-foreground/5 px-3 py-2 text-sm">{item.text}</div>
+      <div
+        className="max-w-[90%] rounded-2xl bg-card px-3.5 py-2.5 text-[14px]"
+        style={{
+          border: "1px solid var(--hairline)",
+          boxShadow: "var(--shadow-card)",
+          color: "var(--ink)",
+          fontWeight: 500,
+        }}
+      >
+        {item.text}
+      </div>
     );
   }
   if (item.kind === "actions") {
     return (
-      <div className="rounded-2xl bg-foreground/5 p-3">
-        <div className="text-sm">{item.text}</div>
+      <div
+        className="rounded-2xl bg-card p-3"
+        style={{ border: "1px solid var(--hairline)", boxShadow: "var(--shadow-card)" }}
+      >
+        <div className="text-[14px]" style={{ color: "var(--ink)", fontWeight: 500 }}>
+          {item.text}
+        </div>
         <div className="mt-2 space-y-1">
           {item.actions.map((a, i) => (
             <div
               key={i}
-              className="num-tight flex items-center justify-between rounded-xl bg-card/80 px-2.5 py-1.5 text-xs"
+              className="num-tight flex items-center justify-between rounded-xl px-2.5 py-1.5 text-xs"
+              style={{ background: "var(--hairline)", color: "var(--ink)" }}
             >
               <span className="truncate">
                 <b>{a.name}</b>{" "}
-                <span className="text-muted-foreground">· {MEAL_LABEL[a.meal]}</span>
+                <span style={{ color: "var(--muted-foreground)" }}>· {MEAL_LABEL[a.meal]}</span>
               </span>
-              <span className="text-muted-foreground">
+              <span style={{ color: "var(--muted-foreground)" }}>
                 {Math.round(a.kcal)} kcal · B{Math.round(a.protein)} W{Math.round(a.carbs)} T
                 {Math.round(a.fat)}
               </span>
