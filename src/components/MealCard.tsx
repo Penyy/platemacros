@@ -364,10 +364,8 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
               </span>
             ) : null}
           </div>
-          <div className="num-tight mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] font-semibold text-muted-foreground">
-            <MacroDot color="var(--macro-protein)" label="Białko" value={Math.round(e.protein)} />
-            <MacroDot color="var(--macro-carbs)" label="Węglowodany" value={Math.round(e.carbs)} />
-            <MacroDot color="var(--macro-fat)" label="Tłuszcz" value={Math.round(e.fat)} />
+          <div className="num-tight mt-1 text-[12px] font-medium text-muted-foreground">
+            B {Math.round(e.protein)} · W {Math.round(e.carbs)} · T {Math.round(e.fat)} g
           </div>
         </div>
         <div className="num-tight text-right">
