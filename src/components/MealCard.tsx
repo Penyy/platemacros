@@ -148,7 +148,7 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
 
 const AXIS_LOCK_PX = 8;
 
-function SwipeRow({ entry: e, onDelete }: { entry: LogEntry; onDelete: () => void }) {
+function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: () => void; onTap?: () => void }) {
   const containerRef = useRef<HTMLLIElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
   const [dx, setDx] = useState(0);
