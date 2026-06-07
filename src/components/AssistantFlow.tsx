@@ -418,7 +418,32 @@ export function AssistantFlow({ defaultMeal }: Props) {
           .slice()
           .reverse()
           .map((it) => (
-            <HistoryRow key={it.id} item={it} onAddLabel={onAddLabel} defaultMeal={defaultMeal} />
+            <HistoryRow
+              key={it.id}
+              item={it}
+              onAddLabel={onAddLabel}
+              defaultMeal={effectiveDefaultMeal}
+              onConfirmMeal={(id, meal) => {
+                const target = history.find((h) => h.id === id);
+                if (!target || target.kind !== "meal" || target.added) return;
+                addEntry({
+                  date: today,
+                  meal,
+                  name: target.name || "Posiłek ze zdjęcia",
+                  kcal: Math.round(target.total.kcal * 10) / 10,
+                  protein: Math.round(target.total.protein * 10) / 10,
+                  carbs: Math.round(target.total.carbs * 10) / 10,
+                  fat: Math.round(target.total.fat * 10) / 10,
+                });
+                setHistory((hs) =>
+                  hs.map((h) =>
+                    h.id === id && h.kind === "meal"
+                      ? { ...h, pending: false, added: true }
+                      : h,
+                  ),
+                );
+              }}
+            />
           ))}
       </div>
     </div>
