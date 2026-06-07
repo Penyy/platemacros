@@ -17,9 +17,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 function mealFromHour(h: number): Meal {
-  if (h >= 5 && h <= 10) return "breakfast";
-  if (h >= 11 && h <= 14) return "lunch";
-  if (h >= 15 && h <= 20) return "dinner";
+  if (h >= 5 && h < 10) return "breakfast";
+  if (h >= 10 && h < 12) return "second_breakfast";
+  if (h >= 12 && h < 16) return "lunch";
+  if (h >= 16 && h < 21) return "dinner";
   return "snack";
 }
 
