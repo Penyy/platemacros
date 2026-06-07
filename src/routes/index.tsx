@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Bell, Settings as Cog, User, ArrowUpRight, Flame } from "lucide-react";
+import { Bell, Settings as Cog, User, Flame, ChevronLeft, ChevronRight } from "lucide-react";
 import { MealCard } from "@/components/MealCard";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import {
   type Meal,
   getDayGoals,
