@@ -93,35 +93,13 @@ function TodayPage() {
   );
   const sum = useMemo(() => sumEntries(dayEntries), [dayEntries]);
   const dayGoals = useMemo(() => getDayGoals(profile, selected), [profile, selected]);
-  const burned = burnedMap[selected] ?? 0;
-  const adjustedGoal =
-    profile.include_burned ? dayGoals.kcal + burned : dayGoals.kcal;
-  const remaining = Math.max(0, adjustedGoal - sum.kcal);
+  const burned = Math.round(burnedMap[selected] ?? 0);
+  const adjustedGoal = Math.round(
+    profile.include_burned ? dayGoals.kcal + burned : dayGoals.kcal
+  );
+  const remaining = Math.max(0, Math.round(adjustedGoal - sum.kcal));
 
   const dateLabel = polishDate(new Date(selected + "T00:00:00"));
-
-  // weekly bars (Mon-Sun for current week)
-  const weekData = useMemo(() => {
-    const today = new Date(selected + "T00:00:00");
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
-    const days: { date: string; label: string; kcal: number; isToday: boolean }[] = [];
-    const labels = ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      const ds = ymd(d);
-      const kcal = entries
-        .filter((e) => e.date === ds)
-        .reduce((a, e) => a + e.kcal, 0);
-      days.push({ date: ds, label: labels[i], kcal: Math.round(kcal), isToday: ds === selected });
-    }
-    return days;
-  }, [entries, selected]);
-
-  const weekTotal = weekData.reduce((a, d) => a + d.kcal, 0);
-  const weekAvg = Math.round(weekTotal / 7);
-  const weekMax = Math.max(1, ...weekData.map((d) => d.kcal));
 
   return (
     <div className="space-y-3.5 pb-4">
