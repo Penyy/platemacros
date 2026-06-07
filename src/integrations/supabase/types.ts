@@ -119,6 +119,7 @@ export type Database = {
       profiles: {
         Row: {
           activity_profile: Json | null
+          assistant_settings: Json | null
           consider_burned: boolean
           created_at: string
           goal_carbs: number
@@ -133,6 +134,7 @@ export type Database = {
         }
         Insert: {
           activity_profile?: Json | null
+          assistant_settings?: Json | null
           consider_burned?: boolean
           created_at?: string
           goal_carbs?: number
@@ -147,6 +149,7 @@ export type Database = {
         }
         Update: {
           activity_profile?: Json | null
+          assistant_settings?: Json | null
           consider_burned?: boolean
           created_at?: string
           goal_carbs?: number
