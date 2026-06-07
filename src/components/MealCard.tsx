@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Coffee, Sandwich, UtensilsCrossed, Moon, Apple, Trash2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
+import { EditEntrySheet } from "./EditEntrySheet";
 import { type LogEntry, type Meal, MEAL_LABEL, sumEntries, usePlate } from "@/lib/store";
 
 const MEAL_ICON: Record<Meal, React.ComponentType<{ size?: number }>> = {
@@ -34,6 +35,7 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
   const remove = usePlate((s) => s.removeEntry);
   const addEntry = usePlate((s) => s.addEntry);
   const repeatMeal = usePlate((s) => s.repeatMealFromPrevDay);
+  const [editing, setEditing] = useState<LogEntry | null>(null);
 
   const pK = sum.protein * 4;
   const cK = sum.carbs * 4;
@@ -129,18 +131,24 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
         <ul className="mt-3 divide-y divide-border/60">
           <AnimatePresence initial={false}>
             {entries.map((e) => (
-              <SwipeRow key={e.id} entry={e} onDelete={() => handleDelete(e)} />
+              <SwipeRow
+                key={e.id}
+                entry={e}
+                onDelete={() => handleDelete(e)}
+                onTap={() => setEditing(e)}
+              />
             ))}
           </AnimatePresence>
         </ul>
       )}
+      <EditEntrySheet entry={editing} onClose={() => setEditing(null)} />
     </motion.div>
   );
 }
 
 const AXIS_LOCK_PX = 8;
 
-function SwipeRow({ entry: e, onDelete }: { entry: LogEntry; onDelete: () => void }) {
+function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: () => void; onTap?: () => void }) {
   const containerRef = useRef<HTMLLIElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
   const [dx, setDx] = useState(0);
@@ -158,6 +166,8 @@ function SwipeRow({ entry: e, onDelete }: { entry: LogEntry; onDelete: () => voi
     armed: false,
     moved: false,
   });
+  const onTapRef = useRef(onTap);
+  onTapRef.current = onTap;
 
   const setDxBoth = (v: number) => {
     dxRef.current = v;
@@ -185,6 +195,11 @@ function SwipeRow({ entry: e, onDelete }: { entry: LogEntry; onDelete: () => voi
   };
   const onPointerUp = (ev: React.PointerEvent<HTMLDivElement>) => {
     if (ev.pointerType !== "mouse" || !g.current.active) return;
+    if (g.current.mode === "undecided" && !g.current.moved && onTapRef.current) {
+      onTapRef.current();
+      g.current.active = false;
+      return;
+    }
     handleEnd();
   };
 
@@ -282,6 +297,10 @@ function SwipeRow({ entry: e, onDelete }: { entry: LogEntry; onDelete: () => voi
       if (g.current.mode === "horizontal" && g.current.moved) {
         handleEnd();
       } else {
+        // Tap: gesture never locked horizontal AND finger didn't drift much.
+        if (g.current.mode === "undecided" && !g.current.moved && onTapRef.current) {
+          onTapRef.current();
+        }
         g.current.active = false;
       }
     };

@@ -93,6 +93,7 @@ interface State {
   setWeeklyDay: (dayIdx: number, m: Partial<DayMacro>) => void;
   setBurned: (date: string, kcal: number) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
+  updateEntry: (id: string, patch: Partial<Omit<LogEntry, "id" | "created_at">>) => void;
   removeEntry: (id: string) => void;
   repeatMealFromPrevDay: (date: string, meal: Meal) => number;
   addProduct: (p: Omit<Product, "id" | "created_at">) => void;
@@ -387,6 +388,32 @@ export const usePlate = create<State>()((set, get) => ({
         fat: e.fat,
         sub_items: (e.sub_items ?? null) as Json,
       })
+      .then(({ error }) => {
+        if (error) netToast(error);
+      });
+  },
+
+  updateEntry: (id, patch) => {
+    set((s) => ({
+      entries: s.entries.map((x) => (x.id === id ? { ...x, ...patch } : x)),
+    }));
+    const uid = get().userId;
+    if (!uid) return;
+    const dbPatch: Record<string, unknown> = {};
+    if (patch.date !== undefined) dbPatch.date = patch.date;
+    if (patch.meal !== undefined) dbPatch.meal = patch.meal;
+    if (patch.name !== undefined) dbPatch.name = patch.name;
+    if (patch.grams !== undefined) dbPatch.grams = patch.grams ?? null;
+    if (patch.kcal !== undefined) dbPatch.kcal = patch.kcal;
+    if (patch.protein !== undefined) dbPatch.protein = patch.protein;
+    if (patch.carbs !== undefined) dbPatch.carbs = patch.carbs;
+    if (patch.fat !== undefined) dbPatch.fat = patch.fat;
+    if (patch.sub_items !== undefined) dbPatch.sub_items = (patch.sub_items ?? null) as Json;
+    void supabase
+      .from("food_entries")
+      .update(dbPatch as never)
+      .eq("id", id)
+      .eq("user_id", uid)
       .then(({ error }) => {
         if (error) netToast(error);
       });
