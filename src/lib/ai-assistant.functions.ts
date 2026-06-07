@@ -512,9 +512,15 @@ export const askAssistant = createServerFn({ method: "POST" })
     // [Sekcja 8] Hook for future topic gate — no-op for now
     await classifyTopic(data.message);
 
-    if (data.imageBase64) {
-      return handlePhotoPath(data.imageBase64, data.mimeType ?? "image/jpeg", apiKey, data.message);
+    const images = data.images && data.images.length > 0
+      ? data.images
+      : data.imageBase64
+        ? [data.imageBase64]
+        : [];
+    if (images.length > 0) {
+      return handleImagesPath(images, apiKey, data.message, [], data.dayContext.hour);
     }
+
     const settings: AssistantCallSettings = {
       autoAddPhoto: data.settings?.autoAddPhoto ?? true,
       allowAddEntries: data.settings?.allowAddEntries ?? true,
