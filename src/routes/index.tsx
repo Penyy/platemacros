@@ -262,11 +262,12 @@ function LinkCircle({ to, children, ...rest }: { to: string; children: React.Rea
   );
 }
 
-function HeroDark({
+function HeroLight({
   consumed,
   goal,
   remaining,
   burned,
+  onEditBurned,
   protein,
   carbs,
   fat,
@@ -275,6 +276,7 @@ function HeroDark({
   goal: number;
   remaining: number;
   burned: number;
+  onEditBurned: () => void;
   protein: { cur: number; goal: number };
   carbs: { cur: number; goal: number };
   fat: { cur: number; goal: number };
@@ -296,11 +298,10 @@ function HeroDark({
       transition={{ duration: 0.35, ease: "easeOut" }}
       className="relative overflow-hidden p-5"
       style={{
-        background: "#1B1B19",
+        background: "var(--cream)",
         borderRadius: 28,
-        color: "#F6F2E8",
-        boxShadow:
-          "0 18px 40px -16px rgba(20,16,8,0.45), 0 4px 14px rgba(20,16,8,0.18)",
+        color: "var(--ink)",
+        boxShadow: "var(--shadow-card)",
       }}
     >
       <div className="relative grid place-items-center">
@@ -308,7 +309,7 @@ function HeroDark({
           <path
             d={trackPath}
             fill="none"
-            stroke="rgba(255,255,255,0.10)"
+            stroke="var(--hairline)"
             strokeWidth={stroke}
             strokeLinecap="round"
           />
@@ -327,17 +328,20 @@ function HeroDark({
           />
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <div className="num-tight text-[44px] font-extrabold leading-none tracking-tight" style={{ color: "#FFFFFF" }}>
+          <div
+            className="num-tight text-[44px] font-extrabold leading-none tracking-tight"
+            style={{ color: "var(--ink)" }}
+          >
             {consumed}
           </div>
-          <div className="mt-1 text-[12px]" style={{ color: "rgba(246,242,232,0.55)" }}>
+          <div className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
             z {goal} kcal
           </div>
           <div
             className="mt-3 rounded-full px-3 py-1 text-[11px] font-semibold"
             style={{
-              background: "rgba(255,255,255,0.10)",
-              color: "#FFFFFF",
+              background: "color-mix(in oklab, var(--ink) 8%, transparent)",
+              color: "var(--ink)",
             }}
           >
             Pozostało {remaining}
@@ -345,26 +349,31 @@ function HeroDark({
         </div>
       </div>
 
-      {/* Spalone — discreet top-right */}
-      <div
-        className="absolute right-4 top-4 flex items-center gap-1 text-[11px]"
-        style={{ color: "rgba(246,242,232,0.5)" }}
+      {/* Spalone — tap to edit */}
+      <button
+        onClick={onEditBurned}
+        className="absolute right-3 top-3 flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] active:scale-95"
+        style={{
+          color: "var(--muted-foreground)",
+          background: "color-mix(in oklab, var(--ink) 5%, transparent)",
+        }}
+        aria-label="Edytuj spalone kalorie"
       >
-        <Flame size={11} strokeWidth={1.6} />
-        <span className="num-tight">Spalone {burned}</span>
-      </div>
+        <Flame size={12} strokeWidth={1.8} />
+        <span className="num-tight font-semibold">Spalone {burned}</span>
+      </button>
 
       {/* Macros — three slim bars */}
       <div className="mt-4 space-y-3">
-        <DarkMacroRow label="Białko" cur={protein.cur} goal={protein.goal} color="var(--macro-protein)" />
-        <DarkMacroRow label="Węglowodany" cur={carbs.cur} goal={carbs.goal} color="var(--macro-carbs)" />
-        <DarkMacroRow label="Tłuszcz" cur={fat.cur} goal={fat.goal} color="var(--macro-fat)" />
+        <LightMacroRow label="Białko" cur={protein.cur} goal={protein.goal} color="var(--macro-protein)" />
+        <LightMacroRow label="Węglowodany" cur={carbs.cur} goal={carbs.goal} color="var(--macro-carbs)" />
+        <LightMacroRow label="Tłuszcz" cur={fat.cur} goal={fat.goal} color="var(--macro-fat)" />
       </div>
     </motion.div>
   );
 }
 
-function DarkMacroRow({
+function LightMacroRow({
   label,
   cur,
   goal,
@@ -379,15 +388,17 @@ function DarkMacroRow({
   return (
     <div>
       <div className="flex items-baseline justify-between">
-        <span className="text-[12px] font-semibold" style={{ color: "#F6F2E8" }}>{label}</span>
-        <span className="num-tight text-[12px] font-semibold" style={{ color: "#F6F2E8" }}>
+        <span className="text-[12px] font-semibold" style={{ color: "var(--ink)" }}>
+          {label}
+        </span>
+        <span className="num-tight text-[12px] font-semibold" style={{ color: "var(--ink)" }}>
           <span>{cur}</span>
-          <span style={{ color: "rgba(246,242,232,0.5)" }}> / {goal} g</span>
+          <span style={{ color: "var(--muted-foreground)" }}> / {goal} g</span>
         </span>
       </div>
       <div
         className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full"
-        style={{ background: "rgba(255,255,255,0.10)" }}
+        style={{ background: "var(--hairline)" }}
       >
         <motion.div
           className="h-full rounded-full"
@@ -400,6 +411,7 @@ function DarkMacroRow({
     </div>
   );
 }
+
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
   const a = ((angleDeg - 90) * Math.PI) / 180;
