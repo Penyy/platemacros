@@ -196,6 +196,7 @@ function ChartCard({
       </div>
 
       <div className="relative mt-3 h-24">
+        {/* Goal line (dashed) */}
         <div
           className="absolute left-0 right-0 border-t border-dashed"
           style={{
@@ -203,6 +204,18 @@ function ChartCard({
             borderColor: "color-mix(in oklab, var(--ink) 25%, transparent)",
           }}
         />
+        {/* Average line (solid, accent) */}
+        {avg > 0 && (
+          <div
+            className="absolute left-0 right-0"
+            style={{
+              bottom: `${(avg / max) * 100}%`,
+              height: 1.5,
+              background: "var(--accent-yellow)",
+              opacity: 0.9,
+            }}
+          />
+        )}
         <div className="flex h-full items-end gap-[3px]">
           {values.map((d, i) => {
             const h = Math.min(100, (d.v / max) * 100);
