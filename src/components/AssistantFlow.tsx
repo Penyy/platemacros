@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useMemo, useRef, useState } from "react";
-import { Camera, Loader2, Send, Sparkles } from "lucide-react";
+import { Camera, Loader2, MessageCircle, Send, Sparkles, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
@@ -67,6 +67,7 @@ export function AssistantFlow({ defaultMeal }: Props) {
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [busy, setBusy] = useState<false | "text" | "image">(false);
+  const [pendingImage, setPendingImage] = useState<{ dataUrl: string; base64: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const ask = useServerFn(askAssistant);
 
@@ -111,9 +112,72 @@ export function AssistantFlow({ defaultMeal }: Props) {
     [history],
   );
 
+  const sendImage = async (image: { dataUrl: string; base64: string }, note: string) => {
+    const trimmedNote = note.trim();
+    const userText = trimmedNote ? `📷 zdjęcie · "${trimmedNote}"` : "📷 zdjęcie";
+    setHistory((h) => [...h, { id: nid(), kind: "user", text: userText }]);
+    setBusy("image");
+    try {
+      const result = (await ask({
+        data: {
+          message: trimmedNote || "Rozpoznaj zdjęcie",
+          history: [],
+          dayContext,
+          imageBase64: image.base64,
+          mimeType: "image/jpeg",
+        },
+      })) as AssistantResult;
+      if (result.kind === "label") {
+        setHistory((h) => [
+          ...h,
+          { id: nid(), kind: "label", label: result.label, preview: image.dataUrl },
+        ]);
+      } else if (result.kind === "meal") {
+        const m = defaultMeal ?? guessMeal();
+        addEntry({
+          date: today,
+          meal: m,
+          name: result.name || "Posiłek ze zdjęcia",
+          kcal: Math.round(result.total.kcal * 10) / 10,
+          protein: Math.round(result.total.protein * 10) / 10,
+          carbs: Math.round(result.total.carbs * 10) / 10,
+          fat: Math.round(result.total.fat * 10) / 10,
+        });
+        setHistory((h) => [
+          ...h,
+          {
+            id: nid(),
+            kind: "meal",
+            name: result.name,
+            total: result.total,
+            confidence: result.confidence,
+            preview: image.dataUrl,
+          },
+        ]);
+      } else if (result.kind === "text") {
+        setHistory((h) => [...h, { id: nid(), kind: "text", text: result.text }]);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("AI_RATE_LIMIT")) toast.error("Za dużo żądań, spróbuj za chwilę.");
+      else if (msg.includes("AI_CREDITS")) toast.error("Brak kredytów AI / problem z kluczem.");
+      else toast.error("Nie udało się rozpoznać zdjęcia.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const sendText = async (message: string) => {
     const trimmed = message.trim();
-    if (!trimmed || busy) return;
+    if (busy) return;
+    if (pendingImage) {
+      const img = pendingImage;
+      setPendingImage(null);
+      setInput("");
+      await sendImage(img, trimmed);
+      return;
+    }
+    if (!trimmed) return;
     setInput("");
     const userItem: HistoryItem = { id: nid(), kind: "user", text: trimmed };
     setHistory((h) => [...h, userItem]);
@@ -147,7 +211,6 @@ export function AssistantFlow({ defaultMeal }: Props) {
       } else if (result.kind === "text") {
         setHistory((h) => [...h, { id: nid(), kind: "text", text: result.text }]);
       } else {
-        // unexpected for text path
         setHistory((h) => [...h, { id: nid(), kind: "text", text: "Hmm, brak odpowiedzi." }]);
       }
     } catch (err: unknown) {
@@ -169,61 +232,15 @@ export function AssistantFlow({ defaultMeal }: Props) {
     const file = e.target.files?.[0];
     if (fileRef.current) fileRef.current.value = "";
     if (!file || busy) return;
-    setBusy("image");
     try {
       const dataUrl = await shrinkImage(file);
       const base64 = dataUrl.split(",")[1] ?? "";
-      const userItem: HistoryItem = { id: nid(), kind: "user", text: "📷 zdjęcie" };
-      setHistory((h) => [...h, userItem]);
-      const result = (await ask({
-        data: {
-          message: "Rozpoznaj zdjęcie",
-          history: [],
-          dayContext,
-          imageBase64: base64,
-          mimeType: "image/jpeg",
-        },
-      })) as AssistantResult;
-      if (result.kind === "label") {
-        setHistory((h) => [
-          ...h,
-          { id: nid(), kind: "label", label: result.label, preview: dataUrl },
-        ]);
-      } else if (result.kind === "meal") {
-        // auto-add the meal entry immediately
-        const m = defaultMeal ?? guessMeal();
-        addEntry({
-          date: today,
-          meal: m,
-          name: result.name || "Posiłek ze zdjęcia",
-          kcal: Math.round(result.total.kcal * 10) / 10,
-          protein: Math.round(result.total.protein * 10) / 10,
-          carbs: Math.round(result.total.carbs * 10) / 10,
-          fat: Math.round(result.total.fat * 10) / 10,
-        });
-        setHistory((h) => [
-          ...h,
-          {
-            id: nid(),
-            kind: "meal",
-            name: result.name,
-            total: result.total,
-            confidence: result.confidence,
-            preview: dataUrl,
-          },
-        ]);
-      } else if (result.kind === "text") {
-        setHistory((h) => [...h, { id: nid(), kind: "text", text: result.text }]);
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes("AI_RATE_LIMIT")) toast.error("Za dużo żądań, spróbuj za chwilę.");
-      else if (msg.includes("AI_CREDITS")) toast.error("Brak kredytów AI / problem z kluczem.");
-      else toast.error("Nie udało się odczytać etykiety.");
-    } finally {
-      setBusy(false);
+      setPendingImage({ dataUrl, base64 });
+    } catch {
+      toast.error("Nie udało się wczytać zdjęcia.");
     }
   };
+
 
   const onAddLabel = (item: HistoryItem & { kind: "label" }, grams: number, meal: Meal) => {
     const per = item.label.per100;
@@ -262,6 +279,24 @@ export function AssistantFlow({ defaultMeal }: Props) {
         onChange={onPickImage}
       />
 
+      {pendingImage && (
+        <div className="flex items-center gap-2 rounded-2xl bg-foreground/5 p-2">
+          <img src={pendingImage.dataUrl} alt="" className="h-12 w-12 rounded-lg object-cover" />
+          <div className="flex-1 text-xs text-muted-foreground">
+            Zdjęcie gotowe. Możesz dodać opis (np. „duża porcja, ok. 300 g") albo wyślij od razu.
+          </div>
+          <button
+            type="button"
+            onClick={() => setPendingImage(null)}
+            disabled={!!busy}
+            className="grid h-7 w-7 place-items-center rounded-full bg-foreground/10"
+            aria-label="Usuń zdjęcie"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -275,14 +310,17 @@ export function AssistantFlow({ defaultMeal }: Props) {
             autoFocus
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Opisz co zjadłeś albo zapytaj o makro…"
+            placeholder={
+              pendingImage
+                ? "Dodaj opis do zdjęcia (opcjonalnie)…"
+                : "Opisz co zjadłeś albo zapytaj o makro…"
+            }
             disabled={!!busy}
             className="flex-1 bg-transparent text-[15px] outline-none placeholder:text-muted-foreground/70"
-            defaultValue={defaultMeal ? "" : undefined}
           />
           <button
             type="submit"
-            disabled={!input.trim() || !!busy}
+            disabled={(!input.trim() && !pendingImage) || !!busy}
             className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"
             aria-label="Wyślij"
           >
@@ -293,12 +331,36 @@ export function AssistantFlow({ defaultMeal }: Props) {
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={!!busy}
-          className="grid h-11 w-11 place-items-center rounded-2xl bg-foreground/10 disabled:opacity-40"
-          aria-label="Zrób zdjęcie etykiety"
+          className={`grid h-11 w-11 place-items-center rounded-2xl disabled:opacity-40 ${
+            pendingImage ? "bg-primary text-primary-foreground" : "bg-foreground/10"
+          }`}
+          aria-label="Zrób zdjęcie"
         >
           <Camera size={18} />
         </button>
       </form>
+
+      {history.length === 0 && !busy && (
+        <div className="rounded-2xl border border-border/60 bg-card/60 p-3 text-sm">
+          <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <MessageCircle size={12} /> Mogę pomóc na 3 sposoby
+          </div>
+          <ul className="space-y-1 text-[13px] leading-snug text-foreground/85">
+            <li className="flex gap-2">
+              <Sparkles size={14} className="mt-0.5 shrink-0 text-primary" />
+              <span><b>Opisz co zjadłeś</b> — dodam z makro (np. „2 jajka i tost")</span>
+            </li>
+            <li className="flex gap-2">
+              <Camera size={14} className="mt-0.5 shrink-0 text-primary" />
+              <span><b>Zrób zdjęcie</b> posiłku lub etykiety — rozpoznam i dodam</span>
+            </li>
+            <li className="flex gap-2">
+              <MessageCircle size={14} className="mt-0.5 shrink-0 text-primary" />
+              <span><b>Zapytaj o makro</b> — ile Ci zostało, co dojeść na białko</span>
+            </li>
+          </ul>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-1.5">
         {CHIPS.map((c) => (

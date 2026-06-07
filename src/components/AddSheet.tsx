@@ -5,7 +5,6 @@ import {
   Zap,
   PencilLine,
   Search,
-  Sparkles,
   ScanLine,
   MessageCircle,
   X,
@@ -13,11 +12,10 @@ import {
 import { type Meal, MEAL_LABEL, type Product, usePlate, ymd } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 import { CompoundMealFlow } from "./CompoundMealFlow";
-import { EstimateMealFlow } from "./EstimateMealFlow";
 import { BarcodeScanFlow } from "./BarcodeScanFlow";
 import { AssistantFlow } from "./AssistantFlow";
 
-type Mode = "menu" | "quick" | "manual" | "scan" | "search" | "compound" | "estimate" | "barcode" | "assistant";
+type Mode = "menu" | "quick" | "manual" | "scan" | "search" | "compound" | "barcode" | "assistant";
 
 interface Props {
   open: boolean;
@@ -76,8 +74,6 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                     ? "Szukaj produktu"
                     : mode === "compound"
                     ? "Złożony posiłek"
-                    : mode === "estimate"
-                    ? "Oszacuj ze zdjęcia"
                     : mode === "barcode"
                     ? "Skanuj kod kreskowy"
                     : mode === "assistant"
@@ -146,16 +142,6 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                   }}
                 />
               )}
-              {mode === "estimate" && (
-                <EstimateMealFlow
-                  meal={meal}
-                  setMeal={setMeal}
-                  onSubmit={(payload) => {
-                    addEntry({ ...payload, date, meal });
-                    close();
-                  }}
-                />
-              )}
               {mode === "barcode" && (
                 <BarcodeScanFlow
                   meal={meal}
@@ -185,13 +171,12 @@ function guessMeal(): Meal {
   return "snack";
 }
 
-type PickMode = "quick" | "manual" | "search" | "compound" | "estimate" | "barcode" | "assistant";
+type PickMode = "quick" | "manual" | "search" | "compound" | "barcode" | "assistant";
 
 function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
   const items: { id: PickMode; label: string; icon: typeof ScanLine; soon: boolean }[] = [
     { id: "assistant", label: "Zapytaj AI", icon: MessageCircle, soon: false },
     { id: "barcode", label: "Skanuj kod kreskowy", icon: ScanLine, soon: false },
-    { id: "estimate", label: "Oszacuj ze zdjęcia (AI)", icon: Sparkles, soon: false },
     { id: "compound", label: "Złożony posiłek", icon: Layers, soon: false },
     { id: "search", label: "Szukaj produktu", icon: Search, soon: false },
     { id: "quick", label: "Szybkie dodawanie", icon: Zap, soon: false },
