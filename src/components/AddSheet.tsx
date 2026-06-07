@@ -80,7 +80,7 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                     : mode === "barcode"
                     ? "Skanuj kod kreskowy"
                     : mode === "assistant"
-                    ? "Zapytaj AI"
+                    ? "PlateAI"
                     : "Skanuj etykietę"}
                 </h2>
                 <button
