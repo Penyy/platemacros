@@ -197,9 +197,13 @@ function TodayPage() {
           </motion.div>
         ))}
       </section>
+
+      <NotificationsSheet open={notifOpen} onOpenChange={setNotifOpen} />
+      <BurnedEditSheet open={burnedOpen} date={selected} onOpenChange={setBurnedOpen} />
     </div>
   );
 }
+
 
 
 /* ---------- Subcomponents ---------- */
