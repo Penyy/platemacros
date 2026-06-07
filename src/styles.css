@@ -36,106 +36,91 @@
   --color-glass: var(--glass);
   --color-glass-border: var(--glass-border);
 
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  --color-ink: var(--ink);
+  --color-hairline: var(--hairline);
+  --color-cream: var(--cream);
+  --color-accent-yellow: var(--accent-yellow);
+  --color-accent-yellow-soft: var(--accent-yellow-soft);
+
+  --font-sans: "Manrope", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-display: "Manrope", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 :root {
   --radius: 1rem;
 
-  --background: oklch(0.985 0.003 250);
-  --foreground: oklch(0.18 0.01 260);
+  /* Ink / paper system */
+  --ink: oklch(0.20 0.005 80);                 /* #1A1A18 */
+  --hairline: oklch(0.93 0.012 85);            /* #EFEBE1 */
+  --light-gray: oklch(0.83 0.018 85);          /* #C9C3B6 */
+  --cream: oklch(0.97 0.030 90);               /* #FBF4E2 plate card */
+
+  --accent-yellow: oklch(0.82 0.165 85);       /* #F4B500 */
+  --accent-yellow-soft: oklch(0.86 0.155 90);  /* #F6C840 */
+
+  --background: oklch(0.985 0.006 85);         /* #FCFBF8 */
+  --foreground: var(--ink);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.01 260);
+  --card-foreground: var(--ink);
 
-  --muted: oklch(0.96 0.005 250);
-  --muted-foreground: oklch(0.55 0.015 260);
+  --muted: oklch(0.96 0.008 85);
+  --muted-foreground: oklch(0.66 0.016 80);    /* #9E988C */
 
-  --accent: oklch(0.95 0.01 260);
-  --accent-foreground: oklch(0.2 0.01 260);
+  --accent: oklch(0.95 0.012 85);
+  --accent-foreground: var(--ink);
 
-  /* Graphite as the primary action color (no blue) */
-  --primary: oklch(0.22 0.01 260);
+  --primary: oklch(0.20 0.005 80);             /* ink */
   --primary-foreground: oklch(0.99 0 0);
 
-  --border: oklch(0.91 0.005 260);
-  --ring: oklch(0.3 0.01 260);
+  --border: var(--hairline);
+  --ring: oklch(0.5 0.01 85);
 
-  /* Macro colors */
-  --protein: oklch(0.66 0.22 12);       /* #FF375F-ish */
-  --protein-soft: oklch(0.78 0.16 18);
-  --carbs: oklch(0.78 0.16 60);          /* #FF9F0A */
-  --carbs-soft: oklch(0.86 0.12 70);
-  --fat: oklch(0.66 0.21 305);           /* #BF5AF2 */
-  --fat-soft: oklch(0.78 0.16 305);
+  /* Macros */
+  --protein: var(--ink);                       /* protein bar = ink */
+  --protein-soft: oklch(0.5 0.01 80);
+  --carbs: var(--accent-yellow);
+  --carbs-soft: var(--accent-yellow-soft);
+  --fat: var(--light-gray);
+  --fat-soft: oklch(0.88 0.013 85);
 
-  /* Glass surface tokens */
-  --glass: oklch(1 0 0 / 0.62);
+  --glass: oklch(1 0 0 / 0.78);
   --glass-border: oklch(1 0 0 / 0.6);
 
-  /* Ambient background gradient */
-  --ambient: radial-gradient(
-      ellipse 80% 60% at 15% 0%,
-      oklch(0.86 0.12 18 / 0.18),
-      transparent 60%
-    ),
-    radial-gradient(
-      ellipse 70% 60% at 85% 10%,
-      oklch(0.82 0.14 305 / 0.18),
-      transparent 60%
-    ),
-    radial-gradient(
-      ellipse 90% 60% at 50% 100%,
-      oklch(0.86 0.12 70 / 0.16),
-      transparent 60%
-    );
+  --shadow-card: 0 12px 30px rgba(60, 48, 20, 0.06),
+                 0 2px 8px rgba(60, 48, 20, 0.035);
+
+  --page-gradient: linear-gradient(180deg, #FCFBF8 0%, #FCFBF8 46%, #FCF3D8 100%);
 }
 
 .dark {
-  --background: oklch(0.16 0.008 260);
-  --foreground: oklch(0.98 0.003 250);
+  /* keep dark fallbacks usable; app primarily ships light */
+  --background: oklch(0.16 0.008 85);
+  --foreground: oklch(0.98 0.003 85);
 
-  --card: oklch(0.21 0.01 260);
-  --card-foreground: oklch(0.98 0.003 250);
+  --card: oklch(0.21 0.01 85);
+  --card-foreground: oklch(0.98 0.003 85);
 
-  --muted: oklch(0.24 0.01 260);
-  --muted-foreground: oklch(0.7 0.015 260);
+  --muted: oklch(0.24 0.01 85);
+  --muted-foreground: oklch(0.7 0.015 85);
 
-  --accent: oklch(0.26 0.01 260);
-  --accent-foreground: oklch(0.98 0.003 250);
+  --accent: oklch(0.26 0.01 85);
+  --accent-foreground: oklch(0.98 0.003 85);
 
-  /* White-ish as primary action in dark */
-  --primary: oklch(0.97 0.003 250);
-  --primary-foreground: oklch(0.18 0.01 260);
+  --primary: oklch(0.97 0.003 85);
+  --primary-foreground: oklch(0.18 0.01 85);
 
   --border: oklch(1 0 0 / 0.1);
-  --ring: oklch(0.85 0.01 260);
+  --ring: oklch(0.85 0.01 85);
 
-  --protein: oklch(0.7 0.21 14);
-  --protein-soft: oklch(0.82 0.15 20);
-  --carbs: oklch(0.82 0.16 65);
-  --carbs-soft: oklch(0.88 0.12 75);
-  --fat: oklch(0.74 0.2 305);
-  --fat-soft: oklch(0.84 0.14 305);
+  --protein: oklch(0.98 0.003 85);
+  --carbs: var(--accent-yellow);
+  --fat: oklch(0.6 0.01 85);
 
-  --glass: oklch(0.22 0.01 260 / 0.55);
+  --glass: oklch(0.22 0.01 85 / 0.55);
   --glass-border: oklch(1 0 0 / 0.12);
 
-  --ambient: radial-gradient(
-      ellipse 80% 60% at 15% 0%,
-      oklch(0.5 0.18 18 / 0.22),
-      transparent 60%
-    ),
-    radial-gradient(
-      ellipse 70% 60% at 85% 10%,
-      oklch(0.45 0.18 305 / 0.22),
-      transparent 60%
-    ),
-    radial-gradient(
-      ellipse 90% 60% at 50% 100%,
-      oklch(0.55 0.16 70 / 0.18),
-      transparent 60%
-    );
+  --page-gradient: linear-gradient(180deg, #14140F 0%, #14140F 46%, #2A1F08 100%);
 }
 
 @layer base {
@@ -149,7 +134,8 @@
   }
 
   body {
-    background-color: var(--color-background);
+    background: var(--page-gradient);
+    background-attachment: fixed;
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -175,12 +161,41 @@
       0 12px 40px -12px oklch(0 0 0 / 0.55);
   }
 
+  .page-bg {
+    background: var(--page-gradient);
+    background-attachment: fixed;
+  }
+
+  /* legacy alias, kept so existing screens keep their background */
   .ambient-bg {
-    background-image: var(--ambient);
+    background: var(--page-gradient);
+    background-attachment: fixed;
+  }
+
+  .surface-card {
+    background: var(--card);
+    border-radius: 24px;
+    box-shadow: var(--shadow-card);
+  }
+
+  .surface-hero {
+    background: var(--cream);
+    border-radius: 28px;
+    box-shadow: var(--shadow-card);
+  }
+
+  .hairline {
+    background: var(--hairline);
   }
 
   .num-tight {
     font-feature-settings: "tnum" 1, "lnum" 1;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
+  }
+
+  .display-tight {
+    font-feature-settings: "tnum" 1, "lnum" 1;
+    letter-spacing: -0.04em;
+    font-weight: 800;
   }
 }

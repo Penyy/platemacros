@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-const Plate3D = lazy(() => import("@/components/Plate3D"));
+import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { Bell, Settings as Cog, User, Camera, ArrowUp, ArrowUpRight, Flame, Activity, UtensilsCrossed } from "lucide-react";
 import { MealCard } from "@/components/MealCard";
-import { WeekStrip } from "@/components/WeekStrip";
-import { ScreenHeader } from "@/components/ScreenHeader";
 import {
   type Meal,
   getDayGoals,
@@ -11,6 +10,7 @@ import {
   usePlate,
   ymd,
 } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,34 +28,54 @@ export const Route = createFileRoute("/")({
 
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
-function formatDate(d: Date) {
-  return d.toLocaleDateString("pl-PL", {
-    day: "numeric",
-    month: "long",
-  });
-}
+const WEEKDAY_LABEL = [
+  "Poniedziałek",
+  "Wtorek",
+  "Środa",
+  "Czwartek",
+  "Piątek",
+  "Sobota",
+  "Niedziela",
+];
 
-function titleFor(date: string) {
-  const today = ymd(new Date());
-  const yest = new Date();
-  yest.setDate(yest.getDate() - 1);
-  if (date === today) return "Dzisiaj";
-  if (date === ymd(yest)) return "Wczoraj";
-  const d = new Date(date + "T00:00:00");
-  return d.toLocaleDateString("pl-PL", { weekday: "long" });
+function polishDate(d: Date) {
+  const wd = WEEKDAY_LABEL[(d.getDay() + 6) % 7];
+  const day = d.getDate();
+  const months = [
+    "stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca",
+    "lipca", "sierpnia", "września", "października", "listopada", "grudnia",
+  ];
+  return `${wd}, ${day} ${months[d.getMonth()]}`;
 }
 
 function TodayPage() {
-  const [clientReady, setClientReady] = useState(false);
-  useEffect(() => setClientReady(true), []);
-  const [selected, setSelected] = useState(() => ymd(new Date()));
-  const [weekOffset, setWeekOffset] = useState(0);
-  const [editingBurned, setEditingBurned] = useState(false);
+  const [selected] = useState(() => ymd(new Date()));
+  const [userName, setUserName] = useState<string>("");
+  const [openAssistant, setOpenAssistant] = useState(false);
+
+  useEffect(() => {
+    void supabase.auth.getUser().then(({ data }) => {
+      const meta = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
+      const candidates = [
+        meta.full_name,
+        meta.name,
+        meta.given_name,
+        meta.first_name,
+        data.user?.email?.split("@")[0],
+      ];
+      const found = candidates.find(
+        (x): x is string => typeof x === "string" && x.trim().length > 0
+      );
+      if (found) {
+        const first = String(found).split(/[\s.]+/)[0];
+        setUserName(first.charAt(0).toUpperCase() + first.slice(1));
+      }
+    });
+  }, []);
 
   const profile = usePlate((s) => s.profile);
   const entries = usePlate((s) => s.entries);
   const burnedMap = usePlate((s) => s.burned);
-  const setBurned = usePlate((s) => s.setBurned);
   const openAdd = usePlate((s) => s.openAdd);
 
   const dayEntries = useMemo(
@@ -76,56 +96,107 @@ function TodayPage() {
   const burned = burnedMap[selected] ?? 0;
   const adjustedGoal =
     profile.include_burned ? dayGoals.kcal + burned : dayGoals.kcal;
-  const remaining = adjustedGoal - sum.kcal;
+  const remaining = Math.max(0, adjustedGoal - sum.kcal);
 
-  const dateLabel = formatDate(new Date(selected + "T00:00:00"));
+  const dateLabel = polishDate(new Date(selected + "T00:00:00"));
+
+  // weekly bars (Mon-Sun for current week)
+  const weekData = useMemo(() => {
+    const today = new Date(selected + "T00:00:00");
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+    const days: { date: string; label: string; kcal: number; isToday: boolean }[] = [];
+    const labels = ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const ds = ymd(d);
+      const kcal = entries
+        .filter((e) => e.date === ds)
+        .reduce((a, e) => a + e.kcal, 0);
+      days.push({ date: ds, label: labels[i], kcal: Math.round(kcal), isToday: ds === selected });
+    }
+    return days;
+  }, [entries, selected]);
+
+  const weekTotal = weekData.reduce((a, d) => a + d.kcal, 0);
+  const weekAvg = Math.round(weekTotal / 7);
+  const weekMax = Math.max(1, ...weekData.map((d) => d.kcal));
 
   return (
-    <div className="space-y-4">
-      <ScreenHeader title={titleFor(selected)} subtitle={dateLabel} />
+    <div className="space-y-3.5 pb-4">
+      {/* Top bar */}
+      <header className="flex items-center justify-between px-[18px] pt-[max(env(safe-area-inset-top),1rem)]">
+        <Logo />
+        <div className="flex items-center gap-2">
+          <IconCircle aria-label="Powiadomienia"><Bell size={18} strokeWidth={1.8} /></IconCircle>
+          <LinkCircle to="/settings" aria-label="Ustawienia"><Cog size={18} strokeWidth={1.8} /></LinkCircle>
+          <LinkCircle to="/profile" aria-label="Profil"><User size={18} strokeWidth={1.8} /></LinkCircle>
+        </div>
+      </header>
 
-      <div className="px-3">
-        <WeekStrip
-          selected={selected}
-          onSelect={setSelected}
-          weekOffset={weekOffset}
-          setWeekOffset={setWeekOffset}
-        />
-      </div>
+      {/* Greeting */}
+      <section className="px-[18px]">
+        <h1 className="text-[34px] font-extrabold leading-[1.05] tracking-tight text-foreground">
+          Cześć{userName ? `, ${userName}` : ""}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">{dateLabel}</p>
+      </section>
 
+      {/* Three stats */}
+      <section className="px-[18px]">
+        <div className="flex items-stretch rounded-[20px] bg-transparent">
+          <StatCol icon={UtensilsCrossed} label="Zjedzone" value={Math.round(sum.kcal)} />
+          <Divider />
+          <StatCol icon={Activity} label="Pozostało" value={remaining} />
+          <Divider />
+          <StatCol icon={Flame} label="Spalone" value={burned} />
+        </div>
+      </section>
 
-      <section className="px-4 py-2">
-        {clientReady ? (
-          <Suspense fallback={<div className="h-[320px]" />}>
-            <Plate3D
-              entries={dayEntries}
-              dayKey={selected}
-              remainingKcal={remaining}
-              goalKcal={adjustedGoal}
-              consumedKcal={sum.kcal}
-            />
-          </Suspense>
-        ) : (
-          <div className="h-[320px]" />
-        )}
-        <Legend
-          protein={sum.protein}
-          carbs={sum.carbs}
-          fat={sum.fat}
-          goalP={dayGoals.protein}
-          goalC={dayGoals.carbs}
-          goalF={dayGoals.fat}
-        />
-        <BurnedRow
-          value={burned}
-          editing={editingBurned}
-          setEditing={setEditingBurned}
-          onChange={(v) => setBurned(selected, v)}
-          included={!!profile.include_burned}
+      {/* Plate dial hero */}
+      <section className="px-[18px]">
+        <PlateDial
+          consumed={Math.round(sum.kcal)}
+          goal={Math.max(1, Math.round(adjustedGoal))}
         />
       </section>
 
-      <section className="space-y-3 px-3">
+      {/* This week */}
+      {weekTotal > 0 && (
+        <section className="px-[18px]">
+          <div className="surface-card p-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-[17px] font-bold tracking-tight">Ten tydzień</h2>
+                <p className="mt-0.5 text-[12px] text-muted-foreground">
+                  Średnio {weekAvg} kcal / dzień
+                </p>
+              </div>
+              <div className="num-tight text-[22px] font-extrabold tracking-tight">
+                {(weekTotal / 1000).toFixed(1).replace(".", ",")}k
+              </div>
+            </div>
+            <WeekBars data={weekData} max={weekMax} />
+          </div>
+        </section>
+      )}
+
+      {/* Macros */}
+      <section className="px-[18px]">
+        <div className="surface-card p-4">
+          <h2 className="text-[17px] font-bold tracking-tight">Makra</h2>
+          <div className="mt-3 space-y-3">
+            <MacroRow label="Białko" cur={Math.round(sum.protein)} goal={dayGoals.protein} color="var(--ink)" />
+            <MacroRow label="Węglowodany" cur={Math.round(sum.carbs)} goal={dayGoals.carbs} color="var(--accent-yellow)" />
+            <MacroRow label="Tłuszcz" cur={Math.round(sum.fat)} goal={dayGoals.fat} color="var(--light-gray, #C9C3B6)" />
+          </div>
+        </div>
+      </section>
+
+      {/* Meals */}
+      <section className="space-y-3 px-[18px]">
+        <h2 className="text-[17px] font-bold tracking-tight px-1">Posiłki</h2>
         {MEALS.map((m) => (
           <MealCard
             key={m}
@@ -137,114 +208,285 @@ function TodayPage() {
           />
         ))}
       </section>
+
+      {/* Ask AI */}
+      <section className="px-[18px]">
+        <button
+          onClick={() => { setOpenAssistant(true); openAdd(undefined); }}
+          className="surface-card flex w-full items-center gap-3 p-4 text-left"
+        >
+          <div className="flex-1">
+            <div className="text-[15px] font-bold tracking-tight">Zapytaj AI</div>
+            <div className="mt-0.5 text-[12px] text-muted-foreground">
+              Opisz posiłek lub zrób zdjęcie
+            </div>
+          </div>
+          <span
+            className="grid h-10 w-10 place-items-center rounded-full"
+            style={{ background: "var(--muted)" }}
+          >
+            <Camera size={18} strokeWidth={1.8} />
+          </span>
+          <span
+            className="grid h-10 w-10 place-items-center rounded-full text-primary-foreground"
+            style={{ background: "var(--ink)" }}
+          >
+            <ArrowUp size={18} strokeWidth={2.2} />
+          </span>
+        </button>
+        {openAssistant ? null : null}
+      </section>
     </div>
   );
 }
 
-function Legend({
-  protein,
-  carbs,
-  fat,
-  goalP,
-  goalC,
-  goalF,
-}: {
-  protein: number;
-  carbs: number;
-  fat: number;
-  goalP: number;
-  goalC: number;
-  goalF: number;
-}) {
-  const items: { label: string; color: string; v: number; g: number }[] = [
-    { label: "Białko", color: "var(--protein)", v: protein, g: goalP },
-    { label: "Węgle", color: "var(--carbs)", v: carbs, g: goalC },
-    { label: "Tłuszcz", color: "var(--fat)", v: fat, g: goalF },
-  ];
+/* ---------- Subcomponents ---------- */
+
+function Logo() {
   return (
-    <ul className="mt-4 grid grid-cols-3 gap-2">
-      {items.map((it) => (
-        <li
-          key={it.label}
-          className="flex flex-col items-center rounded-2xl bg-card/60 px-2 py-2 text-center"
-        >
-          <div className="flex items-center gap-1.5">
-            <span
-              className="h-2 w-2 rounded-full"
-              style={{ background: it.color }}
-            />
-            <span className="text-[11px] font-medium text-muted-foreground">
-              {it.label}
-            </span>
-          </div>
-          <div className="num-tight mt-0.5 text-sm">
-            <span className="font-semibold">{Math.round(it.v)}</span>
-            <span className="text-muted-foreground">/{it.g} g</span>
-          </div>
-        </li>
-      ))}
-    </ul>
+    <div className="flex items-baseline">
+      <span
+        className="text-[24px] font-extrabold tracking-tight"
+        style={{ color: "var(--ink)", letterSpacing: "-0.04em" }}
+      >
+        plate
+      </span>
+      <span
+        className="text-[24px] font-extrabold"
+        style={{ color: "var(--ink)" }}
+      >
+        .
+      </span>
+    </div>
   );
 }
 
-function BurnedRow({
+function IconCircle({ children, ...rest }: { children: React.ReactNode; "aria-label"?: string }) {
+  return (
+    <button
+      {...rest}
+      className="grid h-10 w-10 place-items-center rounded-full bg-card text-foreground"
+      style={{ boxShadow: "var(--shadow-card)" }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function LinkCircle({ to, children, ...rest }: { to: string; children: React.ReactNode; "aria-label"?: string }) {
+  return (
+    <a
+      href={to}
+      {...rest}
+      className="grid h-10 w-10 place-items-center rounded-full bg-card text-foreground"
+      style={{ boxShadow: "var(--shadow-card)" }}
+    >
+      {children}
+    </a>
+  );
+}
+
+function StatCol({
+  icon: Icon,
+  label,
   value,
-  editing,
-  setEditing,
-  onChange,
-  included,
 }: {
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number }>;
+  label: string;
   value: number;
-  editing: boolean;
-  setEditing: (b: boolean) => void;
-  onChange: (v: number) => void;
-  included: boolean;
 }) {
   return (
-    <div className="mt-3 rounded-2xl bg-card/60">
-      <button
-        onClick={() => setEditing(!editing)}
-        className="flex w-full items-center justify-between px-4 py-3 text-left active:bg-foreground/5 transition rounded-2xl"
-      >
-        <div className="flex flex-col">
-          <span className="text-[13px] font-medium">Spalone kcal</span>
-          <span className="text-[11px] text-muted-foreground">
-            {included ? "doliczane do celu" : "tylko informacyjnie"}
-          </span>
-        </div>
-        <div className="num-tight text-sm">
-          {value > 0 ? (
-            <>
-              <span className="font-semibold">{value}</span>
-              <span className="text-muted-foreground"> kcal</span>
-            </>
-          ) : (
-            <span className="text-muted-foreground">dodaj</span>
-          )}
-        </div>
-      </button>
-      {editing && (
-        <div className="flex items-center gap-2 px-4 pb-3">
-          <input
-            autoFocus
-            inputMode="numeric"
-            value={value || ""}
-            placeholder="0"
-            onChange={(e) => {
-              const n = Number(e.target.value.replace(/[^\d]/g, ""));
-              onChange(Number.isNaN(n) ? 0 : n);
-            }}
-            className="num-tight flex-1 rounded-lg bg-foreground/5 px-3 py-2 text-right text-[15px] font-semibold outline-none focus:ring-1 focus:ring-primary"
+    <div className="flex flex-1 flex-col px-1.5">
+      <div className="num-tight text-[28px] font-extrabold leading-none tracking-tight">
+        {value}
+      </div>
+      <div className="mt-1.5 flex items-center gap-1 text-muted-foreground">
+        <Icon size={13} strokeWidth={1.8} />
+        <span className="text-[11px] font-semibold">{label}</span>
+      </div>
+    </div>
+  );
+}
+
+function Divider() {
+  return <div className="w-px self-stretch" style={{ background: "var(--hairline)" }} />;
+}
+
+function PlateDial({ consumed, goal }: { consumed: number; goal: number }) {
+  const size = 240;
+  const stroke = 18;
+  const r = (size - stroke) / 2;
+  const cx = size / 2;
+  const cy = size / 2;
+  const pct = Math.max(0, Math.min(1, consumed / goal));
+  // arc spans from -135deg to +135deg (270deg total)
+  const startAngle = -135;
+  const totalArc = 270;
+  const endAngle = startAngle + totalArc * pct;
+  const trackPath = describeArc(cx, cy, r, startAngle, startAngle + totalArc);
+  const progPath = describeArc(cx, cy, r, startAngle, endAngle);
+  const remaining = Math.max(0, goal - consumed);
+
+  return (
+    <div className="surface-hero relative p-5">
+      <div className="flex items-start justify-between">
+        <h2 className="text-[17px] font-bold tracking-tight">Talerz dnia</h2>
+        <button
+          className="grid h-9 w-9 place-items-center rounded-xl bg-card"
+          style={{ boxShadow: "var(--shadow-card)" }}
+          aria-label="Otwórz"
+        >
+          <ArrowUpRight size={16} strokeWidth={2} />
+        </button>
+      </div>
+      <div className="relative mt-2 grid place-items-center">
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+          {/* dotted plate rim */}
+          <circle
+            cx={cx}
+            cy={cy}
+            r={r + stroke / 2 + 4}
+            fill="none"
+            stroke="var(--ink)"
+            strokeOpacity="0.18"
+            strokeWidth="1.2"
+            strokeDasharray="1.5 4"
           />
-          <span className="text-xs text-muted-foreground">kcal</span>
-          <button
-            onClick={() => setEditing(false)}
-            className="rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+          {/* track */}
+          <path
+            d={trackPath}
+            fill="none"
+            stroke="var(--hairline)"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+          />
+          {/* progress */}
+          {pct > 0.001 && (
+            <path
+              d={progPath}
+              fill="none"
+              stroke="var(--accent-yellow)"
+              strokeWidth={stroke}
+              strokeLinecap="round"
+            />
+          )}
+        </svg>
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+          <div className="num-tight text-[44px] font-extrabold leading-none tracking-tight">
+            {consumed}
+          </div>
+          <div className="mt-1 text-[12px] text-muted-foreground">
+            z {goal} kcal
+          </div>
+          <div
+            className="mt-3 rounded-full bg-card px-3 py-1 text-[11px] font-semibold"
+            style={{ boxShadow: "var(--shadow-card)" }}
           >
-            Gotowe
-          </button>
+            Pozostało {remaining}
+          </div>
         </div>
-      )}
+      </div>
+    </div>
+  );
+}
+
+function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
+  const a = ((angleDeg - 90) * Math.PI) / 180;
+  return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+}
+function describeArc(cx: number, cy: number, r: number, startAngle: number, endAngle: number) {
+  const start = polarToCartesian(cx, cy, r, endAngle);
+  const end = polarToCartesian(cx, cy, r, startAngle);
+  const largeArcFlag = Math.abs(endAngle - startAngle) <= 180 ? "0" : "1";
+  return [
+    "M", start.x, start.y,
+    "A", r, r, 0, largeArcFlag, 0, end.x, end.y,
+  ].join(" ");
+}
+
+function WeekBars({
+  data,
+  max,
+}: {
+  data: { label: string; kcal: number; isToday: boolean }[];
+  max: number;
+}) {
+  const H = 110;
+  return (
+    <div className="relative mt-4">
+      <div className="flex h-[110px] items-end justify-between gap-2">
+        {data.map((d) => {
+          const h = d.kcal > 0 ? Math.max(8, (d.kcal / max) * H) : 4;
+          const isYellow = d.isToday;
+          return (
+            <div key={d.label} className="relative flex w-full flex-col items-center">
+              {isYellow && d.kcal > 0 && (
+                <div
+                  className="num-tight absolute z-10 rounded-md px-2 py-1 text-[11px] font-semibold text-primary-foreground"
+                  style={{
+                    background: "var(--ink)",
+                    bottom: h + 6,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {d.kcal} kcal
+                </div>
+              )}
+              <motion.div
+                initial={{ height: 0 }}
+                animate={{ height: h }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="w-2.5 rounded-full"
+                style={{
+                  background: isYellow ? "var(--accent-yellow)" : "var(--ink)",
+                  opacity: d.kcal === 0 && !isYellow ? 0.25 : 1,
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-2 flex justify-between text-[11px] font-semibold text-muted-foreground">
+        {data.map((d) => (
+          <span key={d.label} className="w-full text-center">
+            {d.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MacroRow({
+  label,
+  cur,
+  goal,
+  color,
+}: {
+  label: string;
+  cur: number;
+  goal: number;
+  color: string;
+}) {
+  const pct = Math.max(0, Math.min(1, goal > 0 ? cur / goal : 0));
+  return (
+    <div>
+      <div className="flex items-baseline justify-between">
+        <span className="text-[13px] font-semibold">{label}</span>
+        <span className="num-tight text-[13px] font-semibold">
+          <span>{cur}</span>
+          <span className="text-muted-foreground"> / {goal} g</span>
+        </span>
+      </div>
+      <div
+        className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full"
+        style={{ background: "var(--hairline)" }}
+      >
+        <div
+          className="h-full rounded-full"
+          style={{ width: `${pct * 100}%`, background: color }}
+        />
+      </div>
     </div>
   );
 }
