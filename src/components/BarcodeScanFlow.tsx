@@ -352,29 +352,31 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
             <motion.div
               animate={{
                 boxShadow: flashHit
-                  ? "0 0 0 9999px rgba(0,0,0,0.55), 0 0 0 3px rgb(34,197,94)"
-                  : "0 0 0 9999px rgba(0,0,0,0.45)",
+                  ? "0 0 0 9999px rgba(0,0,0,0.6), 0 0 0 3px #4ade80"
+                  : "0 0 0 9999px rgba(0,0,0,0.55)",
               }}
               transition={{ duration: 0.15 }}
               className="relative h-[55%] w-[80%] rounded-xl"
             >
-              <div
-                className={`absolute -top-px left-0 h-6 w-6 rounded-tl-xl border-l-2 border-t-2 ${flashHit ? "border-emerald-400" : "border-white"}`}
-              />
-              <div
-                className={`absolute -top-px right-0 h-6 w-6 rounded-tr-xl border-r-2 border-t-2 ${flashHit ? "border-emerald-400" : "border-white"}`}
-              />
-              <div
-                className={`absolute -bottom-px left-0 h-6 w-6 rounded-bl-xl border-b-2 border-l-2 ${flashHit ? "border-emerald-400" : "border-white"}`}
-              />
-              <div
-                className={`absolute -bottom-px right-0 h-6 w-6 rounded-br-xl border-b-2 border-r-2 ${flashHit ? "border-emerald-400" : "border-white"}`}
-              />
+              {(["-top-px left-0 border-l-2 border-t-2 rounded-tl-xl",
+                 "-top-px right-0 border-r-2 border-t-2 rounded-tr-xl",
+                 "-bottom-px left-0 border-b-2 border-l-2 rounded-bl-xl",
+                 "-bottom-px right-0 border-b-2 border-r-2 rounded-br-xl"] as const).map((c) => (
+                <div
+                  key={c}
+                  className={`absolute h-6 w-6 ${c}`}
+                  style={{ borderColor: flashHit ? "#4ade80" : "var(--accent-yellow)" }}
+                />
+              ))}
               <motion.div
                 initial={{ top: "10%" }}
                 animate={{ top: ["10%", "90%", "10%"] }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute left-2 right-2 h-0.5 rounded-full bg-primary shadow-[0_0_12px_rgba(255,255,255,0.7)]"
+                className="absolute left-2 right-2 h-0.5 rounded-full"
+                style={{
+                  background: "var(--accent-yellow)",
+                  boxShadow: "0 0 12px color-mix(in oklab, var(--accent-yellow) 70%, transparent)",
+                }}
               />
             </motion.div>
           </div>
@@ -384,23 +386,30 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
               type="button"
               onClick={toggleTorch}
               aria-label="Latarka"
-              className={`absolute right-2 top-2 grid h-9 w-9 place-items-center rounded-full backdrop-blur ${
-                torchOn ? "bg-yellow-400 text-black" : "bg-black/50 text-white"
-              }`}
+              className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full backdrop-blur"
+              style={{
+                background: torchOn ? "var(--accent-yellow)" : "rgba(0,0,0,0.45)",
+                color: torchOn ? "#1A1A18" : "#FFFFFF",
+              }}
             >
-              <Flashlight size={16} />
+              <Flashlight size={16} strokeWidth={1.8} />
             </button>
           )}
 
           {scannerError && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/80 px-4 text-center text-xs text-white">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/85 px-4 text-center text-xs text-white">
               <ScanLine size={20} />
               <div>{scannerError}</div>
             </div>
           )}
         </div>
 
-        <p className="text-center text-xs text-muted-foreground">{status}</p>
+        <p
+          className="text-center text-[12px]"
+          style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
+        >
+          {status}
+        </p>
 
         <input
           ref={fileRef}
