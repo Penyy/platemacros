@@ -12,7 +12,7 @@ import {
 import { type Meal, MEAL_LABEL, type Product, usePlate, ymd } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 import { CompoundMealFlow } from "./CompoundMealFlow";
-import { lazy, Suspense } from "react";
+
 const BarcodeScanFlow = lazy(() =>
   import("./BarcodeScanFlow").then((m) => ({ default: m.BarcodeScanFlow })),
 );
