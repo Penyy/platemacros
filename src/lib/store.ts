@@ -41,6 +41,23 @@ export interface DayMacro {
 // key: "0"=Mon ... "6"=Sun
 export type WeeklyMacroTargets = Record<string, DayMacro>;
 
+export type AssistantDefaultMeal = "auto" | Meal;
+export type AssistantResponseLength = "short" | "detailed";
+
+export interface AssistantSettings {
+  autoAddPhoto: boolean;
+  allowAddEntries: boolean;
+  defaultMeal: AssistantDefaultMeal;
+  responseLength: AssistantResponseLength;
+}
+
+export const defaultAssistantSettings: AssistantSettings = {
+  autoAddPhoto: true,
+  allowAddEntries: true,
+  defaultMeal: "auto",
+  responseLength: "short",
+};
+
 export interface Profile {
   theme: Theme;
   goal_kcal: number;
@@ -51,6 +68,7 @@ export interface Profile {
   include_burned?: boolean;
   weekly_targets_enabled?: boolean;
   weekly_macro_targets?: WeeklyMacroTargets;
+  assistant?: AssistantSettings;
 }
 
 export interface Product {
