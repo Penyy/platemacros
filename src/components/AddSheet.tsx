@@ -63,7 +63,7 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
             transition={{ type: "spring", stiffness: 320, damping: 32 }}
             className="fixed inset-x-0 bottom-0 z-50 mx-auto flex w-full max-w-[430px] flex-col"
           >
-            <div className="glass mx-2 mb-2 rounded-[28px] p-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
+            <div className="mx-2 mb-[max(env(safe-area-inset-bottom),1rem)] rounded-[28px] bg-card p-5 pb-[max(env(safe-area-inset-bottom),1.25rem)]" style={{ boxShadow: "var(--shadow-card)" }}>
               <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-foreground/20" />
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-xl font-bold tracking-tight">
