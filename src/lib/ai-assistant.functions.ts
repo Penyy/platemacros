@@ -73,11 +73,14 @@ const SettingsSchema = z.object({
 export type AssistantCallSettings = z.infer<typeof SettingsSchema>;
 
 const AskInputSchema = z.object({
-  message: z.string().max(1000),
+  message: z.string().max(2000),
   history: HistorySchema.optional().default([]),
   dayContext: DayContextSchema,
+  // legacy single image (still supported — wrapped into images[])
   imageBase64: z.string().min(100).max(8_000_000).optional(),
   mimeType: z.string().optional(),
+  // new: up to 5 images at once
+  images: z.array(z.string().min(100).max(8_000_000)).max(5).optional(),
   settings: SettingsSchema.optional(),
 });
 
@@ -105,11 +108,31 @@ export type ScannedLabel = {
   confidence: number;
 };
 
+export interface RecognizedItem {
+  name: string;
+  grams: number;
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
 export type AssistantResult =
   | { kind: "text"; text: string }
   | { kind: "actions"; actions: FoodAction[]; text: string }
   | { kind: "label"; label: ScannedLabel }
-  | { kind: "meal"; name: string; total: { kcal: number; protein: number; carbs: number; fat: number }; confidence: number };
+  | { kind: "meal"; name: string; total: { kcal: number; protein: number; carbs: number; fat: number }; confidence: number }
+  | {
+      kind: "items";
+      dishName: string;
+      meal: Meal;
+      items: RecognizedItem[];
+      notes?: string;
+      previews: string[];
+    };
+
+type Meal = "breakfast" | "second_breakfast" | "lunch" | "dinner" | "snack";
+
 
 // ============================================================
 // Prompts
