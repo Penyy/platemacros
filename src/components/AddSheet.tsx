@@ -518,7 +518,7 @@ function SubmitButton({
       whileTap={{ scale: 0.97 }}
       type="submit"
       disabled={disabled}
-      className="mt-1 w-full rounded-2xl bg-primary py-3 text-base font-semibold text-primary-foreground disabled:opacity-40"
+      className="mt-2 w-full rounded-full bg-primary py-4 text-[15px] font-bold tracking-tight text-primary-foreground disabled:opacity-40"
     >
       {children}
     </motion.button>
