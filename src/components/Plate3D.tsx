@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState, Suspense } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import {
   useGLTF,
-  OrbitControls,
   Environment,
   ContactShadows,
   PerspectiveCamera,
