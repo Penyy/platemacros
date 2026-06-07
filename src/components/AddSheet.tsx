@@ -171,7 +171,7 @@ function guessMeal(): Meal {
   return "snack";
 }
 
-type PickMode = "quick" | "manual" | "search" | "compound" | "estimate" | "barcode" | "assistant";
+type PickMode = "quick" | "manual" | "search" | "compound" | "barcode" | "assistant";
 
 function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
   const items: { id: PickMode; label: string; icon: typeof ScanLine; soon: boolean }[] = [
