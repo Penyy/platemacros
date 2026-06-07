@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Camera, Loader2, MessageCircle, Send, Sparkles, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -304,24 +304,32 @@ export function AssistantFlow({ defaultMeal }: Props) {
         }}
         className="flex items-center gap-2"
       >
-        <div className="flex flex-1 items-center gap-2 rounded-2xl border border-border/60 bg-card px-3 py-2.5">
-          <Sparkles size={16} className="text-primary shrink-0" />
-          <input
+        <div className="flex flex-1 items-end gap-2 rounded-2xl border border-border/60 bg-card px-3 py-2.5">
+          <Sparkles size={16} className="mt-1 text-primary shrink-0" />
+          <textarea
+            ref={textareaRef}
             autoFocus
+            rows={1}
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                void sendText(input);
+              }
+            }}
             placeholder={
               pendingImage
                 ? "Dodaj opis do zdjęcia (opcjonalnie)…"
                 : "Opisz co zjadłeś albo zapytaj o makro…"
             }
             disabled={!!busy}
-            className="flex-1 bg-transparent text-[15px] outline-none placeholder:text-muted-foreground/70"
+            className="flex-1 resize-none bg-transparent text-[15px] leading-snug outline-none placeholder:text-muted-foreground/70 max-h-32 overflow-y-auto"
           />
           <button
             type="submit"
             disabled={(!input.trim() && !pendingImage) || !!busy}
-            className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"
+            className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"
             aria-label="Wyślij"
           >
             <Send size={14} />
