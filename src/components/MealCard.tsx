@@ -377,17 +377,4 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
   );
 }
 
-function MacroDot({ color, label, value }: { color: string; label: string; value: number }) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span
-        className="inline-block h-2 w-2 rounded-full"
-        style={{ background: color }}
-        aria-hidden
-      />
-      <span className="text-foreground/80">{label}</span>
-      <span className="num-tight">{value} g</span>
-    </span>
-  );
-}
 
