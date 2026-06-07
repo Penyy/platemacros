@@ -97,7 +97,8 @@ export function EditEntrySheet({ entry, onClose }: Props) {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto flex w-full max-w-[430px] flex-col"
+            className="fixed inset-x-0 z-50 mx-auto flex w-full max-w-[430px] flex-col"
+            style={{ bottom: "var(--kb-inset, 0px)" }}
           >
             <div className="glass mx-2 mb-2 max-h-[90vh] overflow-y-auto rounded-[28px] p-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
               <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-foreground/20" />
