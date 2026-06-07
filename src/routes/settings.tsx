@@ -86,6 +86,7 @@ function SettingsPage() {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [legacy, setLegacy] = useState<ReturnType<typeof readLegacyLocalStorage>>(null);
   const [migrating, setMigrating] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   useEffect(() => {
     setLegacy(readLegacyLocalStorage());
