@@ -134,8 +134,8 @@ const FOOD_ENTRY_SCHEMA = {
   properties: {
     meal: {
       type: "string",
-      enum: ["breakfast", "lunch", "dinner", "snack"],
-      description: "Posiłek: breakfast=śniadanie, lunch=obiad, dinner=kolacja, snack=przekąska",
+      enum: ["breakfast", "second_breakfast", "lunch", "dinner", "snack"],
+      description: "Posiłek: breakfast=śniadanie (5-10), second_breakfast=lunch (10-12), lunch=obiad (12-16), dinner=kolacja (16-21), snack=przekąska (reszta)",
     },
     name: { type: "string", description: "Krótka nazwa produktu po polsku" },
     grams: { type: "number", description: "Waga porcji w gramach (opcjonalnie)" },
