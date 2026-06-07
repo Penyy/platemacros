@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { sumEntries, usePlate, ymd } from "@/lib/store";
 
@@ -50,7 +51,6 @@ function StatsPage() {
         fat: Math.round(days.reduce((s, d) => s + d.totals.fat, 0) / loggedDays),
       };
 
-  // Streak (consecutive days from today with kcal > 0)
   let streak = 0;
   for (let i = days.length - 1; i >= 0; i--) {
     if (days[i].totals.kcal > 0) streak++;
@@ -58,27 +58,13 @@ function StatsPage() {
   }
 
   return (
-    <div>
+    <div className="pb-4">
       <ScreenHeader title="Statystyki" subtitle={`Ostatnie ${range} dni`} />
 
-      <div className="px-4 space-y-4">
-        <div className="flex gap-1 rounded-full bg-foreground/5 p-1">
-          {([7, 30] as Range[]).map((r) => (
-            <button
-              key={r}
-              onClick={() => setRange(r)}
-              className={`flex-1 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                range === r
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground"
-              }`}
-            >
-              {r} dni
-            </button>
-          ))}
-        </div>
+      <div className="px-[18px] space-y-3">
+        <Pills value={range} onChange={setRange} />
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2.5">
           <StatCard label="Dni z wpisem" value={`${loggedDays}/${range}`} />
           <StatCard label="Seria" value={`${streak} ${streak === 1 ? "dzień" : "dni"}`} />
         </div>
@@ -86,15 +72,15 @@ function StatsPage() {
         <ChartCard
           title="Kalorie"
           unit="kcal"
-          color="hsl(var(--foreground))"
+          color="var(--accent-yellow)"
           goal={profile.goal_kcal}
-          values={days.map((d) => ({ label: d.label, v: d.totals.kcal }))}
+          values={days.map((d) => ({ label: d.label, v: Math.round(d.totals.kcal) }))}
           avg={avg.kcal}
         />
         <ChartCard
           title="Białko"
           unit="g"
-          color="var(--protein)"
+          color="var(--macro-protein)"
           goal={profile.goal_protein}
           values={days.map((d) => ({ label: d.label, v: d.totals.protein }))}
           avg={avg.protein}
@@ -102,7 +88,7 @@ function StatsPage() {
         <ChartCard
           title="Węglowodany"
           unit="g"
-          color="var(--carbs)"
+          color="var(--macro-carbs)"
           goal={profile.goal_carbs}
           values={days.map((d) => ({ label: d.label, v: d.totals.carbs }))}
           avg={avg.carbs}
@@ -110,7 +96,7 @@ function StatsPage() {
         <ChartCard
           title="Tłuszcz"
           unit="g"
-          color="var(--fat)"
+          color="var(--macro-fat)"
           goal={profile.goal_fat}
           values={days.map((d) => ({ label: d.label, v: d.totals.fat }))}
           avg={avg.fat}
@@ -120,13 +106,45 @@ function StatsPage() {
   );
 }
 
+function Pills({ value, onChange }: { value: Range; onChange: (r: Range) => void }) {
+  return (
+    <div
+      className="flex gap-1 rounded-full p-1"
+      style={{ background: "var(--hairline)" }}
+    >
+      {([7, 30] as Range[]).map((r) => {
+        const active = value === r;
+        return (
+          <button
+            key={r}
+            onClick={() => onChange(r)}
+            className="flex-1 rounded-full px-3 py-1.5 text-xs transition active:scale-[0.98]"
+            style={{
+              background: active ? "#1B1B19" : "transparent",
+              color: active ? "#FBF4E2" : "var(--muted-foreground)",
+              fontWeight: active ? 700 : 600,
+            }}
+          >
+            {r} dni
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-card p-3">
-      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+    <div
+      className="rounded-[24px] bg-card p-4"
+      style={{ boxShadow: "var(--shadow-card)" }}
+    >
+      <div className="text-[11px] font-semibold" style={{ color: "var(--muted-foreground)" }}>
         {label}
       </div>
-      <div className="num-tight mt-0.5 text-xl font-bold">{value}</div>
+      <div className="num-tight mt-1 text-[22px]" style={{ fontWeight: 800, color: "var(--ink)" }}>
+        {value}
+      </div>
     </div>
   );
 }
@@ -150,42 +168,53 @@ function ChartCard({
   const showLabels = values.length <= 7;
 
   return (
-    <div className="rounded-3xl bg-card p-4">
+    <div
+      className="rounded-[24px] bg-card p-4"
+      style={{ boxShadow: "var(--shadow-card)" }}
+    >
       <div className="flex items-end justify-between">
         <div>
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+          <div
+            className="text-[11px] font-semibold"
+            style={{ color: "var(--muted-foreground)" }}
+          >
             {title}
           </div>
-          <div className="num-tight mt-0.5 text-lg font-semibold">
+          <div
+            className="num-tight mt-0.5 text-[18px]"
+            style={{ fontWeight: 800, color: "var(--ink)" }}
+          >
             śr. {Math.round(avg)} {unit}
           </div>
         </div>
-        <div className="num-tight text-right text-[11px] text-muted-foreground">
+        <div
+          className="num-tight text-right text-[11px]"
+          style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+        >
           cel {goal} {unit}
         </div>
       </div>
 
       <div className="relative mt-3 h-24">
-        {/* Goal line */}
         <div
-          className="absolute left-0 right-0 border-t border-dashed border-foreground/30"
-          style={{ bottom: `${(goal / max) * 100}%` }}
+          className="absolute left-0 right-0 border-t border-dashed"
+          style={{
+            bottom: `${(goal / max) * 100}%`,
+            borderColor: "color-mix(in oklab, var(--ink) 25%, transparent)",
+          }}
         />
         <div className="flex h-full items-end gap-[3px]">
           {values.map((d, i) => {
             const h = Math.min(100, (d.v / max) * 100);
             const hit = d.v > 0 && d.v >= goal * 0.9 && d.v <= goal * 1.1;
             return (
-              <div
-                key={i}
-                className="group relative flex-1"
-                style={{ height: "100%" }}
-                title={`${d.label}: ${Math.round(d.v)} ${unit}`}
-              >
-                <div
-                  className="absolute bottom-0 left-0 right-0 rounded-t-md transition-opacity"
+              <div key={i} className="relative flex-1" style={{ height: "100%" }}>
+                <motion.div
+                  className="absolute bottom-0 left-0 right-0 rounded-t-md"
+                  initial={{ height: 0 }}
+                  animate={{ height: `${h}%` }}
+                  transition={{ duration: 0.6, ease: "easeOut", delay: i * 0.02 }}
                   style={{
-                    height: `${h}%`,
                     background: color,
                     opacity: d.v === 0 ? 0.15 : hit ? 1 : 0.7,
                   }}
@@ -201,7 +230,8 @@ function ChartCard({
           {values.map((d, i) => (
             <div
               key={i}
-              className="flex-1 text-center text-[10px] text-muted-foreground"
+              className="flex-1 text-center text-[10px]"
+              style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
             >
               {d.label}
             </div>

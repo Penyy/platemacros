@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Pencil, Plus, Trash2, X, Check } from "lucide-react";
+import { Pencil, Plus, Trash2, X, Check, Search } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { usePlate, type Product } from "@/lib/store";
 
@@ -80,16 +80,24 @@ function ProductsPage() {
   }
 
   return (
-    <div>
-      <ScreenHeader title="Moje produkty" />
+    <div className="pb-4">
+      <ScreenHeader title="Moje produkty" subtitle="Wartości zapisywane na 100 g" />
 
-      <div className="px-4 space-y-3">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Szukaj…"
-          className="w-full rounded-2xl border border-border/60 bg-card px-4 py-2.5 text-base outline-none focus:border-primary"
-        />
+      <div className="px-[18px] space-y-3">
+        {/* Search */}
+        <div
+          className="flex items-center gap-2 rounded-full bg-card px-4 py-2.5"
+          style={{ boxShadow: "var(--shadow-card)" }}
+        >
+          <Search size={16} className="shrink-0" style={{ color: "var(--muted-foreground)" }} />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Szukaj produktu"
+            className="flex-1 bg-transparent text-[15px] outline-none placeholder:text-[color:var(--muted-foreground)]"
+            style={{ color: "var(--ink)", fontWeight: 500 }}
+          />
+        </div>
 
         {!adding ? (
           <button
@@ -97,9 +105,15 @@ function ProductsPage() {
               setAdding(true);
               setDraft(EMPTY);
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground active:opacity-90"
+            className="flex w-full items-center justify-center gap-2 rounded-full px-4 py-3.5 text-[14px] active:scale-[0.99]"
+            style={{
+              background: "#1B1B19",
+              color: "#FBF4E2",
+              fontWeight: 700,
+              boxShadow: "var(--shadow-card)",
+            }}
           >
-            <Plus size={16} /> Dodaj produkt
+            <Plus size={16} strokeWidth={2.2} /> Dodaj produkt
           </button>
         ) : (
           <ProductForm
@@ -112,13 +126,13 @@ function ProductsPage() {
         )}
 
         {filtered.length === 0 ? (
-          <p className="px-1 pt-4 text-center text-sm text-muted-foreground">
+          <p className="px-1 pt-6 text-center text-[13px]" style={{ color: "var(--muted-foreground)" }}>
             {products.length === 0
               ? "Nie masz jeszcze żadnych produktów."
               : "Brak wyników."}
           </p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-2.5">
             {filtered.map((p) =>
               editingId === p.id ? (
                 <li key={p.id}>
@@ -133,13 +147,20 @@ function ProductsPage() {
               ) : (
                 <li
                   key={p.id}
-                  className="flex items-center gap-2 rounded-2xl bg-card p-3"
+                  className="flex items-center gap-2 rounded-[20px] bg-card p-3.5"
+                  style={{ boxShadow: "var(--shadow-card)" }}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="truncate text-sm font-semibold">
+                    <div
+                      className="truncate text-[15px]"
+                      style={{ fontWeight: 700, color: "var(--ink)" }}
+                    >
                       {p.name}
                     </div>
-                    <div className="num-tight mt-0.5 text-[11px] text-muted-foreground">
+                    <div
+                      className="num-tight mt-0.5 text-[11.5px]"
+                      style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
+                    >
                       {Math.round(p.kcal)} kcal · B {round1(p.protein)} · W{" "}
                       {round1(p.carbs)} · T {round1(p.fat)} / 100 g
                     </div>
@@ -149,19 +170,21 @@ function ProductsPage() {
                       setEditingId(p.id);
                       setEditDraft(toDraft(p));
                     }}
-                    className="grid h-9 w-9 place-items-center rounded-full bg-foreground/5 active:bg-foreground/10"
+                    className="grid h-9 w-9 place-items-center rounded-full"
+                    style={{ background: "var(--hairline)", color: "var(--ink)" }}
                     aria-label="Edytuj"
                   >
-                    <Pencil size={16} />
+                    <Pencil size={15} strokeWidth={1.9} />
                   </button>
                   <button
                     onClick={() => {
                       if (confirm(`Usunąć „${p.name}”?`)) removeProduct(p.id);
                     }}
-                    className="grid h-9 w-9 place-items-center rounded-full bg-foreground/5 text-destructive active:bg-foreground/10"
+                    className="grid h-9 w-9 place-items-center rounded-full"
+                    style={{ background: "var(--hairline)", color: "var(--macro-protein)" }}
                     aria-label="Usuń"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={15} strokeWidth={1.9} />
                   </button>
                 </li>
               )
@@ -191,17 +214,16 @@ function ProductForm({
   submitLabel: string;
 }) {
   const valid = draft.name.trim().length > 0;
-  const inputCls =
-    "w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-base outline-none focus:border-primary num-tight";
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         if (valid) onSubmit();
       }}
-      className="space-y-2 rounded-2xl bg-card p-3"
+      className="space-y-3 rounded-[24px] bg-card p-4"
+      style={{ boxShadow: "var(--shadow-card)" }}
     >
-      <div className="mb-1 text-[11px] uppercase tracking-wider text-muted-foreground">
+      <div className="text-[11px] font-semibold" style={{ color: "var(--muted-foreground)" }}>
         Wartości na 100 g
       </div>
       <input
@@ -210,42 +232,33 @@ function ProductForm({
         maxLength={80}
         onChange={(e) => setDraft({ ...draft, name: e.target.value })}
         placeholder="Nazwa produktu"
-        className={inputCls}
+        className="w-full rounded-2xl px-4 py-3 text-[15px] outline-none placeholder:text-[color:var(--muted-foreground)]"
+        style={{
+          background: "var(--hairline)",
+          color: "var(--ink)",
+          fontWeight: 600,
+        }}
       />
       <div className="grid grid-cols-4 gap-2">
-        <NumIn
-          label="kcal"
-          value={draft.kcal}
-          onChange={(v) => setDraft({ ...draft, kcal: v })}
-        />
-        <NumIn
-          label="B (g)"
-          value={draft.protein}
-          onChange={(v) => setDraft({ ...draft, protein: v })}
-        />
-        <NumIn
-          label="W (g)"
-          value={draft.carbs}
-          onChange={(v) => setDraft({ ...draft, carbs: v })}
-        />
-        <NumIn
-          label="T (g)"
-          value={draft.fat}
-          onChange={(v) => setDraft({ ...draft, fat: v })}
-        />
+        <NumIn label="kcal" unit="" value={draft.kcal} onChange={(v) => setDraft({ ...draft, kcal: v })} />
+        <NumIn label="B" unit="g" value={draft.protein} onChange={(v) => setDraft({ ...draft, protein: v })} dot="var(--macro-protein)" />
+        <NumIn label="W" unit="g" value={draft.carbs} onChange={(v) => setDraft({ ...draft, carbs: v })} dot="var(--macro-carbs)" />
+        <NumIn label="T" unit="g" value={draft.fat} onChange={(v) => setDraft({ ...draft, fat: v })} dot="var(--macro-fat)" />
       </div>
       <div className="flex gap-2 pt-1">
         <button
           type="button"
           onClick={onCancel}
-          className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-foreground/5 py-2.5 text-sm font-medium"
+          className="flex flex-1 items-center justify-center gap-1 rounded-full py-3 text-[13px]"
+          style={{ background: "var(--hairline)", color: "var(--ink)", fontWeight: 600 }}
         >
           <X size={14} /> Anuluj
         </button>
         <button
           type="submit"
           disabled={!valid}
-          className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
+          className="flex flex-1 items-center justify-center gap-1 rounded-full py-3 text-[13px] disabled:opacity-40"
+          style={{ background: "#1B1B19", color: "#FBF4E2", fontWeight: 700 }}
         >
           <Check size={14} /> {submitLabel}
         </button>
@@ -256,24 +269,36 @@ function ProductForm({
 
 function NumIn({
   label,
+  unit,
   value,
   onChange,
+  dot,
 }: {
   label: string;
+  unit?: string;
   value: string;
   onChange: (v: string) => void;
+  dot?: string;
 }) {
   return (
-    <label className="block">
-      <span className="mb-0.5 block text-[10px] uppercase tracking-wider text-muted-foreground">
+    <label className="block rounded-2xl p-2.5" style={{ background: "var(--hairline)" }}>
+      <div className="mb-0.5 flex items-center gap-1 text-[10px]" style={{ color: "var(--muted-foreground)", fontWeight: 600 }}>
+        {dot && <span className="h-1.5 w-1.5 rounded-full" style={{ background: dot }} />}
         {label}
-      </span>
-      <input
-        inputMode="decimal"
-        value={value}
-        onChange={(e) => onChange(e.target.value.replace(",", "."))}
-        className="num-tight w-full rounded-xl border border-border/60 bg-background px-2 py-2 text-sm outline-none focus:border-primary"
-      />
+      </div>
+      <div className="flex items-baseline gap-0.5">
+        <input
+          inputMode="decimal"
+          value={value}
+          placeholder="0"
+          onChange={(e) => onChange(e.target.value.replace(",", "."))}
+          className="num-tight w-full bg-transparent text-[15px] outline-none placeholder:text-[color:var(--light-gray)]"
+          style={{ color: "var(--ink)", fontWeight: 700 }}
+        />
+        {unit && (
+          <span className="text-[10px]" style={{ color: "var(--muted-foreground)" }}>{unit}</span>
+        )}
+      </div>
     </label>
   );
 }

@@ -397,10 +397,16 @@ function Section({
 }) {
   return (
     <div className="mt-4">
-      <h2 className="px-6 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <h2
+        className="px-[26px] pb-2 text-[11px] font-semibold"
+        style={{ color: "var(--muted-foreground)" }}
+      >
         {title}
       </h2>
-      <div className="mx-3 divide-y divide-border/60 overflow-hidden rounded-2xl bg-card">
+      <div
+        className="mx-[18px] divide-y overflow-hidden rounded-[24px] bg-card"
+        style={{ boxShadow: "var(--shadow-card)", borderColor: "var(--hairline)" }}
+      >
         {children}
       </div>
     </div>
@@ -415,8 +421,8 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 px-4 py-3">
-      <span className="text-[15px]">{label}</span>
+    <div className="flex items-center justify-between gap-3 px-4 py-3.5">
+      <span className="text-[15px]" style={{ color: "var(--ink)", fontWeight: 500 }}>{label}</span>
       {children}
     </div>
   );
@@ -443,9 +449,10 @@ function NumberRow({
             const n = Number(e.target.value.replace(/[^\d]/g, ""));
             if (!Number.isNaN(n)) onChange(n);
           }}
-          className="num-tight w-20 rounded-lg bg-foreground/5 px-2 py-1 text-right text-[15px] font-semibold outline-none focus:ring-1 focus:ring-primary"
+          className="num-tight w-20 rounded-xl px-2.5 py-1.5 text-right text-[15px] outline-none"
+          style={{ background: "var(--hairline)", color: "var(--ink)", fontWeight: 700 }}
         />
-        <span className="w-7 text-left text-xs text-muted-foreground">{unit}</span>
+        <span className="w-7 text-left text-xs" style={{ color: "var(--muted-foreground)" }}>{unit}</span>
       </div>
     </Row>
   );
@@ -464,20 +471,24 @@ function ThemeSelect({
     { v: "system", l: "System" },
   ];
   return (
-    <div className="flex gap-0.5 rounded-full bg-foreground/5 p-0.5">
-      {opts.map((o) => (
-        <button
-          key={o.v}
-          onClick={() => onChange(o.v)}
-          className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-            value === o.v
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground"
-          }`}
-        >
-          {o.l}
-        </button>
-      ))}
+    <div className="flex gap-0.5 rounded-full p-0.5" style={{ background: "var(--hairline)" }}>
+      {opts.map((o) => {
+        const active = value === o.v;
+        return (
+          <button
+            key={o.v}
+            onClick={() => onChange(o.v)}
+            className="rounded-full px-3 py-1 text-xs transition"
+            style={{
+              background: active ? "#1B1B19" : "transparent",
+              color: active ? "#FBF4E2" : "var(--muted-foreground)",
+              fontWeight: active ? 700 : 600,
+            }}
+          >
+            {o.l}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -573,18 +584,24 @@ function ResponseLengthSelect({
     { v: "detailed", l: "Szczegółowe" },
   ];
   return (
-    <div className="flex gap-0.5 rounded-full bg-foreground/5 p-0.5">
-      {opts.map((o) => (
-        <button
-          key={o.v}
-          onClick={() => onChange(o.v)}
-          className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-            value === o.v ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-          }`}
-        >
-          {o.l}
-        </button>
-      ))}
+    <div className="flex gap-0.5 rounded-full p-0.5" style={{ background: "var(--hairline)" }}>
+      {opts.map((o) => {
+        const active = value === o.v;
+        return (
+          <button
+            key={o.v}
+            onClick={() => onChange(o.v)}
+            className="rounded-full px-3 py-1 text-xs transition"
+            style={{
+              background: active ? "#1B1B19" : "transparent",
+              color: active ? "#FBF4E2" : "var(--muted-foreground)",
+              fontWeight: active ? 700 : 600,
+            }}
+          >
+            {o.l}
+          </button>
+        );
+      })}
     </div>
   );
 }
