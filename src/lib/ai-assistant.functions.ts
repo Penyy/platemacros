@@ -256,9 +256,13 @@ async function handlePhotoPath(
   imageBase64: string,
   mimeType: string,
   apiKey: string,
+  userNote?: string,
 ): Promise<AssistantResult> {
   const base64 = imageBase64.startsWith("data:") ? imageBase64.split(",")[1] ?? "" : imageBase64;
-  const prompt = `Rozpoznaj czy zdjęcie to ETYKIETA wartości odżywczych, czy zdjęcie GOTOWEGO POSIŁKU. Jeśli etykieta — odczytaj wartości per 100g/100ml do pola per100 (wartości niewidoczne → null). Jeśli posiłek — oszacuj makro całej widocznej porcji do pola total. Nie zgaduj wartości z etykiety, ale posiłek możesz szacować. name = krótka polska nazwa produktu lub dania.`;
+  const notePart = userNote && userNote.trim()
+    ? `\n\nDodatkowy opis od użytkownika (użyj go do oszacowania porcji/typu posiłku): "${userNote.trim()}"`
+    : "";
+  const prompt = `Rozpoznaj czy zdjęcie to ETYKIETA wartości odżywczych, czy zdjęcie GOTOWEGO POSIŁKU. Jeśli etykieta — odczytaj wartości per 100g/100ml do pola per100 (wartości niewidoczne → null). Jeśli posiłek — oszacuj makro całej widocznej porcji do pola total. Nie zgaduj wartości z etykiety, ale posiłek możesz szacować. name = krótka polska nazwa produktu lub dania.${notePart}`;
 
   const macroSchema = {
     type: "object",
