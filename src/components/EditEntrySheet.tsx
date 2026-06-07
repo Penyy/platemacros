@@ -1,7 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { toast } from "sonner";
 import { type LogEntry, type Meal, MEAL_LABEL, usePlate } from "@/lib/store";
+
+
 
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
