@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Bell, Settings as Cog, User, Flame, ChevronLeft, ChevronRight } from "lucide-react";
+import { Bell, User, Flame, ChevronLeft, ChevronRight } from "lucide-react";
 import { MealCard } from "@/components/MealCard";
+import { NotificationsSheet, startNotificationScheduler } from "@/components/NotificationsSheet";
+import { BurnedEditSheet } from "@/components/BurnedEditSheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -12,6 +14,7 @@ import {
   usePlate,
   ymd,
 } from "@/lib/store";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
