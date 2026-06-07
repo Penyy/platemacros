@@ -140,6 +140,7 @@ export function AssistantFlow({ defaultMeal }: Props) {
           dayContext,
           imageBase64: image.base64,
           mimeType: "image/jpeg",
+          settings: assistantSettings,
         },
       })) as AssistantResult;
       if (result.kind === "label") {
@@ -148,16 +149,19 @@ export function AssistantFlow({ defaultMeal }: Props) {
           { id: nid(), kind: "label", label: result.label, preview: image.dataUrl },
         ]);
       } else if (result.kind === "meal") {
-        const m = defaultMeal ?? guessMeal();
-        addEntry({
-          date: today,
-          meal: m,
-          name: result.name || "Posiłek ze zdjęcia",
-          kcal: Math.round(result.total.kcal * 10) / 10,
-          protein: Math.round(result.total.protein * 10) / 10,
-          carbs: Math.round(result.total.carbs * 10) / 10,
-          fat: Math.round(result.total.fat * 10) / 10,
-        });
+        const autoAdd = assistantSettings.autoAddPhoto && !!trimmedNote;
+        if (autoAdd) {
+          const m = effectiveDefaultMeal ?? guessMeal();
+          addEntry({
+            date: today,
+            meal: m,
+            name: result.name || "Posiłek ze zdjęcia",
+            kcal: Math.round(result.total.kcal * 10) / 10,
+            protein: Math.round(result.total.protein * 10) / 10,
+            carbs: Math.round(result.total.carbs * 10) / 10,
+            fat: Math.round(result.total.fat * 10) / 10,
+          });
+        }
         setHistory((h) => [
           ...h,
           {
@@ -167,6 +171,8 @@ export function AssistantFlow({ defaultMeal }: Props) {
             total: result.total,
             confidence: result.confidence,
             preview: image.dataUrl,
+            pending: !autoAdd,
+            added: autoAdd,
           },
         ]);
       } else if (result.kind === "text") {
