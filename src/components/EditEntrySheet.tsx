@@ -148,7 +148,18 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                   <NumField label="Tłuszcz (g)" value={fat} setValue={setFat} />
                 </div>
 
+                <label className="mt-2 flex cursor-pointer items-center gap-3 rounded-2xl bg-foreground/5 px-3 py-2.5">
+                  <input
+                    type="checkbox"
+                    checked={saveToLibrary}
+                    onChange={(e) => setSaveToLibrary(e.target.checked)}
+                    className="h-4 w-4 accent-primary"
+                  />
+                  <span className="text-[13px] font-medium">Dodaj do moich produktów</span>
+                </label>
+
                 <div className="mt-2 flex gap-2 pt-2">
+
                   <button
                     onClick={onClose}
                     className="flex-1 rounded-full bg-foreground/10 px-4 py-3 text-sm font-semibold"
