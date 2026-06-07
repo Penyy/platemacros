@@ -302,16 +302,23 @@ export function AssistantFlow({ defaultMeal }: Props) {
       />
 
       {pendingImage && (
-        <div className="flex items-center gap-2 rounded-2xl bg-foreground/5 p-2">
-          <img src={pendingImage.dataUrl} alt="" className="h-12 w-12 rounded-lg object-cover" />
-          <div className="flex-1 text-xs text-muted-foreground">
-            Zdjęcie gotowe. Możesz dodać opis (np. „duża porcja, ok. 300 g") albo wyślij od razu.
+        <div
+          className="flex items-center gap-2 rounded-2xl bg-card p-2"
+          style={{ border: "1px solid var(--hairline)", boxShadow: "var(--shadow-card)" }}
+        >
+          <img src={pendingImage.dataUrl} alt="" className="h-12 w-12 rounded-xl object-cover" />
+          <div
+            className="flex-1 text-[12px]"
+            style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
+          >
+            Zdjęcie gotowe. Dodaj opis (opcjonalnie) i wyślij.
           </div>
           <button
             type="button"
             onClick={() => setPendingImage(null)}
             disabled={!!busy}
-            className="grid h-7 w-7 place-items-center rounded-full bg-foreground/10"
+            className="grid h-8 w-8 place-items-center rounded-full"
+            style={{ background: "var(--hairline)", color: "var(--ink)" }}
             aria-label="Usuń zdjęcie"
           >
             <X size={14} />
@@ -324,10 +331,12 @@ export function AssistantFlow({ defaultMeal }: Props) {
           e.preventDefault();
           void sendText(input);
         }}
-        className="flex items-center gap-2"
+        className="flex items-end gap-2"
       >
-        <div className="flex flex-1 items-end gap-2 rounded-2xl border border-border/60 bg-card px-3 py-2.5">
-          <Sparkles size={16} className="mt-1 text-primary shrink-0" />
+        <div
+          className="flex flex-1 items-end gap-2 rounded-[22px] bg-card px-4 py-3"
+          style={{ border: "1px solid var(--hairline)", boxShadow: "var(--shadow-card)" }}
+        >
           <textarea
             ref={textareaRef}
             autoFocus
@@ -342,51 +351,63 @@ export function AssistantFlow({ defaultMeal }: Props) {
             }}
             placeholder={
               pendingImage
-                ? "Dodaj opis do zdjęcia (opcjonalnie)…"
-                : "Opisz co zjadłeś albo zapytaj o makro…"
+                ? "Opisz zdjęcie (opcjonalnie)…"
+                : "Opisz co zjadłeś albo zapytaj…"
             }
             disabled={!!busy}
-            className="flex-1 resize-none bg-transparent text-[15px] leading-snug outline-none placeholder:text-muted-foreground/70 max-h-32 overflow-y-auto"
+            className="flex-1 resize-none bg-transparent text-[15px] leading-snug outline-none max-h-32 overflow-y-auto placeholder:text-[color:var(--muted-foreground)]"
+            style={{ color: "var(--ink)", fontWeight: 500 }}
           />
           <button
             type="submit"
             disabled={(!input.trim() && !pendingImage) || !!busy}
-            className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full disabled:opacity-40"
+            style={{ background: "var(--ink)", color: "var(--card)" }}
             aria-label="Wyślij"
           >
-            <Send size={14} />
+            <Send size={14} strokeWidth={2} />
           </button>
         </div>
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={!!busy}
-          className={`grid h-11 w-11 place-items-center rounded-2xl disabled:opacity-40 ${
-            pendingImage ? "bg-primary text-primary-foreground" : "bg-foreground/10"
-          }`}
+          className="grid h-12 w-12 shrink-0 place-items-center rounded-[18px] disabled:opacity-40"
+          style={{
+            background: pendingImage ? "var(--accent-yellow)" : "var(--card)",
+            color: "var(--ink)",
+            border: "1px solid var(--hairline)",
+            boxShadow: "var(--shadow-card)",
+          }}
           aria-label="Zrób zdjęcie"
         >
-          <Camera size={18} />
+          <Camera size={18} strokeWidth={1.9} />
         </button>
       </form>
 
       {history.length === 0 && !busy && (
-        <div className="rounded-2xl border border-border/60 bg-card/60 p-3 text-sm">
-          <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <MessageCircle size={12} /> Mogę pomóc na 3 sposoby
+        <div
+          className="rounded-2xl bg-card p-4 text-sm"
+          style={{ border: "1px solid var(--hairline)", boxShadow: "var(--shadow-card)" }}
+        >
+          <div
+            className="mb-2 flex items-center gap-1.5 text-[10px] uppercase tracking-wider"
+            style={{ color: "var(--muted-foreground)", fontWeight: 700 }}
+          >
+            <MessageCircle size={12} strokeWidth={1.9} /> Mogę pomóc na 3 sposoby
           </div>
-          <ul className="space-y-1 text-[13px] leading-snug text-foreground/85">
+          <ul className="space-y-1.5 text-[13px] leading-snug" style={{ color: "var(--ink)" }}>
             <li className="flex gap-2">
-              <Sparkles size={14} className="mt-0.5 shrink-0 text-primary" />
-              <span><b>Opisz co zjadłeś</b> — dodam z makro (np. „2 jajka i tost")</span>
+              <Sparkles size={14} strokeWidth={1.9} className="mt-0.5 shrink-0" style={{ color: "var(--accent-yellow)" }} />
+              <span><b>Opisz co zjadłeś</b> — dodam z makro</span>
             </li>
             <li className="flex gap-2">
-              <Camera size={14} className="mt-0.5 shrink-0 text-primary" />
-              <span><b>Zrób zdjęcie</b> posiłku lub etykiety — rozpoznam i dodam</span>
+              <Camera size={14} strokeWidth={1.9} className="mt-0.5 shrink-0" style={{ color: "var(--accent-yellow)" }} />
+              <span><b>Zrób zdjęcie</b> posiłku lub etykiety</span>
             </li>
             <li className="flex gap-2">
-              <MessageCircle size={14} className="mt-0.5 shrink-0 text-primary" />
-              <span><b>Zapytaj o makro</b> — ile Ci zostało, co dojeść na białko</span>
+              <MessageCircle size={14} strokeWidth={1.9} className="mt-0.5 shrink-0" style={{ color: "var(--accent-yellow)" }} />
+              <span><b>Zapytaj o makro</b> — ile zostało, co dojeść</span>
             </li>
           </ul>
         </div>
@@ -399,7 +420,12 @@ export function AssistantFlow({ defaultMeal }: Props) {
             type="button"
             disabled={!!busy}
             onClick={() => void sendText(c)}
-            className="rounded-full bg-foreground/5 px-3 py-1.5 text-xs font-medium text-foreground/80 transition active:scale-95 disabled:opacity-40"
+            className="rounded-full px-3.5 py-1.5 text-[12px] transition active:scale-95 disabled:opacity-40"
+            style={{
+              background: "var(--hairline)",
+              color: "var(--ink)",
+              fontWeight: 600,
+            }}
           >
             {c}
           </button>
@@ -407,7 +433,10 @@ export function AssistantFlow({ defaultMeal }: Props) {
       </div>
 
       {busy && (
-        <div className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
+        <div
+          className="flex items-center gap-2 px-1 text-[12px]"
+          style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
+        >
           <Loader2 size={12} className="animate-spin" />
           {busy === "image" ? "Analizuję zdjęcie…" : "Myślę…"}
         </div>
@@ -463,31 +492,50 @@ function HistoryRow({
 }) {
   if (item.kind === "user") {
     return (
-      <div className="ml-auto max-w-[80%] rounded-2xl bg-primary/15 px-3 py-1.5 text-sm">
+      <div
+        className="ml-auto max-w-[80%] rounded-2xl px-3.5 py-2 text-[14px]"
+        style={{ background: "var(--ink)", color: "var(--card)", fontWeight: 500 }}
+      >
         {item.text}
       </div>
     );
   }
   if (item.kind === "text") {
     return (
-      <div className="max-w-[90%] rounded-2xl bg-foreground/5 px-3 py-2 text-sm">{item.text}</div>
+      <div
+        className="max-w-[90%] rounded-2xl bg-card px-3.5 py-2.5 text-[14px]"
+        style={{
+          border: "1px solid var(--hairline)",
+          boxShadow: "var(--shadow-card)",
+          color: "var(--ink)",
+          fontWeight: 500,
+        }}
+      >
+        {item.text}
+      </div>
     );
   }
   if (item.kind === "actions") {
     return (
-      <div className="rounded-2xl bg-foreground/5 p-3">
-        <div className="text-sm">{item.text}</div>
+      <div
+        className="rounded-2xl bg-card p-3"
+        style={{ border: "1px solid var(--hairline)", boxShadow: "var(--shadow-card)" }}
+      >
+        <div className="text-[14px]" style={{ color: "var(--ink)", fontWeight: 500 }}>
+          {item.text}
+        </div>
         <div className="mt-2 space-y-1">
           {item.actions.map((a, i) => (
             <div
               key={i}
-              className="num-tight flex items-center justify-between rounded-xl bg-card/80 px-2.5 py-1.5 text-xs"
+              className="num-tight flex items-center justify-between rounded-xl px-2.5 py-1.5 text-xs"
+              style={{ background: "var(--hairline)", color: "var(--ink)" }}
             >
               <span className="truncate">
                 <b>{a.name}</b>{" "}
-                <span className="text-muted-foreground">· {MEAL_LABEL[a.meal]}</span>
+                <span style={{ color: "var(--muted-foreground)" }}>· {MEAL_LABEL[a.meal]}</span>
               </span>
-              <span className="text-muted-foreground">
+              <span style={{ color: "var(--muted-foreground)" }}>
                 {Math.round(a.kcal)} kcal · B{Math.round(a.protein)} W{Math.round(a.carbs)} T
                 {Math.round(a.fat)}
               </span>
