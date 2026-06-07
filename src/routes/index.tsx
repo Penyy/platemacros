@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { Bell, Settings as Cog, User, Camera, ArrowUp, ArrowUpRight, Flame, Activity, UtensilsCrossed } from "lucide-react";
 import { MealCard } from "@/components/MealCard";
 import {
@@ -93,35 +92,13 @@ function TodayPage() {
   );
   const sum = useMemo(() => sumEntries(dayEntries), [dayEntries]);
   const dayGoals = useMemo(() => getDayGoals(profile, selected), [profile, selected]);
-  const burned = burnedMap[selected] ?? 0;
-  const adjustedGoal =
-    profile.include_burned ? dayGoals.kcal + burned : dayGoals.kcal;
-  const remaining = Math.max(0, adjustedGoal - sum.kcal);
+  const burned = Math.round(burnedMap[selected] ?? 0);
+  const adjustedGoal = Math.round(
+    profile.include_burned ? dayGoals.kcal + burned : dayGoals.kcal
+  );
+  const remaining = Math.max(0, Math.round(adjustedGoal - sum.kcal));
 
   const dateLabel = polishDate(new Date(selected + "T00:00:00"));
-
-  // weekly bars (Mon-Sun for current week)
-  const weekData = useMemo(() => {
-    const today = new Date(selected + "T00:00:00");
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
-    const days: { date: string; label: string; kcal: number; isToday: boolean }[] = [];
-    const labels = ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      const ds = ymd(d);
-      const kcal = entries
-        .filter((e) => e.date === ds)
-        .reduce((a, e) => a + e.kcal, 0);
-      days.push({ date: ds, label: labels[i], kcal: Math.round(kcal), isToday: ds === selected });
-    }
-    return days;
-  }, [entries, selected]);
-
-  const weekTotal = weekData.reduce((a, d) => a + d.kcal, 0);
-  const weekAvg = Math.round(weekTotal / 7);
-  const weekMax = Math.max(1, ...weekData.map((d) => d.kcal));
 
   return (
     <div className="space-y-3.5 pb-4">
@@ -162,51 +139,16 @@ function TodayPage() {
         />
       </section>
 
-      {/* This week */}
-      {weekTotal > 0 && (
-        <section className="px-[18px]">
-          <div className="surface-card p-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-[17px] font-bold tracking-tight">Ten tydzień</h2>
-                <p className="mt-0.5 text-[12px] text-muted-foreground">
-                  Średnio {weekAvg} kcal / dzień
-                </p>
-              </div>
-              <div className="num-tight text-[22px] font-extrabold tracking-tight">
-                {(weekTotal / 1000).toFixed(1).replace(".", ",")}k
-              </div>
-            </div>
-            <WeekBars data={weekData} max={weekMax} />
-          </div>
-        </section>
-      )}
-
       {/* Macros */}
       <section className="px-[18px]">
         <div className="surface-card p-4">
           <h2 className="text-[17px] font-bold tracking-tight">Makra</h2>
-          <div className="mt-3 space-y-3">
-            <MacroRow label="Białko" cur={Math.round(sum.protein)} goal={dayGoals.protein} color="var(--ink)" />
-            <MacroRow label="Węglowodany" cur={Math.round(sum.carbs)} goal={dayGoals.carbs} color="var(--accent-yellow)" />
-            <MacroRow label="Tłuszcz" cur={Math.round(sum.fat)} goal={dayGoals.fat} color="var(--light-gray, #C9C3B6)" />
+          <div className="mt-3 space-y-3.5">
+            <MacroRow label="Białko" cur={Math.round(sum.protein)} goal={dayGoals.protein} color="var(--macro-protein)" />
+            <MacroRow label="Węglowodany" cur={Math.round(sum.carbs)} goal={dayGoals.carbs} color="var(--macro-carbs)" />
+            <MacroRow label="Tłuszcz" cur={Math.round(sum.fat)} goal={dayGoals.fat} color="var(--macro-fat)" />
           </div>
         </div>
-      </section>
-
-      {/* Meals */}
-      <section className="space-y-3 px-[18px]">
-        <h2 className="text-[17px] font-bold tracking-tight px-1">Posiłki</h2>
-        {MEALS.map((m) => (
-          <MealCard
-            key={m}
-            meal={m}
-            date={selected}
-            entries={dayEntries.filter((e) => e.meal === m)}
-            prevDayHasEntries={prevEntries.some((e) => e.meal === m)}
-            onAdd={(meal) => openAdd(meal)}
-          />
-        ))}
       </section>
 
       {/* Ask AI */}
@@ -236,9 +178,25 @@ function TodayPage() {
         </button>
         {openAssistant ? null : null}
       </section>
+
+      {/* Meals */}
+      <section className="space-y-3 px-[18px]">
+        <h2 className="text-[17px] font-bold tracking-tight px-1">Posiłki</h2>
+        {MEALS.map((m) => (
+          <MealCard
+            key={m}
+            meal={m}
+            date={selected}
+            entries={dayEntries.filter((e) => e.meal === m)}
+            prevDayHasEntries={prevEntries.some((e) => e.meal === m)}
+            onAdd={(meal) => openAdd(meal)}
+          />
+        ))}
+      </section>
     </div>
   );
 }
+
 
 /* ---------- Subcomponents ---------- */
 
@@ -404,58 +362,6 @@ function describeArc(cx: number, cy: number, r: number, startAngle: number, endA
   ].join(" ");
 }
 
-function WeekBars({
-  data,
-  max,
-}: {
-  data: { label: string; kcal: number; isToday: boolean }[];
-  max: number;
-}) {
-  const H = 110;
-  return (
-    <div className="relative mt-4">
-      <div className="flex h-[110px] items-end justify-between gap-2">
-        {data.map((d) => {
-          const h = d.kcal > 0 ? Math.max(8, (d.kcal / max) * H) : 4;
-          const isYellow = d.isToday;
-          return (
-            <div key={d.label} className="relative flex w-full flex-col items-center">
-              {isYellow && d.kcal > 0 && (
-                <div
-                  className="num-tight absolute z-10 rounded-md px-2 py-1 text-[11px] font-semibold text-primary-foreground"
-                  style={{
-                    background: "var(--ink)",
-                    bottom: h + 6,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {d.kcal} kcal
-                </div>
-              )}
-              <motion.div
-                initial={{ height: 0 }}
-                animate={{ height: h }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                className="w-2.5 rounded-full"
-                style={{
-                  background: isYellow ? "var(--accent-yellow)" : "var(--ink)",
-                  opacity: d.kcal === 0 && !isYellow ? 0.25 : 1,
-                }}
-              />
-            </div>
-          );
-        })}
-      </div>
-      <div className="mt-2 flex justify-between text-[11px] font-semibold text-muted-foreground">
-        {data.map((d) => (
-          <span key={d.label} className="w-full text-center">
-            {d.label}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function MacroRow({
   label,

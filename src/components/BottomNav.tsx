@@ -23,7 +23,7 @@ export function BottomNav({ onAdd }: Props) {
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[430px] px-0">
       <nav
-        className="pointer-events-auto relative flex items-center justify-between gap-1 bg-card px-3 pt-2.5 pb-[max(env(safe-area-inset-bottom),0.6rem)]"
+        className="pointer-events-auto relative grid grid-cols-5 items-center bg-card px-2 pt-2 pb-[max(env(safe-area-inset-bottom),0.6rem)]"
         style={{
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
@@ -34,20 +34,22 @@ export function BottomNav({ onAdd }: Props) {
         {left.map((t) => (
           <NavItem key={t.to} {...t} active={path === t.to} />
         ))}
-        <motion.button
-          whileTap={{ scale: 0.92 }}
-          onClick={onAdd}
-          aria-label="Dodaj"
-          className="grid h-12 w-12 shrink-0 place-items-center text-primary-foreground"
-          style={{
-            background: "var(--ink)",
-            borderRadius: 16,
-            boxShadow:
-              "0 8px 20px -6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)",
-          }}
-        >
-          <Plus size={22} strokeWidth={2.2} />
-        </motion.button>
+        <div className="flex items-center justify-center">
+          <motion.button
+            whileTap={{ scale: 0.92 }}
+            onClick={onAdd}
+            aria-label="Dodaj"
+            className="grid h-12 w-12 shrink-0 place-items-center text-primary-foreground"
+            style={{
+              background: "var(--ink)",
+              borderRadius: 16,
+              boxShadow:
+                "0 8px 20px -6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)",
+            }}
+          >
+            <Plus size={22} strokeWidth={2.2} />
+          </motion.button>
+        </div>
         {right.map((t) => (
           <NavItem key={t.to} {...t} active={path === t.to} />
         ))}
@@ -67,25 +69,26 @@ function NavItem({
   icon: React.ComponentType<{ size?: number; strokeWidth?: number }>;
   active: boolean;
 }) {
-  if (active) {
-    return (
-      <Link
-        to={to}
-        className="flex items-center gap-1.5 rounded-full px-3.5 py-2 text-primary-foreground"
-        style={{ background: "var(--ink)" }}
-      >
-        <Icon size={18} strokeWidth={2} />
-        <span className="text-[12px] font-semibold tracking-tight">{label}</span>
-      </Link>
-    );
-  }
   return (
     <Link
       to={to}
-      className="flex flex-1 flex-col items-center gap-0.5 py-1.5 text-muted-foreground"
+      className="flex flex-col items-center justify-center gap-1 py-1.5"
+      style={{ color: active ? "var(--ink)" : "var(--muted-foreground)" }}
     >
-      <Icon size={20} strokeWidth={1.8} />
-      <span className="text-[10px] font-semibold tracking-tight">{label}</span>
+      <span
+        className="grid h-8 w-8 place-items-center rounded-full"
+        style={{
+          background: active ? "color-mix(in oklab, var(--ink) 8%, transparent)" : "transparent",
+        }}
+      >
+        <Icon size={20} strokeWidth={active ? 2.2 : 1.8} />
+      </span>
+      <span
+        className="text-[10px] tracking-tight"
+        style={{ fontWeight: active ? 800 : 600 }}
+      >
+        {label}
+      </span>
     </Link>
   );
 }
