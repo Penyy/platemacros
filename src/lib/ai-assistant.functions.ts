@@ -284,57 +284,93 @@ async function classifyTopic(_message: string): Promise<"in_scope" | "out_of_sco
 }
 
 // ============================================================
-// Path A: Image (auto-detect etykieta vs posiłek)
+// Path A: Multi-image structured items (etykiety / posiłek / mix)
 // ============================================================
 
-async function handlePhotoPath(
-  imageBase64: string,
-  mimeType: string,
-  apiKey: string,
-  userNote?: string,
-): Promise<AssistantResult> {
-  const base64 = imageBase64.startsWith("data:") ? imageBase64.split(",")[1] ?? "" : imageBase64;
-  const notePart = userNote && userNote.trim()
-    ? `\n\nDodatkowy opis od użytkownika (użyj go do oszacowania porcji/typu posiłku): "${userNote.trim()}"`
-    : "";
-  const prompt = `Rozpoznaj czy zdjęcie to ETYKIETA wartości odżywczych, czy zdjęcie GOTOWEGO POSIŁKU. Jeśli etykieta — odczytaj wartości per 100g/100ml do pola per100 (wartości niewidoczne → null). Jeśli posiłek — oszacuj makro całej widocznej porcji do pola total. Nie zgaduj wartości z etykiety, ale posiłek możesz szacować. name = krótka polska nazwa produktu lub dania.${notePart}`;
+const ItemsSystemAddendum = `Otrzymujesz jedno lub więcej zdjęć (zwykle etykiety wartości odżywczych) oraz opis tekstowy ilości użytych składników. Dla każdego składnika: odczytaj z etykiety wartości na 100 g (jeśli podane tylko w kJ, przelicz kcal = kJ / 4.184), dopasuj do ilości z tekstu i policz kcal/białko/węgle/tłuszcz dla użytej gramatury (wartość_na_100g × gramy / 100). Gdy user pisze "cały/cała/całe" — użyj wagi netto opakowania z etykiety. Składniki bez czytelnej etykiety lub niewidoczne na zdjęciu (np. oliwa) policz wg standardowych wartości i odnotuj to w notes. Zwróć JEDNĄ pozycję na składnik. Jeśli gramatury nie da się ustalić, ustaw grams = 100 i zaznacz w notes. Ksylitol/poliole licz wg kalorii z etykiety. Nie dubluj składników. Zaokrąglaj kcal do liczby całkowitej, makro do 0,1 g. Zaproponuj dishName i meal na podstawie opisu.`;
 
-  const macroSchema = {
+const PL_MEAL_TO_INTERNAL: Record<string, Meal> = {
+  "Śniadanie": "breakfast",
+  "Sniadanie": "breakfast",
+  "Obiad": "lunch",
+  "Kolacja": "dinner",
+  "Przekąska": "snack",
+  "Przekaska": "snack",
+};
+
+const ItemsResultSchema = z.object({
+  dishName: z.string().optional().default(""),
+  meal: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+        grams: z.number().min(0).max(5000),
+        kcal: z.number().min(0).max(10000),
+        protein: z.number().min(0).max(1000),
+        carbs: z.number().min(0).max(1000),
+        fat: z.number().min(0).max(1000),
+      }),
+    )
+    .min(1)
+    .max(30),
+  notes: z.string().optional(),
+});
+
+async function handleImagesPath(
+  images: string[],
+  apiKey: string,
+  userNote: string,
+  previews: string[],
+  hourFallback: number,
+): Promise<AssistantResult> {
+  const imageParts: GeminiPart[] = images.map((b64) => {
+    const data = b64.startsWith("data:") ? b64.split(",")[1] ?? "" : b64;
+    return { inline_data: { mime_type: "image/jpeg", data } };
+  });
+
+  const note = userNote.trim();
+  const promptText = note
+    ? `Opis ilości użytych składników od użytkownika: "${note}".\nZwróć items[] wg schematu — jedna pozycja na składnik.`
+    : `Brak opisu od użytkownika. Odczytaj etykiety i przyjmij rozsądną porcję (np. cała porcja z opakowania). Zwróć items[] wg schematu.`;
+
+  const responseSchema = {
     type: "object",
     properties: {
-      kcal: { type: "number" },
-      protein: { type: "number" },
-      carbs: { type: "number" },
-      fat: { type: "number" },
+      dishName: { type: "string" },
+      meal: { type: "string", enum: ["Śniadanie", "Obiad", "Kolacja", "Przekąska"] },
+      items: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            grams: { type: "number" },
+            kcal: { type: "number" },
+            protein: { type: "number" },
+            carbs: { type: "number" },
+            fat: { type: "number" },
+          },
+          required: ["name", "grams", "kcal", "protein", "carbs", "fat"],
+        },
+      },
+      notes: { type: "string" },
     },
-    required: ["kcal", "protein", "carbs", "fat"],
-    nullable: true,
+    required: ["items"],
   };
 
   const body = {
+    system_instruction: { parts: [{ text: `${SYSTEM_INSTRUCTION}\n\n${ItemsSystemAddendum}` }] },
     contents: [
       {
         role: "user",
-        parts: [
-          { inline_data: { mime_type: mimeType, data: base64 } },
-          { text: prompt },
-        ],
+        parts: [...imageParts, { text: promptText }],
       },
     ],
     generationConfig: {
       responseMimeType: "application/json",
       temperature: 0.2,
-      responseSchema: {
-        type: "object",
-        properties: {
-          type: { type: "string", enum: ["etykieta", "posilek"] },
-          name: { type: "string" },
-          per100: macroSchema,
-          total: macroSchema,
-          confidence: { type: "number" },
-        },
-        required: ["type", "name", "confidence"],
-      },
+      responseSchema,
     },
   };
 
@@ -342,43 +378,42 @@ async function handlePhotoPath(
     const resp = await callGemini(body, apiKey);
     const raw = resp.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
     if (!raw) throw new Error("AI_EMPTY");
-    const parsed = PhotoSchema.parse(JSON.parse(stripFences(raw)));
-    if (parsed.type === "etykieta") {
-      const per = parsed.per100 ?? { kcal: null, protein: null, carbs: null, fat: null };
-      return {
-        kind: "label",
-        label: {
-          name: parsed.name,
-          per100: {
-            kcal: per?.kcal ?? null,
-            protein: per?.protein ?? null,
-            carbs: per?.carbs ?? null,
-            fat: per?.fat ?? null,
-          },
-          confidence: parsed.confidence,
-        },
-      };
-    }
-    const total = parsed.total ?? { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+    const parsed = ItemsResultSchema.parse(JSON.parse(stripFences(raw)));
+    const meal: Meal =
+      (parsed.meal && PL_MEAL_TO_INTERNAL[parsed.meal]) ||
+      mealFromHour(hourFallback);
     return {
-      kind: "meal",
-      name: parsed.name,
-      total: {
-        kcal: total.kcal ?? 0,
-        protein: total.protein ?? 0,
-        carbs: total.carbs ?? 0,
-        fat: total.fat ?? 0,
-      },
-      confidence: parsed.confidence,
+      kind: "items",
+      dishName: parsed.dishName || "Posiłek",
+      meal,
+      items: parsed.items.map((it) => ({
+        name: it.name,
+        grams: Math.round(it.grams * 10) / 10,
+        kcal: Math.round(it.kcal),
+        protein: Math.round(it.protein * 10) / 10,
+        carbs: Math.round(it.carbs * 10) / 10,
+        fat: Math.round(it.fat * 10) / 10,
+      })),
+      notes: parsed.notes,
+      previews,
     };
   };
 
   try {
     return await tryOnce();
   } catch {
-    return await tryOnce(); // 1 retry
+    return await tryOnce();
   }
 }
+
+function mealFromHour(h: number): Meal {
+  if (h >= 5 && h < 10) return "breakfast";
+  if (h >= 10 && h < 12) return "second_breakfast";
+  if (h >= 12 && h < 16) return "lunch";
+  if (h >= 16 && h < 21) return "dinner";
+  return "snack";
+}
+
 
 // ============================================================
 // Path B: Text (function calling)
