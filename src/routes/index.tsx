@@ -98,10 +98,12 @@ function TodayPage() {
       <header className="flex items-center justify-between px-[18px] pt-[max(env(safe-area-inset-top),1rem)]">
         <Logo />
         <div className="flex items-center gap-2">
-          <IconCircle aria-label="Powiadomienia"><Bell size={18} strokeWidth={1.8} /></IconCircle>
-          <LinkCircle to="/settings" aria-label="Ustawienia"><Cog size={18} strokeWidth={1.8} /></LinkCircle>
+          <IconCircle aria-label="Powiadomienia" onClick={() => setNotifOpen(true)}>
+            <Bell size={18} strokeWidth={1.8} />
+          </IconCircle>
           <LinkCircle to="/profile" aria-label="Profil"><User size={18} strokeWidth={1.8} /></LinkCircle>
         </div>
+
       </header>
 
       {/* Day navigator */}
