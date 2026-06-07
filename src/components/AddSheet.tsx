@@ -181,7 +181,7 @@ type PickMode = "quick" | "manual" | "search" | "compound" | "barcode" | "assist
 
 function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
   const items: { id: PickMode; label: string; icon: typeof ScanLine; soon: boolean }[] = [
-    { id: "assistant", label: "Zapytaj AI", icon: MessageCircle, soon: false },
+    { id: "assistant", label: "PlateAI", icon: Sparkles, soon: false },
     { id: "barcode", label: "Skanuj kod kreskowy", icon: ScanLine, soon: false },
     { id: "compound", label: "Złożony posiłek", icon: Layers, soon: false },
     { id: "search", label: "Szukaj produktu", icon: Search, soon: false },
