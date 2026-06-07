@@ -203,6 +203,3 @@ export function startNotificationScheduler() {
   setInterval(tick, 30_000);
   tick();
 }
-
-// Reuse user's existing usePlate type but reference to keep tree-shake happy
-void usePlate;
