@@ -15,6 +15,10 @@ interface Props {
 
 export function EditEntrySheet({ entry, onClose }: Props) {
   const updateEntry = usePlate((s) => s.updateEntry);
+  const products = usePlate((s) => s.products);
+  const addProduct = usePlate((s) => s.addProduct);
+  const updateProduct = usePlate((s) => s.updateProduct);
+  const [saveToLibrary, setSaveToLibrary] = useState(false);
   const [name, setName] = useState("");
   const [meal, setMeal] = useState<Meal>("breakfast");
   const [grams, setGrams] = useState("");
