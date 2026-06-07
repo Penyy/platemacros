@@ -134,6 +134,7 @@ function RootComponent() {
       <AppShell>
         <Outlet />
       </AppShell>
+      <Toaster position="bottom-center" offset={96} richColors closeButton={false} />
     </QueryClientProvider>
   );
 }
