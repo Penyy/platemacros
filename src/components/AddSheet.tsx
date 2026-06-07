@@ -5,7 +5,6 @@ import {
   Zap,
   PencilLine,
   Search,
-  Sparkles,
   ScanLine,
   MessageCircle,
   X,
@@ -13,11 +12,10 @@ import {
 import { type Meal, MEAL_LABEL, type Product, usePlate, ymd } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 import { CompoundMealFlow } from "./CompoundMealFlow";
-import { EstimateMealFlow } from "./EstimateMealFlow";
 import { BarcodeScanFlow } from "./BarcodeScanFlow";
 import { AssistantFlow } from "./AssistantFlow";
 
-type Mode = "menu" | "quick" | "manual" | "scan" | "search" | "compound" | "estimate" | "barcode" | "assistant";
+type Mode = "menu" | "quick" | "manual" | "scan" | "search" | "compound" | "barcode" | "assistant";
 
 interface Props {
   open: boolean;
