@@ -36,6 +36,8 @@ type HistoryItem =
       total: { kcal: number; protein: number; carbs: number; fat: number };
       confidence: number;
       preview: string;
+      pending?: boolean;
+      added?: boolean;
     };
 
 const CHIPS = ["Ile mi zostało?", "Co dojeść na białko?", "Dodaj posiłek"];
