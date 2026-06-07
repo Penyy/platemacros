@@ -72,7 +72,7 @@ function StatsPage() {
         <ChartCard
           title="Kalorie"
           unit="kcal"
-          color="var(--accent-yellow)"
+          color="var(--ink)"
           goal={profile.goal_kcal}
           values={days.map((d) => ({ label: d.label, v: Math.round(d.totals.kcal) }))}
           avg={avg.kcal}
