@@ -64,10 +64,19 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
             className="fixed inset-x-0 z-50 mx-auto flex w-full max-w-[430px] flex-col"
             style={{ bottom: "var(--kb-inset, 0px)" }}
           >
-            <div className="mx-2 mb-[max(env(safe-area-inset-bottom),1rem)] rounded-[28px] bg-card p-5 pb-[max(env(safe-area-inset-bottom),1.25rem)]" style={{ boxShadow: "var(--shadow-card)" }}>
-              <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-foreground/20" />
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-xl font-bold tracking-tight">
+            <div
+              className="mx-2 mb-[max(env(safe-area-inset-bottom),1.25rem)] rounded-t-[32px] rounded-b-[28px] bg-card p-6 pb-[max(env(safe-area-inset-bottom),1.5rem)]"
+              style={{ boxShadow: "var(--shadow-card)" }}
+            >
+              <div
+                className="mx-auto mb-4 h-1.5 w-10 rounded-full"
+                style={{ background: "var(--hairline)" }}
+              />
+              <div className="mb-5 flex items-center justify-between">
+                <h2
+                  className="text-[22px] leading-tight"
+                  style={{ fontFamily: "Manrope, sans-serif", fontWeight: 700, letterSpacing: "-0.03em", color: "var(--ink)" }}
+                >
                   {mode === "menu"
                     ? "Dodaj pozycję"
                     : mode === "quick"
@@ -86,12 +95,14 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                 </h2>
                 <button
                   onClick={mode === "menu" ? close : () => setMode("menu")}
-                  className="grid h-8 w-8 place-items-center rounded-full bg-foreground/10"
+                  className="grid h-9 w-9 place-items-center rounded-full"
+                  style={{ background: "var(--hairline)", color: "var(--ink)" }}
                   aria-label="Zamknij"
                 >
                   <X size={16} />
                 </button>
               </div>
+
 
               {mode === "menu" && (
                 <MenuGrid onPick={(m) => setMode(m)} />
