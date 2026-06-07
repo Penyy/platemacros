@@ -112,9 +112,72 @@ export function AssistantFlow({ defaultMeal }: Props) {
     [history],
   );
 
+  const sendImage = async (image: { dataUrl: string; base64: string }, note: string) => {
+    const trimmedNote = note.trim();
+    const userText = trimmedNote ? `📷 zdjęcie · "${trimmedNote}"` : "📷 zdjęcie";
+    setHistory((h) => [...h, { id: nid(), kind: "user", text: userText }]);
+    setBusy("image");
+    try {
+      const result = (await ask({
+        data: {
+          message: trimmedNote || "Rozpoznaj zdjęcie",
+          history: [],
+          dayContext,
+          imageBase64: image.base64,
+          mimeType: "image/jpeg",
+        },
+      })) as AssistantResult;
+      if (result.kind === "label") {
+        setHistory((h) => [
+          ...h,
+          { id: nid(), kind: "label", label: result.label, preview: image.dataUrl },
+        ]);
+      } else if (result.kind === "meal") {
+        const m = defaultMeal ?? guessMeal();
+        addEntry({
+          date: today,
+          meal: m,
+          name: result.name || "Posiłek ze zdjęcia",
+          kcal: Math.round(result.total.kcal * 10) / 10,
+          protein: Math.round(result.total.protein * 10) / 10,
+          carbs: Math.round(result.total.carbs * 10) / 10,
+          fat: Math.round(result.total.fat * 10) / 10,
+        });
+        setHistory((h) => [
+          ...h,
+          {
+            id: nid(),
+            kind: "meal",
+            name: result.name,
+            total: result.total,
+            confidence: result.confidence,
+            preview: image.dataUrl,
+          },
+        ]);
+      } else if (result.kind === "text") {
+        setHistory((h) => [...h, { id: nid(), kind: "text", text: result.text }]);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("AI_RATE_LIMIT")) toast.error("Za dużo żądań, spróbuj za chwilę.");
+      else if (msg.includes("AI_CREDITS")) toast.error("Brak kredytów AI / problem z kluczem.");
+      else toast.error("Nie udało się rozpoznać zdjęcia.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const sendText = async (message: string) => {
     const trimmed = message.trim();
-    if (!trimmed || busy) return;
+    if (busy) return;
+    if (pendingImage) {
+      const img = pendingImage;
+      setPendingImage(null);
+      setInput("");
+      await sendImage(img, trimmed);
+      return;
+    }
+    if (!trimmed) return;
     setInput("");
     const userItem: HistoryItem = { id: nid(), kind: "user", text: trimmed };
     setHistory((h) => [...h, userItem]);
@@ -148,7 +211,6 @@ export function AssistantFlow({ defaultMeal }: Props) {
       } else if (result.kind === "text") {
         setHistory((h) => [...h, { id: nid(), kind: "text", text: result.text }]);
       } else {
-        // unexpected for text path
         setHistory((h) => [...h, { id: nid(), kind: "text", text: "Hmm, brak odpowiedzi." }]);
       }
     } catch (err: unknown) {
@@ -170,61 +232,15 @@ export function AssistantFlow({ defaultMeal }: Props) {
     const file = e.target.files?.[0];
     if (fileRef.current) fileRef.current.value = "";
     if (!file || busy) return;
-    setBusy("image");
     try {
       const dataUrl = await shrinkImage(file);
       const base64 = dataUrl.split(",")[1] ?? "";
-      const userItem: HistoryItem = { id: nid(), kind: "user", text: "📷 zdjęcie" };
-      setHistory((h) => [...h, userItem]);
-      const result = (await ask({
-        data: {
-          message: "Rozpoznaj zdjęcie",
-          history: [],
-          dayContext,
-          imageBase64: base64,
-          mimeType: "image/jpeg",
-        },
-      })) as AssistantResult;
-      if (result.kind === "label") {
-        setHistory((h) => [
-          ...h,
-          { id: nid(), kind: "label", label: result.label, preview: dataUrl },
-        ]);
-      } else if (result.kind === "meal") {
-        // auto-add the meal entry immediately
-        const m = defaultMeal ?? guessMeal();
-        addEntry({
-          date: today,
-          meal: m,
-          name: result.name || "Posiłek ze zdjęcia",
-          kcal: Math.round(result.total.kcal * 10) / 10,
-          protein: Math.round(result.total.protein * 10) / 10,
-          carbs: Math.round(result.total.carbs * 10) / 10,
-          fat: Math.round(result.total.fat * 10) / 10,
-        });
-        setHistory((h) => [
-          ...h,
-          {
-            id: nid(),
-            kind: "meal",
-            name: result.name,
-            total: result.total,
-            confidence: result.confidence,
-            preview: dataUrl,
-          },
-        ]);
-      } else if (result.kind === "text") {
-        setHistory((h) => [...h, { id: nid(), kind: "text", text: result.text }]);
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes("AI_RATE_LIMIT")) toast.error("Za dużo żądań, spróbuj za chwilę.");
-      else if (msg.includes("AI_CREDITS")) toast.error("Brak kredytów AI / problem z kluczem.");
-      else toast.error("Nie udało się odczytać etykiety.");
-    } finally {
-      setBusy(false);
+      setPendingImage({ dataUrl, base64 });
+    } catch {
+      toast.error("Nie udało się wczytać zdjęcia.");
     }
   };
+
 
   const onAddLabel = (item: HistoryItem & { kind: "label" }, grams: number, meal: Meal) => {
     const per = item.label.per100;
