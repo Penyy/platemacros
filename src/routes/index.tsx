@@ -363,58 +363,6 @@ function describeArc(cx: number, cy: number, r: number, startAngle: number, endA
   ].join(" ");
 }
 
-function WeekBars({
-  data,
-  max,
-}: {
-  data: { label: string; kcal: number; isToday: boolean }[];
-  max: number;
-}) {
-  const H = 110;
-  return (
-    <div className="relative mt-4">
-      <div className="flex h-[110px] items-end justify-between gap-2">
-        {data.map((d) => {
-          const h = d.kcal > 0 ? Math.max(8, (d.kcal / max) * H) : 4;
-          const isYellow = d.isToday;
-          return (
-            <div key={d.label} className="relative flex w-full flex-col items-center">
-              {isYellow && d.kcal > 0 && (
-                <div
-                  className="num-tight absolute z-10 rounded-md px-2 py-1 text-[11px] font-semibold text-primary-foreground"
-                  style={{
-                    background: "var(--ink)",
-                    bottom: h + 6,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {d.kcal} kcal
-                </div>
-              )}
-              <motion.div
-                initial={{ height: 0 }}
-                animate={{ height: h }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                className="w-2.5 rounded-full"
-                style={{
-                  background: isYellow ? "var(--accent-yellow)" : "var(--ink)",
-                  opacity: d.kcal === 0 && !isYellow ? 0.25 : 1,
-                }}
-              />
-            </div>
-          );
-        })}
-      </div>
-      <div className="mt-2 flex justify-between text-[11px] font-semibold text-muted-foreground">
-        {data.map((d) => (
-          <span key={d.label} className="w-full text-center">
-            {d.label}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function MacroRow({
   label,
