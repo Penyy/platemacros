@@ -2,7 +2,8 @@ import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Loader2, RotateCcw, ScanLine, Image as ImageIcon, Flashlight } from "lucide-react";
 import { BrowserMultiFormatReader, type IScannerControls } from "@zxing/browser";
-import { BarcodeFormat, DecodeHintType } from "@zxing/library";
+import pkg from "@zxing/library";
+const { BarcodeFormat, DecodeHintType } = pkg;
 import { toast } from "sonner";
 import { type Meal, MEAL_LABEL, usePlate } from "@/lib/store";
 
