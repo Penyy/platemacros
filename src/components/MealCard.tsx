@@ -293,8 +293,8 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
         handleEnd();
       } else {
         // Tap: gesture never locked horizontal AND finger didn't drift much.
-        if (g.current.mode === "undecided" && !g.current.moved && onTap) {
-          onTap();
+        if (g.current.mode === "undecided" && !g.current.moved && onTapRef.current) {
+          onTapRef.current();
         }
         g.current.active = false;
       }
