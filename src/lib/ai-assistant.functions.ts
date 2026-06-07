@@ -457,5 +457,11 @@ export const askAssistant = createServerFn({ method: "POST" })
     if (data.imageBase64) {
       return handlePhotoPath(data.imageBase64, data.mimeType ?? "image/jpeg", apiKey, data.message);
     }
-    return handleTextPath(data.message, data.history ?? [], data.dayContext, apiKey);
+    const settings: AssistantCallSettings = {
+      autoAddPhoto: data.settings?.autoAddPhoto ?? true,
+      allowAddEntries: data.settings?.allowAddEntries ?? true,
+      defaultMeal: data.settings?.defaultMeal ?? "auto",
+      responseLength: data.settings?.responseLength ?? "short",
+    };
+    return handleTextPath(data.message, data.history ?? [], data.dayContext, apiKey, settings);
   });
