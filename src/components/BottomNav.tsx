@@ -39,15 +39,27 @@ export function BottomNav({ onAdd }: Props) {
             whileTap={{ scale: 0.92 }}
             onClick={onAdd}
             aria-label="Dodaj"
-            className="grid h-12 w-12 shrink-0 place-items-center text-primary-foreground"
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-full"
             style={{
               background: "var(--ink)",
-              borderRadius: 16,
               boxShadow:
                 "0 8px 20px -6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)",
             }}
           >
-            <Plus size={22} strokeWidth={2.2} />
+            <span
+              aria-hidden
+              style={{
+                color: "#FBB500",
+                fontFamily: "Manrope, sans-serif",
+                fontWeight: 800,
+                fontSize: 30,
+                lineHeight: 1,
+                letterSpacing: "-0.04em",
+                marginTop: -2,
+              }}
+            >
+              +
+            </span>
           </motion.button>
         </div>
         {right.map((t) => (
