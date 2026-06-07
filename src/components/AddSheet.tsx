@@ -27,7 +27,7 @@ interface Props {
   date: string;
 }
 
-const MEALS: Meal[] = ["breakfast", "lunch", "dinner", "snack"];
+const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
 export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
   const [mode, setMode] = useState<Mode>("menu");
