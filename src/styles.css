@@ -77,11 +77,14 @@
   --ring: oklch(0.5 0.01 85);
 
   /* Macros */
-  --protein: var(--ink);                       /* protein bar = ink */
+  --macro-protein: #E15B4C;
+  --macro-carbs: #EF8B2C;
+  --macro-fat: #5C8AA6;
+  --protein: var(--macro-protein);
   --protein-soft: oklch(0.5 0.01 80);
-  --carbs: var(--accent-yellow);
+  --carbs: var(--macro-carbs);
   --carbs-soft: var(--accent-yellow-soft);
-  --fat: var(--light-gray);
+  --fat: var(--macro-fat);
   --fat-soft: oklch(0.88 0.013 85);
 
   --glass: oklch(1 0 0 / 0.78);
