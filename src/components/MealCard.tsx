@@ -166,6 +166,8 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
     armed: false,
     moved: false,
   });
+  const onTapRef = useRef(onTap);
+  onTapRef.current = onTap;
 
   const setDxBoth = (v: number) => {
     dxRef.current = v;
