@@ -176,6 +176,7 @@ const TOOLS = [
 
 const MEAL_PL: Record<string, string> = {
   breakfast: "Śniadanie",
+  second_breakfast: "Lunch",
   lunch: "Obiad",
   dinner: "Kolacja",
   snack: "Przekąska",
