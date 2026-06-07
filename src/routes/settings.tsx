@@ -518,3 +518,54 @@ function MacroInput({ value, onChange }: { value: number; onChange: (v: number) 
     />
   );
 }
+
+function DefaultMealSelect({
+  value,
+  onChange,
+}: {
+  value: AssistantDefaultMeal;
+  onChange: (v: AssistantDefaultMeal) => void;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as AssistantDefaultMeal)}
+      className="rounded-lg border border-border/60 bg-card px-2 py-1 text-[13px]"
+    >
+      <option value="auto">Wnioskuj z pory</option>
+      {(Object.keys(MEAL_LABEL) as Meal[]).map((m) => (
+        <option key={m} value={m}>
+          {MEAL_LABEL[m]}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function ResponseLengthSelect({
+  value,
+  onChange,
+}: {
+  value: AssistantResponseLength;
+  onChange: (v: AssistantResponseLength) => void;
+}) {
+  const opts: { v: AssistantResponseLength; l: string }[] = [
+    { v: "short", l: "Krótkie" },
+    { v: "detailed", l: "Szczegółowe" },
+  ];
+  return (
+    <div className="flex gap-0.5 rounded-full bg-foreground/5 p-0.5">
+      {opts.map((o) => (
+        <button
+          key={o.v}
+          onClick={() => onChange(o.v)}
+          className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+            value === o.v ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+          }`}
+        >
+          {o.l}
+        </button>
+      ))}
+    </div>
+  );
+}
