@@ -207,18 +207,34 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
         return (
           <motion.button
             key={it.id}
-            whileTap={disabled ? undefined : { scale: 0.96 }}
+            whileTap={disabled ? undefined : { scale: 0.97 }}
             disabled={disabled}
             onClick={() => !disabled && onPick(it.id)}
-            className={`group relative flex flex-col items-start gap-3 rounded-2xl p-4 text-left transition ${
-              disabled ? "opacity-50" : "active:opacity-80"
+            className={`group relative flex flex-col items-start gap-3 rounded-[22px] p-4 text-left ${
+              disabled ? "opacity-50" : ""
             }`}
-            style={{ background: "var(--muted)" }}
+            style={{
+              background: "var(--card)",
+              boxShadow: "var(--shadow-card)",
+            }}
           >
-            <Icon size={24} strokeWidth={1.7} />
-            <div className="text-[14px] font-bold leading-tight tracking-tight">{it.label}</div>
+            <span
+              className="grid h-11 w-11 place-items-center rounded-2xl"
+              style={{ background: "var(--hairline)", color: "var(--ink)" }}
+            >
+              <Icon size={20} strokeWidth={1.9} />
+            </span>
+            <div
+              className="text-[14px] leading-tight"
+              style={{ fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em" }}
+            >
+              {it.label}
+            </div>
             {it.soon && (
-              <span className="absolute right-2 top-2 rounded-full bg-foreground/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-muted-foreground">
+              <span
+                className="absolute right-2 top-2 rounded-full px-1.5 py-0.5 text-[9px] uppercase tracking-wider"
+                style={{ background: "var(--hairline)", color: "var(--muted-foreground)", fontWeight: 600 }}
+              >
                 Wkrótce
               </span>
             )}
