@@ -221,10 +221,19 @@ function Logo() {
   );
 }
 
-function IconCircle({ children, ...rest }: { children: React.ReactNode; "aria-label"?: string }) {
+function IconCircle({
+  children,
+  onClick,
+  ...rest
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  "aria-label"?: string;
+}) {
   return (
     <button
       {...rest}
+      onClick={onClick}
       className="grid h-10 w-10 place-items-center rounded-full bg-card text-foreground"
       style={{ boxShadow: "var(--shadow-card)" }}
     >
@@ -232,6 +241,7 @@ function IconCircle({ children, ...rest }: { children: React.ReactNode; "aria-la
     </button>
   );
 }
+
 
 function LinkCircle({ to, children, ...rest }: { to: string; children: React.ReactNode; "aria-label"?: string }) {
   return (
