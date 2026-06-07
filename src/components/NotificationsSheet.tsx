@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
-import { usePlate, type Meal, MEAL_LABEL } from "@/lib/store";
+import { type Meal, MEAL_LABEL } from "@/lib/store";
+
 
 export interface MealNotifSettings {
   enabled: boolean;
