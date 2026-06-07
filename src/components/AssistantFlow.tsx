@@ -64,6 +64,9 @@ export function AssistantFlow({ defaultMeal }: Props) {
   const entries = usePlate((s) => s.entries);
   const burnedMap = usePlate((s) => s.burned);
   const addEntry = usePlate((s) => s.addEntry);
+  const assistantSettings = profile.assistant ?? defaultAssistantSettings;
+  const effectiveDefaultMeal: Meal | undefined =
+    defaultMeal ?? (assistantSettings.defaultMeal !== "auto" ? assistantSettings.defaultMeal : undefined);
 
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
