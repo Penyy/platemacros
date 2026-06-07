@@ -584,18 +584,24 @@ function ResponseLengthSelect({
     { v: "detailed", l: "Szczegółowe" },
   ];
   return (
-    <div className="flex gap-0.5 rounded-full bg-foreground/5 p-0.5">
-      {opts.map((o) => (
-        <button
-          key={o.v}
-          onClick={() => onChange(o.v)}
-          className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-            value === o.v ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-          }`}
-        >
-          {o.l}
-        </button>
-      ))}
+    <div className="flex gap-0.5 rounded-full p-0.5" style={{ background: "var(--hairline)" }}>
+      {opts.map((o) => {
+        const active = value === o.v;
+        return (
+          <button
+            key={o.v}
+            onClick={() => onChange(o.v)}
+            className="rounded-full px-3 py-1 text-xs transition"
+            style={{
+              background: active ? "#1B1B19" : "transparent",
+              color: active ? "#FBF4E2" : "var(--muted-foreground)",
+              fontWeight: active ? 700 : 600,
+            }}
+          >
+            {o.l}
+          </button>
+        );
+      })}
     </div>
   );
 }
