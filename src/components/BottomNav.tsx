@@ -49,7 +49,7 @@ export function BottomNav({ onAdd }: Props) {
             <span
               aria-hidden
               style={{
-                color: "#FBB500",
+                color: "var(--accent-yellow)",
                 fontFamily: "Manrope, sans-serif",
                 fontWeight: 800,
                 fontSize: 30,

@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Bell, Settings as Cog, User, ArrowUpRight, Flame } from "lucide-react";
+import { Bell, Settings as Cog, User, Flame, ChevronLeft, ChevronRight } from "lucide-react";
 import { MealCard } from "@/components/MealCard";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import {
   type Meal,
   getDayGoals,
@@ -47,12 +49,20 @@ function polishDate(d: Date) {
 }
 
 function TodayPage() {
-  const [selected] = useState(() => ymd(new Date()));
+  const today = useMemo(() => ymd(new Date()), []);
+  const [selected, setSelected] = useState<string>(today);
+  const [calOpen, setCalOpen] = useState(false);
 
   const profile = usePlate((s) => s.profile);
   const entries = usePlate((s) => s.entries);
   const burnedMap = usePlate((s) => s.burned);
   const openAdd = usePlate((s) => s.openAdd);
+
+  const shiftDay = (delta: number) => {
+    const d = new Date(selected + "T00:00:00");
+    d.setDate(d.getDate() + delta);
+    setSelected(ymd(d));
+  };
 
   const dayEntries = useMemo(
     () => entries.filter((e) => e.date === selected),
@@ -76,6 +86,7 @@ function TodayPage() {
   const remaining = Math.max(0, Math.round(adjustedGoal - sum.kcal));
 
   const dateLabel = polishDate(new Date(selected + "T00:00:00"));
+  const isToday = selected === today;
 
   return (
     <div className="space-y-3.5 pb-4">
@@ -89,9 +100,54 @@ function TodayPage() {
         </div>
       </header>
 
-      {/* Date */}
-      <section className="px-[18px]">
-        <p className="text-sm text-muted-foreground">{dateLabel}</p>
+      {/* Day navigator */}
+      <section className="flex items-center justify-between gap-2 px-[18px]">
+        <button
+          onClick={() => shiftDay(-1)}
+          aria-label="Poprzedni dzień"
+          className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground active:scale-95"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <Popover open={calOpen} onOpenChange={setCalOpen}>
+          <PopoverTrigger asChild>
+            <button className="flex-1 text-center text-sm font-semibold text-foreground active:opacity-70">
+              {dateLabel}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="center">
+            <Calendar
+              mode="single"
+              selected={new Date(selected + "T00:00:00")}
+              onSelect={(d) => {
+                if (d) {
+                  setSelected(ymd(d));
+                  setCalOpen(false);
+                }
+              }}
+              disabled={(d) => d > new Date()}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+        <div className="flex items-center gap-1">
+          {!isToday && (
+            <button
+              onClick={() => setSelected(today)}
+              className="rounded-full bg-foreground/5 px-2.5 py-1 text-[11px] font-semibold text-foreground active:scale-95"
+            >
+              Dziś
+            </button>
+          )}
+          <button
+            onClick={() => shiftDay(1)}
+            aria-label="Następny dzień"
+            disabled={isToday}
+            className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground active:scale-95 disabled:opacity-30"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
       </section>
 
       {/* Plate dial hero */}
@@ -205,17 +261,7 @@ function PlateDial({
 
   return (
     <div className="surface-hero relative p-5">
-      <div className="flex items-start justify-between">
-        <h2 className="text-[17px] font-bold tracking-tight">Talerz dnia</h2>
-        <button
-          className="grid h-9 w-9 place-items-center rounded-xl bg-card"
-          style={{ boxShadow: "var(--shadow-card)" }}
-          aria-label="Otwórz"
-        >
-          <ArrowUpRight size={16} strokeWidth={2} />
-        </button>
-      </div>
-      <div className="relative mt-2 grid place-items-center">
+      <div className="relative grid place-items-center">
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
           <circle
             cx={cx}

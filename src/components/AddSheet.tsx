@@ -61,7 +61,8 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto flex w-full max-w-[430px] flex-col"
+            className="fixed inset-x-0 z-50 mx-auto flex w-full max-w-[430px] flex-col"
+            style={{ bottom: "var(--kb-inset, 0px)" }}
           >
             <div className="mx-2 mb-[max(env(safe-area-inset-bottom),1rem)] rounded-[28px] bg-card p-5 pb-[max(env(safe-area-inset-bottom),1.25rem)]" style={{ boxShadow: "var(--shadow-card)" }}>
               <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-foreground/20" />
@@ -97,10 +98,9 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
               )}
               {mode === "quick" && (
                 <QuickForm
-                  meal={meal}
-                  setMeal={setMeal}
                   onSubmit={(payload) => {
-                    addEntry({ ...payload, date, meal });
+                    const m = guessMeal();
+                    addEntry({ ...payload, date, meal: m });
                     close();
                   }}
                 />
@@ -269,21 +269,16 @@ const inputCls =
   "w-full rounded-xl border border-border/60 bg-card px-3 py-2.5 text-base outline-none focus:border-primary num-tight";
 
 function QuickForm({
-  meal,
-  setMeal,
   onSubmit,
 }: {
-  meal: Meal;
-  setMeal: (m: Meal) => void;
   onSubmit: (p: FormPayload) => void;
 }) {
-  const [name, setName] = useState("");
   const [kcal, setKcal] = useState("");
   const [p, setP] = useState("");
   const [c, setC] = useState("");
   const [f, setF] = useState("");
 
-  const valid = name.trim() && Number(kcal) > 0;
+  const valid = Number(kcal) > 0;
 
   return (
     <form
@@ -292,7 +287,7 @@ function QuickForm({
         e.preventDefault();
         if (!valid) return;
         onSubmit({
-          name: name.trim(),
+          name: "Szybki wpis",
           kcal: Number(kcal),
           protein: Number(p) || 0,
           carbs: Number(c) || 0,
@@ -300,17 +295,6 @@ function QuickForm({
         });
       }}
     >
-      <MealPicker meal={meal} setMeal={setMeal} />
-
-      <input
-        autoFocus
-        className="w-full rounded-2xl bg-muted px-4 py-3 text-[15px] font-semibold outline-none placeholder:text-muted-foreground/70 focus:ring-2 focus:ring-ring"
-        value={name}
-        maxLength={80}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Nazwa, np. Jogurt naturalny"
-      />
-
       {/* Hero kcal field */}
       <div
         className="rounded-2xl bg-card p-4"
@@ -324,6 +308,7 @@ function QuickForm({
         </div>
         <div className="mt-1 flex items-baseline gap-2">
           <input
+            autoFocus
             className="num-tight w-full bg-transparent text-[40px] font-extrabold leading-none tracking-tight outline-none placeholder:text-foreground/20"
             inputMode="numeric"
             value={kcal}
@@ -334,10 +319,10 @@ function QuickForm({
         </div>
       </div>
 
-      {/* Optional macros */}
+      {/* Optional macros — three equal columns */}
       <div className="grid grid-cols-3 gap-2">
         <MacroField color="var(--macro-protein)" label="Białko" value={p} onChange={setP} />
-        <MacroField color="var(--macro-carbs)" label="Węglowodany" value={c} onChange={setC} />
+        <MacroField color="var(--macro-carbs)" label="Węgl." value={c} onChange={setC} />
         <MacroField color="var(--macro-fat)" label="Tłuszcz" value={f} onChange={setF} />
       </div>
 
@@ -358,17 +343,17 @@ function MacroField({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="block rounded-2xl bg-muted p-3">
-      <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+    <label className="block min-w-0 rounded-2xl bg-muted p-3">
+      <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
         <span
-          className="inline-block h-2 w-2 rounded-full"
+          className="inline-block h-2 w-2 shrink-0 rounded-full"
           style={{ background: color }}
           aria-hidden
         />
-        {label}
+        <span className="truncate">{label}</span>
       </span>
       <input
-        className="num-tight mt-1 w-full bg-transparent text-[18px] font-extrabold tracking-tight outline-none placeholder:text-foreground/25"
+        className="num-tight mt-1 w-full min-w-0 bg-transparent text-[18px] font-extrabold tracking-tight outline-none placeholder:text-[10px] placeholder:font-medium placeholder:text-foreground/35"
         inputMode="decimal"
         value={value}
         onChange={(e) => onChange(e.target.value.replace(",", "."))}
