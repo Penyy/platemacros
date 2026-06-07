@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
-import { Download, Upload, LogOut, CloudUpload } from "lucide-react";
+import { Download, Upload, LogOut, CloudUpload, MessageSquare } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Switch } from "@/components/ui/switch";
+import { FeedbackSheet } from "@/components/FeedbackSheet";
 import {
   type Theme,
   type LogEntry,
@@ -85,6 +86,7 @@ function SettingsPage() {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [legacy, setLegacy] = useState<ReturnType<typeof readLegacyLocalStorage>>(null);
   const [migrating, setMigrating] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   useEffect(() => {
     setLegacy(readLegacyLocalStorage());
@@ -361,6 +363,23 @@ function SettingsPage() {
           </div>
         </button>
       </Section>
+
+      <Section title="Opinie">
+        <button
+          onClick={() => setFeedbackOpen(true)}
+          className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
+        >
+          <MessageSquare size={18} className="text-muted-foreground" />
+          <div className="flex-1">
+            <div className="text-[15px]">Prześlij opinię</div>
+            <div className="text-[11px] text-muted-foreground">
+              Powiedz nam co poprawić lub co Ci się podoba
+            </div>
+          </div>
+        </button>
+      </Section>
+
+      <FeedbackSheet open={feedbackOpen} onOpenChange={setFeedbackOpen} />
 
       <p className="px-6 pt-2 pb-6 text-center text-[11px] text-muted-foreground">
         Plate · wersja 0.1
