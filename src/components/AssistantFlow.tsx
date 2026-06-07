@@ -1,13 +1,13 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Camera, Loader2, MessageCircle, Send, Sparkles, X } from "lucide-react";
+import { Camera, Loader2, MessageCircle, Send, Sparkles, X, Plus } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   askAssistant,
   type AssistantResult,
   type FoodAction,
-  type ScannedLabel,
+  type RecognizedItem,
 } from "@/lib/ai-assistant.functions";
 import {
   defaultAssistantSettings,
@@ -21,32 +21,23 @@ import {
 
 interface Props {
   defaultMeal?: Meal;
+  date?: string;
   onClose: () => void;
 }
 
 type HistoryItem =
-  | { id: string; kind: "user"; text: string }
+  | { id: string; kind: "user"; text: string; previews?: string[] }
   | { id: string; kind: "text"; text: string }
-  | { id: string; kind: "actions"; text: string; actions: FoodAction[] }
-  | { id: string; kind: "label"; label: ScannedLabel; preview: string }
-  | {
-      id: string;
-      kind: "meal";
-      name: string;
-      total: { kcal: number; protein: number; carbs: number; fat: number };
-      confidence: number;
-      preview: string;
-      pending?: boolean;
-      added?: boolean;
-    };
+  | { id: string; kind: "actions"; text: string; actions: FoodAction[] };
 
 const CHIPS = ["Ile mi zostało?", "Co dojeść na białko?", "Dodaj posiłek"];
+const MAX_IMAGES = 5;
 
 function nid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-async function shrinkImage(file: File, maxDim = 1024, quality = 0.8): Promise<string> {
+async function shrinkImage(file: File, maxDim = 1280, quality = 0.8): Promise<string> {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
   const w = Math.round(bitmap.width * scale);
@@ -60,8 +51,17 @@ async function shrinkImage(file: File, maxDim = 1024, quality = 0.8): Promise<st
   return canvas.toDataURL("image/jpeg", quality);
 }
 
-export function AssistantFlow({ defaultMeal }: Props) {
-  const today = ymd(new Date());
+function guessMeal(): Meal {
+  const h = new Date().getHours();
+  if (h < 10) return "breakfast";
+  if (h < 12) return "second_breakfast";
+  if (h < 16) return "lunch";
+  if (h < 21) return "dinner";
+  return "snack";
+}
+
+export function AssistantFlow({ defaultMeal, date }: Props) {
+  const targetDate = date ?? ymd(new Date());
   const profile = usePlate((s) => s.profile);
   const entries = usePlate((s) => s.entries);
   const burnedMap = usePlate((s) => s.burned);
@@ -73,27 +73,36 @@ export function AssistantFlow({ defaultMeal }: Props) {
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-resize textarea (1–4 lines).
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
   }, [input]);
+
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [busy, setBusy] = useState<false | "text" | "image">(false);
-  const [pendingImage, setPendingImage] = useState<{ dataUrl: string; base64: string } | null>(null);
+  const [pendingImages, setPendingImages] = useState<{ dataUrl: string; base64: string }[]>([]);
+  const [preview, setPreview] = useState<null | {
+    dishName: string;
+    meal: Meal;
+    items: RecognizedItem[];
+    notes?: string;
+    previews: string[];
+  }>(null);
+
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const ask = useServerFn(askAssistant);
 
   const dayContext = useMemo(() => {
-    const day = entries.filter((e) => e.date === today);
+    const day = entries.filter((e) => e.date === targetDate);
     const sum = sumEntries(day);
-    const goals = getDayGoals(profile, today);
-    const burned = burnedMap[today] ?? 0;
+    const goals = getDayGoals(profile, targetDate);
+    const burned = burnedMap[targetDate] ?? 0;
     const kcalGoal = profile.include_burned ? goals.kcal + burned : goals.kcal;
     return {
-      date: today,
+      date: targetDate,
       hour: new Date().getHours(),
       goals: { kcal: kcalGoal, protein: goals.protein, carbs: goals.carbs, fat: goals.fat },
       consumed: sum,
@@ -104,15 +113,10 @@ export function AssistantFlow({ defaultMeal }: Props) {
         fat: goals.fat - sum.fat,
       },
       entries: day.map((e) => ({
-        meal: e.meal,
-        name: e.name,
-        kcal: e.kcal,
-        protein: e.protein,
-        carbs: e.carbs,
-        fat: e.fat,
+        meal: e.meal, name: e.name, kcal: e.kcal, protein: e.protein, carbs: e.carbs, fat: e.fat,
       })),
     };
-  }, [profile, entries, burnedMap, today]);
+  }, [profile, entries, burnedMap, targetDate]);
 
   const sessionHistory = useMemo(
     () =>
@@ -127,56 +131,41 @@ export function AssistantFlow({ defaultMeal }: Props) {
     [history],
   );
 
-  const sendImage = async (image: { dataUrl: string; base64: string }, note: string) => {
+  const sendImages = async (
+    imgs: { dataUrl: string; base64: string }[],
+    note: string,
+  ) => {
     const trimmedNote = note.trim();
-    const userText = trimmedNote ? `📷 zdjęcie · "${trimmedNote}"` : "📷 zdjęcie";
-    setHistory((h) => [...h, { id: nid(), kind: "user", text: userText }]);
+    const userText = trimmedNote
+      ? `📷 ${imgs.length} zdj · "${trimmedNote}"`
+      : `📷 ${imgs.length} zdj`;
+    setHistory((h) => [
+      ...h,
+      { id: nid(), kind: "user", text: userText, previews: imgs.map((i) => i.dataUrl) },
+    ]);
     setBusy("image");
     try {
       const result = (await ask({
         data: {
-          message: trimmedNote || "Rozpoznaj zdjęcie",
+          message: trimmedNote || "Rozpoznaj zdjęcia",
           history: [],
           dayContext,
-          imageBase64: image.base64,
-          mimeType: "image/jpeg",
+          images: imgs.map((i) => i.base64),
           settings: assistantSettings,
         },
       })) as AssistantResult;
-      if (result.kind === "label") {
-        setHistory((h) => [
-          ...h,
-          { id: nid(), kind: "label", label: result.label, preview: image.dataUrl },
-        ]);
-      } else if (result.kind === "meal") {
-        const autoAdd = assistantSettings.autoAddPhoto && !!trimmedNote;
-        if (autoAdd) {
-          const m = effectiveDefaultMeal ?? guessMeal();
-          addEntry({
-            date: today,
-            meal: m,
-            name: result.name || "Posiłek ze zdjęcia",
-            kcal: Math.round(result.total.kcal * 10) / 10,
-            protein: Math.round(result.total.protein * 10) / 10,
-            carbs: Math.round(result.total.carbs * 10) / 10,
-            fat: Math.round(result.total.fat * 10) / 10,
-          });
-        }
-        setHistory((h) => [
-          ...h,
-          {
-            id: nid(),
-            kind: "meal",
-            name: result.name,
-            total: result.total,
-            confidence: result.confidence,
-            preview: image.dataUrl,
-            pending: !autoAdd,
-            added: autoAdd,
-          },
-        ]);
+      if (result.kind === "items") {
+        setPreview({
+          dishName: result.dishName || "Posiłek",
+          meal: effectiveDefaultMeal ?? result.meal ?? guessMeal(),
+          items: result.items,
+          notes: result.notes,
+          previews: imgs.map((i) => i.dataUrl),
+        });
       } else if (result.kind === "text") {
         setHistory((h) => [...h, { id: nid(), kind: "text", text: result.text }]);
+      } else {
+        setHistory((h) => [...h, { id: nid(), kind: "text", text: "Brak rozpoznanych pozycji." }]);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -191,17 +180,16 @@ export function AssistantFlow({ defaultMeal }: Props) {
   const sendText = async (message: string) => {
     const trimmed = message.trim();
     if (busy) return;
-    if (pendingImage) {
-      const img = pendingImage;
-      setPendingImage(null);
+    if (pendingImages.length > 0) {
+      const imgs = pendingImages;
+      setPendingImages([]);
       setInput("");
-      await sendImage(img, trimmed);
+      await sendImages(imgs, trimmed);
       return;
     }
     if (!trimmed) return;
     setInput("");
-    const userItem: HistoryItem = { id: nid(), kind: "user", text: trimmed };
-    setHistory((h) => [...h, userItem]);
+    setHistory((h) => [...h, { id: nid(), kind: "user", text: trimmed }]);
     setBusy("text");
     try {
       const result = (await ask({
@@ -216,14 +204,10 @@ export function AssistantFlow({ defaultMeal }: Props) {
       if (result.kind === "actions") {
         for (const a of result.actions) {
           addEntry({
-            date: today,
-            meal: a.meal,
-            name: a.name,
+            date: targetDate,
+            meal: a.meal, name: a.name,
             grams: a.grams ?? undefined,
-            kcal: a.kcal,
-            protein: a.protein,
-            carbs: a.carbs,
-            fat: a.fat,
+            kcal: a.kcal, protein: a.protein, carbs: a.carbs, fat: a.fat,
           });
         }
         setHistory((h) => [
@@ -250,44 +234,116 @@ export function AssistantFlow({ defaultMeal }: Props) {
     }
   };
 
-  const onPickImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (fileRef.current) fileRef.current.value = "";
-    if (!file || busy) return;
-    try {
-      const dataUrl = await shrinkImage(file);
-      const base64 = dataUrl.split(",")[1] ?? "";
-      setPendingImage({ dataUrl, base64 });
-    } catch {
-      toast.error("Nie udało się wczytać zdjęcia.");
+  const onPickImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (e.target) e.target.value = "";
+    if (files.length === 0 || busy) return;
+    const slotsLeft = MAX_IMAGES - pendingImages.length;
+    if (slotsLeft <= 0) {
+      toast.message(`Maks. ${MAX_IMAGES} zdjęć.`);
+      return;
     }
+    const toAdd = files.slice(0, slotsLeft);
+    const results: { dataUrl: string; base64: string }[] = [];
+    for (const f of toAdd) {
+      try {
+        const dataUrl = await shrinkImage(f);
+        results.push({ dataUrl, base64: dataUrl.split(",")[1] ?? "" });
+      } catch {
+        toast.error("Nie udało się wczytać zdjęcia.");
+      }
+    }
+    if (results.length > 0) setPendingImages((p) => [...p, ...results]);
   };
 
+  const handleAddPreview = (oneEntry: boolean) => {
+    if (!preview) return;
+    const { items, meal, dishName, previews } = preview;
+    if (items.length === 0) return;
 
-  const onAddLabel = (item: HistoryItem & { kind: "label" }, grams: number, meal: Meal) => {
-    const per = item.label.per100;
-    const kcal = (per.kcal ?? 0) * (grams / 100);
-    const p = (per.protein ?? 0) * (grams / 100);
-    const c = (per.carbs ?? 0) * (grams / 100);
-    const f = (per.fat ?? 0) * (grams / 100);
-    addEntry({
-      date: today,
-      meal,
-      name: item.label.name || "Produkt z etykiety",
-      grams,
-      kcal: Math.round(kcal * 10) / 10,
-      protein: Math.round(p * 10) / 10,
-      carbs: Math.round(c * 10) / 10,
-      fat: Math.round(f * 10) / 10,
-    });
+    const addedIds: string[] = [];
+
+    if (oneEntry) {
+      const total = items.reduce(
+        (acc, it) => ({
+          kcal: acc.kcal + it.kcal,
+          protein: acc.protein + it.protein,
+          carbs: acc.carbs + it.carbs,
+          fat: acc.fat + it.fat,
+          grams: acc.grams + it.grams,
+        }),
+        { kcal: 0, protein: 0, carbs: 0, fat: 0, grams: 0 },
+      );
+      const id = nid();
+      addedIds.push(id);
+      addEntry({
+        date: targetDate,
+        meal,
+        name: dishName || "Posiłek",
+        grams: Math.round(total.grams) || undefined,
+        kcal: Math.round(total.kcal),
+        protein: Math.round(total.protein * 10) / 10,
+        carbs: Math.round(total.carbs * 10) / 10,
+        fat: Math.round(total.fat * 10) / 10,
+      });
+    } else {
+      for (const it of items) {
+        addEntry({
+          date: targetDate,
+          meal,
+          name: it.name,
+          grams: Math.round(it.grams) || undefined,
+          kcal: Math.round(it.kcal),
+          protein: Math.round(it.protein * 10) / 10,
+          carbs: Math.round(it.carbs * 10) / 10,
+          fat: Math.round(it.fat * 10) / 10,
+        });
+      }
+    }
+
+    // Snapshot for undo
+    const snapshot = oneEntry
+      ? [
+          {
+            name: dishName || "Posiłek",
+            meal,
+            grams: items.reduce((a, b) => a + b.grams, 0),
+            kcal: items.reduce((a, b) => a + b.kcal, 0),
+            protein: items.reduce((a, b) => a + b.protein, 0),
+            carbs: items.reduce((a, b) => a + b.carbs, 0),
+            fat: items.reduce((a, b) => a + b.fat, 0),
+          },
+        ]
+      : items.map((it) => ({ ...it, meal }));
+
+    const removeLast = usePlate.getState();
+    const totalAdded = oneEntry ? 1 : items.length;
+    // Capture last N entries on the day with these names to undo
+    const after = removeLast.entries.filter((e) => e.date === targetDate).slice(-totalAdded);
+    const undoIds = after.map((e) => e.id);
+
+    setPreview(null);
     setHistory((h) => [
       ...h,
       {
         id: nid(),
         kind: "text",
-        text: `Dodano: ${item.label.name || "produkt"} (${grams} g) — ${Math.round(kcal)} kcal.`,
+        text: `Dodano ${oneEntry ? "1 wpis" : `${items.length} pozycji`}: ${dishName || "Posiłek"}.`,
       },
     ]);
+
+    toast(`Dodano · ${MEAL_LABEL[meal]}`, {
+      duration: 5000,
+      action: {
+        label: "Cofnij",
+        onClick: () => {
+          const rm = usePlate.getState().removeEntry;
+          for (const id of undoIds) rm(id);
+        },
+      },
+    });
+    void snapshot;
+    void previews;
   };
 
   return (
@@ -296,33 +352,51 @@ export function AssistantFlow({ defaultMeal }: Props) {
         ref={fileRef}
         type="file"
         accept="image/*"
+        multiple
+        className="hidden"
+        onChange={onPickImages}
+      />
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
         capture="environment"
         className="hidden"
-        onChange={onPickImage}
+        onChange={onPickImages}
       />
 
-      {pendingImage && (
+      {pendingImages.length > 0 && (
         <div
-          className="flex items-center gap-2 rounded-2xl bg-card p-2"
+          className="flex items-center gap-2 overflow-x-auto rounded-2xl bg-card p-2"
           style={{ border: "1px solid var(--hairline)", boxShadow: "var(--shadow-card)" }}
         >
-          <img src={pendingImage.dataUrl} alt="" className="h-12 w-12 rounded-xl object-cover" />
-          <div
-            className="flex-1 text-[12px]"
-            style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
-          >
-            Zdjęcie gotowe. Dodaj opis (opcjonalnie) i wyślij.
-          </div>
-          <button
-            type="button"
-            onClick={() => setPendingImage(null)}
-            disabled={!!busy}
-            className="grid h-8 w-8 place-items-center rounded-full"
-            style={{ background: "var(--hairline)", color: "var(--ink)" }}
-            aria-label="Usuń zdjęcie"
-          >
-            <X size={14} />
-          </button>
+          {pendingImages.map((img, i) => (
+            <div key={i} className="relative shrink-0">
+              <img src={img.dataUrl} alt="" className="h-14 w-14 rounded-xl object-cover" />
+              <button
+                type="button"
+                onClick={() => setPendingImages((p) => p.filter((_, j) => j !== i))}
+                disabled={!!busy}
+                className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full"
+                style={{ background: "var(--ink)", color: "var(--card)" }}
+                aria-label="Usuń zdjęcie"
+              >
+                <X size={11} strokeWidth={2.4} />
+              </button>
+            </div>
+          ))}
+          {pendingImages.length < MAX_IMAGES && (
+            <button
+              type="button"
+              onClick={() => cameraRef.current?.click()}
+              disabled={!!busy}
+              className="grid h-14 w-14 shrink-0 place-items-center rounded-xl"
+              style={{ background: "var(--muted)", color: "var(--ink)" }}
+              aria-label="Dodaj kolejne"
+            >
+              <Plus size={18} strokeWidth={2.2} />
+            </button>
+          )}
         </div>
       )}
 
@@ -350,8 +424,8 @@ export function AssistantFlow({ defaultMeal }: Props) {
               }
             }}
             placeholder={
-              pendingImage
-                ? "Opisz zdjęcie (opcjonalnie)…"
+              pendingImages.length > 0
+                ? "Opisz ilości (np. 100 g ryżu, 1 całe opakowanie)…"
                 : "Opisz co zjadłeś albo zapytaj…"
             }
             disabled={!!busy}
@@ -360,7 +434,7 @@ export function AssistantFlow({ defaultMeal }: Props) {
           />
           <button
             type="submit"
-            disabled={(!input.trim() && !pendingImage) || !!busy}
+            disabled={(!input.trim() && pendingImages.length === 0) || !!busy}
             className="grid h-8 w-8 shrink-0 place-items-center rounded-full disabled:opacity-40"
             style={{ background: "var(--ink)", color: "var(--card)" }}
             aria-label="Wyślij"
@@ -370,16 +444,22 @@ export function AssistantFlow({ defaultMeal }: Props) {
         </div>
         <button
           type="button"
-          onClick={() => fileRef.current?.click()}
+          onClick={() => {
+            if (pendingImages.length >= MAX_IMAGES) {
+              toast.message(`Maks. ${MAX_IMAGES} zdjęć.`);
+              return;
+            }
+            fileRef.current?.click();
+          }}
           disabled={!!busy}
           className="grid h-12 w-12 shrink-0 place-items-center rounded-[18px] disabled:opacity-40"
           style={{
-            background: pendingImage ? "var(--accent-yellow)" : "var(--card)",
+            background: pendingImages.length > 0 ? "var(--accent-yellow)" : "var(--card)",
             color: "var(--ink)",
             border: "1px solid var(--hairline)",
             boxShadow: "var(--shadow-card)",
           }}
-          aria-label="Zrób zdjęcie"
+          aria-label="Dodaj zdjęcia"
         >
           <Camera size={18} strokeWidth={1.9} />
         </button>
@@ -403,7 +483,7 @@ export function AssistantFlow({ defaultMeal }: Props) {
             </li>
             <li className="flex gap-2">
               <Camera size={14} strokeWidth={1.9} className="mt-0.5 shrink-0" style={{ color: "var(--accent-yellow)" }} />
-              <span><b>Zrób zdjęcie</b> posiłku lub etykiety</span>
+              <span><b>Dodaj zdjęcia etykiet</b> (do 5) i opisz ilości</span>
             </li>
             <li className="flex gap-2">
               <MessageCircle size={14} strokeWidth={1.9} className="mt-0.5 shrink-0" style={{ color: "var(--accent-yellow)" }} />
@@ -421,11 +501,7 @@ export function AssistantFlow({ defaultMeal }: Props) {
             disabled={!!busy}
             onClick={() => void sendText(c)}
             className="rounded-full px-3.5 py-1.5 text-[12px] transition active:scale-95 disabled:opacity-40"
-            style={{
-              background: "var(--hairline)",
-              color: "var(--ink)",
-              fontWeight: 600,
-            }}
+            style={{ background: "var(--hairline)", color: "var(--ink)", fontWeight: 600 }}
           >
             {c}
           </button>
@@ -438,7 +514,7 @@ export function AssistantFlow({ defaultMeal }: Props) {
           style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
         >
           <Loader2 size={12} className="animate-spin" />
-          {busy === "image" ? "Analizuję zdjęcie…" : "Myślę…"}
+          {busy === "image" ? "Analizuję zdjęcia…" : "Myślę…"}
         </div>
       )}
 
@@ -447,56 +523,41 @@ export function AssistantFlow({ defaultMeal }: Props) {
           .slice()
           .reverse()
           .map((it) => (
-            <HistoryRow
-              key={it.id}
-              item={it}
-              onAddLabel={onAddLabel}
-              defaultMeal={effectiveDefaultMeal}
-              onConfirmMeal={(id, meal) => {
-                const target = history.find((h) => h.id === id);
-                if (!target || target.kind !== "meal" || target.added) return;
-                addEntry({
-                  date: today,
-                  meal,
-                  name: target.name || "Posiłek ze zdjęcia",
-                  kcal: Math.round(target.total.kcal * 10) / 10,
-                  protein: Math.round(target.total.protein * 10) / 10,
-                  carbs: Math.round(target.total.carbs * 10) / 10,
-                  fat: Math.round(target.total.fat * 10) / 10,
-                });
-                setHistory((hs) =>
-                  hs.map((h) =>
-                    h.id === id && h.kind === "meal"
-                      ? { ...h, pending: false, added: true }
-                      : h,
-                  ),
-                );
-              }}
-            />
+            <HistoryRow key={it.id} item={it} />
           ))}
       </div>
+
+      <AnimatePresence>
+        {preview && (
+          <ItemsPreviewSheet
+            data={preview}
+            onClose={() => setPreview(null)}
+            onChange={setPreview}
+            onAdd={handleAddPreview}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-function HistoryRow({
-  item,
-  onAddLabel,
-  defaultMeal,
-  onConfirmMeal,
-}: {
-  item: HistoryItem;
-  onAddLabel: (it: HistoryItem & { kind: "label" }, grams: number, meal: Meal) => void;
-  defaultMeal?: Meal;
-  onConfirmMeal: (id: string, meal: Meal) => void;
-}) {
+function HistoryRow({ item }: { item: HistoryItem }) {
   if (item.kind === "user") {
     return (
-      <div
-        className="ml-auto max-w-[80%] rounded-2xl px-3.5 py-2 text-[14px]"
-        style={{ background: "var(--ink)", color: "var(--card)", fontWeight: 500 }}
-      >
-        {item.text}
+      <div className="ml-auto max-w-[80%] space-y-1">
+        {item.previews && item.previews.length > 0 && (
+          <div className="flex flex-wrap justify-end gap-1">
+            {item.previews.map((p, i) => (
+              <img key={i} src={p} alt="" className="h-10 w-10 rounded-lg object-cover" />
+            ))}
+          </div>
+        )}
+        <div
+          className="rounded-2xl px-3.5 py-2 text-[14px]"
+          style={{ background: "var(--ink)", color: "var(--card)", fontWeight: 500 }}
+        >
+          {item.text}
+        </div>
       </div>
     );
   }
@@ -515,195 +576,324 @@ function HistoryRow({
       </div>
     );
   }
-  if (item.kind === "actions") {
-    return (
-      <div
-        className="rounded-2xl bg-card p-3"
-        style={{ border: "1px solid var(--hairline)", boxShadow: "var(--shadow-card)" }}
-      >
-        <div className="text-[14px]" style={{ color: "var(--ink)", fontWeight: 500 }}>
-          {item.text}
-        </div>
-        <div className="mt-2 space-y-1">
-          {item.actions.map((a, i) => (
-            <div
-              key={i}
-              className="num-tight flex items-center justify-between rounded-xl px-2.5 py-1.5 text-xs"
-              style={{ background: "var(--hairline)", color: "var(--ink)" }}
-            >
-              <span className="truncate">
-                <b>{a.name}</b>{" "}
-                <span style={{ color: "var(--muted-foreground)" }}>· {MEAL_LABEL[a.meal]}</span>
-              </span>
-              <span style={{ color: "var(--muted-foreground)" }}>
-                {Math.round(a.kcal)} kcal · B{Math.round(a.protein)} W{Math.round(a.carbs)} T
-                {Math.round(a.fat)}
-              </span>
-            </div>
-          ))}
-        </div>
+  // actions
+  return (
+    <div
+      className="rounded-2xl bg-card p-3"
+      style={{ border: "1px solid var(--hairline)", boxShadow: "var(--shadow-card)" }}
+    >
+      <div className="text-[14px]" style={{ color: "var(--ink)", fontWeight: 500 }}>
+        {item.text}
       </div>
-    );
-  }
-  if (item.kind === "meal") {
-    return (
-      <MealPhotoCard item={item} defaultMeal={defaultMeal} onConfirm={onConfirmMeal} />
-    );
-  }
-  return <LabelCard item={item} onAdd={onAddLabel} defaultMeal={defaultMeal} />;
+      <div className="mt-2 space-y-1">
+        {item.actions.map((a, i) => (
+          <div
+            key={i}
+            className="num-tight flex items-center justify-between rounded-xl px-2.5 py-1.5 text-xs"
+            style={{ background: "var(--hairline)", color: "var(--ink)" }}
+          >
+            <span className="truncate">
+              <b>{a.name}</b>{" "}
+              <span style={{ color: "var(--muted-foreground)" }}>· {MEAL_LABEL[a.meal]}</span>
+            </span>
+            <span style={{ color: "var(--muted-foreground)" }}>
+              {Math.round(a.kcal)} kcal · B{Math.round(a.protein)} W{Math.round(a.carbs)} T
+              {Math.round(a.fat)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
-function MealPhotoCard({
-  item,
-  defaultMeal,
-  onConfirm,
+const MEAL_PILLS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
+
+function ItemsPreviewSheet({
+  data,
+  onClose,
+  onChange,
+  onAdd,
 }: {
-  item: HistoryItem & { kind: "meal" };
-  defaultMeal?: Meal;
-  onConfirm: (id: string, meal: Meal) => void;
+  data: {
+    dishName: string;
+    meal: Meal;
+    items: RecognizedItem[];
+    notes?: string;
+    previews: string[];
+  };
+  onClose: () => void;
+  onChange: (next: typeof data) => void;
+  onAdd: (oneEntry: boolean) => void;
 }) {
-  const [meal, setMeal] = useState<Meal>(defaultMeal ?? guessMeal());
+  const [oneEntry, setOneEntry] = useState(false);
+
+  const sum = data.items.reduce(
+    (a, it) => ({
+      kcal: a.kcal + (Number(it.kcal) || 0),
+      protein: a.protein + (Number(it.protein) || 0),
+      carbs: a.carbs + (Number(it.carbs) || 0),
+      fat: a.fat + (Number(it.fat) || 0),
+    }),
+    { kcal: 0, protein: 0, carbs: 0, fat: 0 },
+  );
+
+  const setItem = (idx: number, patch: Partial<RecognizedItem>) => {
+    onChange({ ...data, items: data.items.map((it, i) => (i === idx ? { ...it, ...patch } : it)) });
+  };
+  const removeItem = (idx: number) => {
+    onChange({ ...data, items: data.items.filter((_, i) => i !== idx) });
+  };
+
   return (
-    <div className="space-y-2 rounded-2xl bg-foreground/5 p-3">
-      <div className="flex items-start gap-2">
-        <img src={item.preview} alt="" className="h-12 w-12 rounded-lg object-cover" />
-        <div className="flex-1">
-          <div className="text-sm font-semibold">{item.name || "Posiłek"}</div>
-          <div className="num-tight text-[11px] text-muted-foreground">
-            szacunek: {Math.round(item.total.kcal)} kcal · B{Math.round(item.total.protein)} · W
-            {Math.round(item.total.carbs)} · T{Math.round(item.total.fat)}
-          </div>
-          {item.added ? (
-            <div className="mt-0.5 text-[10px] text-muted-foreground/80">
-              Dodano (szacunek AI)
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 z-[60] bg-black/40"
+      />
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 30, stiffness: 280 }}
+        className="fixed inset-x-0 z-[61] mx-auto w-full max-w-[430px] overflow-hidden"
+        style={{
+          bottom: "var(--kb-inset, 0px)",
+          background: "var(--card)",
+          color: "var(--ink)",
+          borderTopLeftRadius: 32,
+          borderTopRightRadius: 32,
+          paddingBottom: "max(env(safe-area-inset-bottom),1rem)",
+          boxShadow: "var(--shadow-card)",
+          maxHeight: "calc(100dvh - var(--kb-inset, 0px) - 24px)",
+        }}
+      >
+        <div className="flex items-center justify-between px-5 pb-2 pt-4">
+          <div className="text-[18px]" style={{ fontWeight: 700 }}>Podgląd z PlateAI</div>
+          <button
+            onClick={onClose}
+            className="grid h-8 w-8 place-items-center rounded-full"
+            style={{ background: "var(--muted)", color: "var(--ink)" }}
+            aria-label="Zamknij"
+          >
+            <X size={14} />
+          </button>
+        </div>
+
+        <div className="space-y-3 overflow-y-auto px-4 pb-4" style={{ maxHeight: "70vh" }}>
+          {/* SUMA */}
+          <div
+            className="rounded-[20px] p-3"
+            style={{ background: "var(--muted)" }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
+                Suma
+              </span>
+              <span className="num-tight text-[18px]" style={{ fontWeight: 800 }}>
+                {Math.round(sum.kcal)} <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>kcal</span>
+              </span>
             </div>
-          ) : (
-            <div className="mt-0.5 text-[10px] text-muted-foreground/80">
-              Do potwierdzenia
+            <div className="num-tight mt-1 flex gap-3 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+              <span>B {sum.protein.toFixed(1)} g</span>
+              <span>W {sum.carbs.toFixed(1)} g</span>
+              <span>T {sum.fat.toFixed(1)} g</span>
+            </div>
+          </div>
+
+          {/* Dish name */}
+          <Field label="Nazwa dania">
+            <input
+              value={data.dishName}
+              onChange={(e) => onChange({ ...data, dishName: e.target.value })}
+              className="w-full bg-transparent text-[15px] outline-none"
+              style={{ color: "var(--ink)", fontWeight: 600 }}
+              placeholder="Posiłek"
+            />
+          </Field>
+
+          {/* Meal pills */}
+          <div className="rounded-[20px] p-3" style={{ background: "var(--muted)" }}>
+            <div
+              className="pb-2 text-[11px] font-semibold uppercase tracking-wider"
+              style={{ color: "var(--muted-foreground)" }}
+            >
+              Posiłek
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {MEAL_PILLS.map((m) => {
+                const active = data.meal === m;
+                return (
+                  <button
+                    key={m}
+                    onClick={() => onChange({ ...data, meal: m })}
+                    className="rounded-full px-3 py-1.5 text-[12px] transition active:scale-95"
+                    style={{
+                      background: active ? "var(--ink)" : "var(--card)",
+                      color: active ? "var(--card)" : "var(--ink)",
+                      fontWeight: active ? 700 : 600,
+                    }}
+                  >
+                    {MEAL_LABEL[m]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Items */}
+          <div className="space-y-2">
+            {data.items.map((it, i) => (
+              <ItemRow
+                key={i}
+                item={it}
+                onChange={(patch) => setItem(i, patch)}
+                onRemove={() => removeItem(i)}
+              />
+            ))}
+            {data.items.length === 0 && (
+              <div className="text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                Brak pozycji — dodaj zdjęcie lub opisz ilości.
+              </div>
+            )}
+          </div>
+
+          {data.notes && (
+            <div
+              className="rounded-xl px-3 py-2 text-[11px]"
+              style={{ background: "var(--muted)", color: "var(--muted-foreground)" }}
+            >
+              {data.notes}
             </div>
           )}
-        </div>
-      </div>
-      {item.pending && !item.added && (
-        <div className="flex items-center gap-2">
-          <select
-            value={meal}
-            onChange={(e) => setMeal(e.target.value as Meal)}
-            className="flex-1 rounded-lg border border-border/60 bg-card px-2 py-1.5 text-sm"
+
+          {/* Toggle */}
+          <button
+            type="button"
+            onClick={() => setOneEntry((v) => !v)}
+            className="flex w-full items-center justify-between rounded-[20px] px-4 py-3"
+            style={{ background: "var(--muted)", color: "var(--ink)" }}
           >
-            {(Object.keys(MEAL_LABEL) as Meal[]).map((m) => (
-              <option key={m} value={m}>
-                {MEAL_LABEL[m]}
-              </option>
-            ))}
-          </select>
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={() => onConfirm(item.id, meal)}
-            className="rounded-xl bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground"
+            <span className="text-[13px]" style={{ fontWeight: 600 }}>
+              Dodaj jako jeden wpis (całość)
+            </span>
+            <span
+              className="grid h-6 w-10 rounded-full p-0.5 transition"
+              style={{ background: oneEntry ? "var(--accent-yellow)" : "var(--hairline)" }}
+            >
+              <span
+                className="h-5 w-5 rounded-full bg-white transition"
+                style={{ transform: oneEntry ? "translateX(16px)" : "translateX(0)" }}
+              />
+            </span>
+          </button>
+
+          <button
+            onClick={() => onAdd(oneEntry)}
+            disabled={data.items.length === 0}
+            className="w-full rounded-full py-3 text-[14px] font-semibold disabled:opacity-40"
+            style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
           >
             Dodaj
-          </motion.button>
+          </button>
         </div>
-      )}
-    </div>
+      </motion.div>
+    </>
   );
 }
 
-function LabelCard({
-  item,
-  onAdd,
-  defaultMeal,
-}: {
-  item: HistoryItem & { kind: "label" };
-  onAdd: (it: HistoryItem & { kind: "label" }, grams: number, meal: Meal) => void;
-  defaultMeal?: Meal;
-}) {
-  const [grams, setGrams] = useState("100");
-  const [meal, setMeal] = useState<Meal>(defaultMeal ?? guessMeal());
-  const [done, setDone] = useState(false);
-  const g = Number(grams.replace(",", ".")) || 0;
-  const per = item.label.per100;
-  const factor = g / 100;
-  const totals = {
-    kcal: Math.round(((per.kcal ?? 0) * factor) * 10) / 10,
-    p: Math.round(((per.protein ?? 0) * factor) * 10) / 10,
-    c: Math.round(((per.carbs ?? 0) * factor) * 10) / 10,
-    f: Math.round(((per.fat ?? 0) * factor) * 10) / 10,
-  };
-  if (done) {
-    return (
-      <div className="rounded-2xl bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-300">
-        Dodano: {item.label.name || "produkt"} ({g} g)
-      </div>
-    );
-  }
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-2 rounded-2xl bg-foreground/5 p-3">
-      <div className="flex items-start gap-2">
-        <img src={item.preview} alt="" className="h-12 w-12 rounded-lg object-cover" />
-        <div className="flex-1">
-          <div className="text-sm font-semibold">{item.label.name || "Produkt z etykiety"}</div>
-          <div className="num-tight text-[11px] text-muted-foreground">
-            na 100 g: {per.kcal ?? "–"} kcal · B{per.protein ?? "–"} · W{per.carbs ?? "–"} · T
-            {per.fat ?? "–"}
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <label className="flex-1">
-          <span className="block text-[10px] uppercase tracking-wider text-muted-foreground">
-            Gramy
-          </span>
-          <input
-            inputMode="decimal"
-            value={grams}
-            onChange={(e) => setGrams(e.target.value.replace(",", "."))}
-            className="num-tight w-full rounded-lg border border-border/60 bg-card px-2 py-1.5 text-sm"
-          />
-        </label>
-        <label className="flex-1">
-          <span className="block text-[10px] uppercase tracking-wider text-muted-foreground">
-            Posiłek
-          </span>
-          <select
-            value={meal}
-            onChange={(e) => setMeal(e.target.value as Meal)}
-            className="w-full rounded-lg border border-border/60 bg-card px-2 py-1.5 text-sm"
-          >
-            {(Object.keys(MEAL_LABEL) as Meal[]).map((m) => (
-              <option key={m} value={m}>
-                {MEAL_LABEL[m]}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <div className="num-tight text-xs text-muted-foreground">
-        Razem: <b className="text-foreground">{totals.kcal}</b> kcal · B{totals.p} W{totals.c} T
-        {totals.f}
-      </div>
-      <motion.button
-        whileTap={{ scale: 0.97 }}
-        onClick={() => {
-          if (g <= 0) return;
-          onAdd(item, g, meal);
-          setDone(true);
-        }}
-        disabled={g <= 0}
-        className="w-full rounded-xl bg-primary py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40"
+    <div className="rounded-[20px] p-3" style={{ background: "var(--muted)" }}>
+      <div
+        className="pb-1.5 text-[11px] font-semibold uppercase tracking-wider"
+        style={{ color: "var(--muted-foreground)" }}
       >
-        Dodaj do dziennika
-      </motion.button>
+        {label}
+      </div>
+      {children}
     </div>
   );
 }
 
-function guessMeal(): Meal {
-  const h = new Date().getHours();
-  if (h < 10) return "breakfast";
-  if (h < 12) return "second_breakfast";
-  if (h < 16) return "lunch";
-  if (h < 21) return "dinner";
-  return "snack";
+function ItemRow({
+  item,
+  onChange,
+  onRemove,
+}: {
+  item: RecognizedItem;
+  onChange: (patch: Partial<RecognizedItem>) => void;
+  onRemove: () => void;
+}) {
+  const num = (v: string) => {
+    const n = Number(v.replace(",", "."));
+    return Number.isFinite(n) ? n : 0;
+  };
+  return (
+    <div
+      className="rounded-[20px] p-3"
+      style={{ background: "var(--card)", border: "1px solid var(--hairline)", boxShadow: "var(--shadow-card)" }}
+    >
+      <div className="flex items-start gap-2">
+        <input
+          value={item.name}
+          onChange={(e) => onChange({ name: e.target.value })}
+          className="flex-1 bg-transparent text-[14px] outline-none"
+          style={{ color: "var(--ink)", fontWeight: 700 }}
+          placeholder="Nazwa"
+        />
+        <button
+          onClick={onRemove}
+          className="grid h-7 w-7 place-items-center rounded-full"
+          style={{ background: "var(--muted)", color: "var(--muted-foreground)" }}
+          aria-label="Usuń pozycję"
+        >
+          <X size={12} />
+        </button>
+      </div>
+      <div className="mt-2 grid grid-cols-5 gap-1.5">
+        <MiniField label="g" value={item.grams} onChange={(v) => onChange({ grams: num(v) })} />
+        <MiniField label="kcal" value={item.kcal} onChange={(v) => onChange({ kcal: num(v) })} bold />
+        <MiniField label="B" value={item.protein} onChange={(v) => onChange({ protein: num(v) })} dot="var(--macro-protein)" />
+        <MiniField label="W" value={item.carbs} onChange={(v) => onChange({ carbs: num(v) })} dot="var(--macro-carbs)" />
+        <MiniField label="T" value={item.fat} onChange={(v) => onChange({ fat: num(v) })} dot="var(--macro-fat)" />
+      </div>
+    </div>
+  );
+}
+
+function MiniField({
+  label,
+  value,
+  onChange,
+  bold,
+  dot,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: string) => void;
+  bold?: boolean;
+  dot?: string;
+}) {
+  return (
+    <div
+      className="rounded-xl px-2 py-1.5"
+      style={{ background: "var(--muted)" }}
+    >
+      <div className="flex items-center gap-1 text-[10px]" style={{ color: "var(--muted-foreground)", fontWeight: 600 }}>
+        {dot && <span className="h-1.5 w-1.5 rounded-full" style={{ background: dot }} />}
+        {label}
+      </div>
+      <input
+        inputMode="decimal"
+        value={String(value)}
+        onChange={(e) => onChange(e.target.value)}
+        className="num-tight w-full bg-transparent text-[13px] outline-none"
+        style={{ color: "var(--ink)", fontWeight: bold ? 800 : 600 }}
+      />
+    </div>
+  );
 }
