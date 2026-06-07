@@ -65,6 +65,15 @@ export function AssistantFlow({ defaultMeal }: Props) {
   const addEntry = usePlate((s) => s.addEntry);
 
   const [input, setInput] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea (1–4 lines).
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
+  }, [input]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [busy, setBusy] = useState<false | "text" | "image">(false);
   const [pendingImage, setPendingImage] = useState<{ dataUrl: string; base64: string } | null>(null);
