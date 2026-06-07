@@ -189,7 +189,7 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
     { id: "manual", label: "Wpisz ręcznie", icon: PencilLine, soon: false },
   ];
   return (
-    <div className="grid grid-cols-2 gap-2.5">
+    <div className="grid grid-cols-2 gap-3">
       {items.map((it) => {
         const Icon = it.icon;
         const disabled = it.soon;
@@ -199,12 +199,13 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
             whileTap={disabled ? undefined : { scale: 0.96 }}
             disabled={disabled}
             onClick={() => !disabled && onPick(it.id)}
-            className={`group relative flex flex-col items-start gap-2 rounded-2xl border border-border/60 bg-card p-3 text-left transition ${
-              disabled ? "opacity-50" : "active:bg-accent"
+            className={`group relative flex flex-col items-start gap-3 rounded-2xl p-4 text-left transition ${
+              disabled ? "opacity-50" : "active:opacity-80"
             }`}
+            style={{ background: "var(--muted)" }}
           >
-            <Icon size={20} />
-            <div className="text-sm font-semibold leading-tight">{it.label}</div>
+            <Icon size={24} strokeWidth={1.7} />
+            <div className="text-[14px] font-bold leading-tight tracking-tight">{it.label}</div>
             {it.soon && (
               <span className="absolute right-2 top-2 rounded-full bg-foreground/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-muted-foreground">
                 Wkrótce
