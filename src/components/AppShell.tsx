@@ -84,11 +84,11 @@ export function AppShell({ children }: Props) {
       <div className="mx-auto flex min-h-screen w-full max-w-[430px] flex-col">
         <main className="flex-1 pb-32">{children}</main>
       </div>
-      <BottomNav onAdd={() => openAdd(undefined)} />
+      <BottomNav onAdd={() => openAdd(undefined, undefined)} />
       <AddSheet
         open={sheet.open}
         defaultMeal={sheet.meal}
-        date={ymd(new Date())}
+        date={sheet.date ?? ymd(new Date())}
         onClose={closeAdd}
       />
     </div>

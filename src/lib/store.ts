@@ -93,9 +93,9 @@ interface State {
   burned: Record<string, number>;
   products: Product[];
   // ui
-  addSheet: { open: boolean; meal?: Meal };
+  addSheet: { open: boolean; meal?: Meal; date?: string };
   // ui actions
-  openAdd: (meal?: Meal) => void;
+  openAdd: (meal?: Meal, date?: string) => void;
   closeAdd: () => void;
   // auth actions
   setAuth: (userId: string | null) => void;
@@ -156,7 +156,7 @@ export const usePlate = create<State>()((set, get) => ({
   products: [],
   addSheet: { open: false },
 
-  openAdd: (meal) => set({ addSheet: { open: true, meal } }),
+  openAdd: (meal, date) => set({ addSheet: { open: true, meal, date } }),
   closeAdd: () => set((s) => ({ addSheet: { ...s.addSheet, open: false } })),
 
   setAuth: (userId) => {

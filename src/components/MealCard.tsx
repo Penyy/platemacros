@@ -76,7 +76,7 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
           >
             <Plus size={15} strokeWidth={2.2} />
           </button>
-          {prevDayHasEntries && isEmpty && (
+          {prevDayHasEntries && (
             <button
               onClick={handleRepeat}
               className="grid h-8 w-8 place-items-center rounded-full text-foreground"
