@@ -5,7 +5,7 @@ import { z } from "zod";
 // Types
 // ============================================================
 
-const MealEnum = z.enum(["breakfast", "lunch", "dinner", "snack"]);
+const MealEnum = z.enum(["breakfast", "second_breakfast", "lunch", "dinner", "snack"]);
 
 const FoodActionSchema = z.object({
   meal: MealEnum,
@@ -108,7 +108,7 @@ const SYSTEM_INSTRUCTION = `Jesteś asystentem żywieniowym aplikacji Plate. Two
 
 Reguły logowania jedzenia:
 - Gdy użytkownik prosi o dodanie jedzenia, ZAWSZE wywołuj funkcję addFoodEntry (lub addMultipleEntries dla wielu pozycji), nie pisz tylko tekstu.
-- Jeśli posiłek nie został wskazany, wywnioskuj z pory dnia (5-10 śniadanie, 11-14 obiad, 15-20 kolacja, reszta przekąski).
+- Jeśli posiłek nie został wskazany, wywnioskuj z pory dnia (5-10 śniadanie, 10-12 lunch, 12-16 obiad, 16-21 kolacja, reszta przekąski).
 - Jeśli dokładne makro nie jest znane, podaj najlepsze przybliżenie dla podanej porcji.
 - Wartości kcal i makro w funkcjach to CAŁKOWITE wartości dla porcji, NIE na 100 g.
 
@@ -134,8 +134,8 @@ const FOOD_ENTRY_SCHEMA = {
   properties: {
     meal: {
       type: "string",
-      enum: ["breakfast", "lunch", "dinner", "snack"],
-      description: "Posiłek: breakfast=śniadanie, lunch=obiad, dinner=kolacja, snack=przekąska",
+      enum: ["breakfast", "second_breakfast", "lunch", "dinner", "snack"],
+      description: "Posiłek: breakfast=śniadanie (5-10), second_breakfast=lunch (10-12), lunch=obiad (12-16), dinner=kolacja (16-21), snack=przekąska (reszta)",
     },
     name: { type: "string", description: "Krótka nazwa produktu po polsku" },
     grams: { type: "number", description: "Waga porcji w gramach (opcjonalnie)" },
@@ -176,6 +176,7 @@ const TOOLS = [
 
 const MEAL_PL: Record<string, string> = {
   breakfast: "Śniadanie",
+  second_breakfast: "Lunch",
   lunch: "Obiad",
   dinner: "Kolacja",
   snack: "Przekąska",

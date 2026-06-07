@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { estimateMealFromPhoto, type MealEstimate } from "@/lib/nutrition.functions";
 import { type Meal, MEAL_LABEL } from "@/lib/store";
 
-const MEALS: Meal[] = ["breakfast", "lunch", "dinner", "snack"];
+const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 const inputCls =
   "w-full rounded-xl border border-border/60 bg-card px-3 py-2.5 text-base outline-none focus:border-primary num-tight";
 

@@ -1,11 +1,12 @@
 import { useRef } from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Plus, Coffee, UtensilsCrossed, Moon, Apple, Trash2, RotateCcw } from "lucide-react";
+import { Plus, Coffee, Sandwich, UtensilsCrossed, Moon, Apple, Trash2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { type LogEntry, type Meal, MEAL_LABEL, sumEntries, usePlate } from "@/lib/store";
 
 const MEAL_ICON: Record<Meal, React.ComponentType<{ size?: number }>> = {
   breakfast: Coffee,
+  second_breakfast: Sandwich,
   lunch: UtensilsCrossed,
   dinner: Moon,
   snack: Apple,
@@ -13,6 +14,7 @@ const MEAL_ICON: Record<Meal, React.ComponentType<{ size?: number }>> = {
 
 const MEAL_TINT: Record<Meal, string> = {
   breakfast: "from-amber-400/30 to-amber-200/20 text-amber-700 dark:text-amber-300",
+  second_breakfast: "from-lime-400/30 to-lime-200/20 text-lime-700 dark:text-lime-300",
   lunch: "from-emerald-400/30 to-emerald-200/20 text-emerald-700 dark:text-emerald-300",
   dinner: "from-indigo-400/30 to-indigo-200/20 text-indigo-700 dark:text-indigo-300",
   snack: "from-rose-400/30 to-rose-200/20 text-rose-700 dark:text-rose-300",

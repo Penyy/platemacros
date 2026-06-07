@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
-export type Meal = "breakfast" | "lunch" | "dinner" | "snack";
+export type Meal = "breakfast" | "second_breakfast" | "lunch" | "dinner" | "snack";
 export type Theme = "light" | "dark" | "system";
 
 export interface LogEntry {
@@ -582,6 +582,7 @@ export const usePlate = create<State>()((set, get) => ({
 
 export const MEAL_LABEL: Record<Meal, string> = {
   breakfast: "Śniadanie",
+  second_breakfast: "Lunch",
   lunch: "Obiad",
   dinner: "Kolacja",
   snack: "Przekąska",

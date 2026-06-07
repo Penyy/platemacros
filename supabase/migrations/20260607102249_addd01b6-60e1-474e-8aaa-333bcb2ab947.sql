@@ -1,0 +1,2 @@
+ALTER TABLE public.food_entries DROP CONSTRAINT food_entries_meal_check;
+ALTER TABLE public.food_entries ADD CONSTRAINT food_entries_meal_check CHECK (meal = ANY (ARRAY['breakfast'::text, 'second_breakfast'::text, 'lunch'::text, 'dinner'::text, 'snack'::text]));
