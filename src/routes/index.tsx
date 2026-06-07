@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { Bell, Settings as Cog, User, Flame, ChevronLeft, ChevronRight } from "lucide-react";
 import { MealCard } from "@/components/MealCard";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -150,39 +151,36 @@ function TodayPage() {
         </div>
       </section>
 
-      {/* Plate dial hero */}
+      {/* Dark hero: kcal ring + macros */}
       <section className="px-[18px]">
-        <PlateDial
+        <HeroDark
           consumed={Math.round(sum.kcal)}
           goal={Math.max(1, Math.round(adjustedGoal))}
           remaining={remaining}
           burned={burned}
+          protein={{ cur: Math.round(sum.protein), goal: dayGoals.protein }}
+          carbs={{ cur: Math.round(sum.carbs), goal: dayGoals.carbs }}
+          fat={{ cur: Math.round(sum.fat), goal: dayGoals.fat }}
         />
-      </section>
-
-      {/* Macros */}
-      <section className="px-[18px]">
-        <div className="surface-card p-4">
-          <h2 className="text-[17px] font-bold tracking-tight">Makra</h2>
-          <div className="mt-3 space-y-3.5">
-            <MacroRow label="Białko" cur={Math.round(sum.protein)} goal={dayGoals.protein} color="var(--macro-protein)" />
-            <MacroRow label="Węglowodany" cur={Math.round(sum.carbs)} goal={dayGoals.carbs} color="var(--macro-carbs)" />
-            <MacroRow label="Tłuszcz" cur={Math.round(sum.fat)} goal={dayGoals.fat} color="var(--macro-fat)" />
-          </div>
-        </div>
       </section>
 
       {/* Meals */}
       <section className="space-y-3 px-[18px]">
-        {MEALS.map((m) => (
-          <MealCard
+        {MEALS.map((m, i) => (
+          <motion.div
             key={m}
-            meal={m}
-            date={selected}
-            entries={dayEntries.filter((e) => e.meal === m)}
-            prevDayHasEntries={prevEntries.some((e) => e.meal === m)}
-            onAdd={(meal) => openAdd(meal)}
-          />
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.04 * i, duration: 0.3, ease: "easeOut" }}
+          >
+            <MealCard
+              meal={m}
+              date={selected}
+              entries={dayEntries.filter((e) => e.meal === m)}
+              prevDayHasEntries={prevEntries.some((e) => e.meal === m)}
+              onAdd={(meal) => openAdd(meal, selected)}
+            />
+          </motion.div>
         ))}
       </section>
     </div>
@@ -236,79 +234,140 @@ function LinkCircle({ to, children, ...rest }: { to: string; children: React.Rea
   );
 }
 
-function PlateDial({
+function HeroDark({
   consumed,
   goal,
   remaining,
   burned,
+  protein,
+  carbs,
+  fat,
 }: {
   consumed: number;
   goal: number;
   remaining: number;
   burned: number;
+  protein: { cur: number; goal: number };
+  carbs: { cur: number; goal: number };
+  fat: { cur: number; goal: number };
 }) {
-  const size = 240;
-  const stroke = 18;
+  const size = 230;
+  const stroke = 16;
   const r = (size - stroke) / 2;
   const cx = size / 2;
   const cy = size / 2;
   const pct = Math.max(0, Math.min(1, consumed / goal));
   const startAngle = -135;
   const totalArc = 270;
-  const endAngle = startAngle + totalArc * pct;
   const trackPath = describeArc(cx, cy, r, startAngle, startAngle + totalArc);
-  const progPath = describeArc(cx, cy, r, startAngle, endAngle);
 
   return (
-    <div className="surface-hero relative p-5">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="relative overflow-hidden p-5"
+      style={{
+        background: "#1B1B19",
+        borderRadius: 28,
+        color: "#F6F2E8",
+        boxShadow:
+          "0 18px 40px -16px rgba(20,16,8,0.45), 0 4px 14px rgba(20,16,8,0.18)",
+      }}
+    >
       <div className="relative grid place-items-center">
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-          <circle
-            cx={cx}
-            cy={cy}
-            r={r + stroke / 2 + 4}
+          <path
+            d={trackPath}
             fill="none"
-            stroke="var(--ink)"
-            strokeOpacity="0.18"
-            strokeWidth="1.2"
-            strokeDasharray="1.5 4"
+            stroke="rgba(255,255,255,0.10)"
+            strokeWidth={stroke}
+            strokeLinecap="round"
           />
           <path
             d={trackPath}
             fill="none"
-            stroke="var(--hairline)"
+            stroke="var(--accent-yellow)"
             strokeWidth={stroke}
             strokeLinecap="round"
+            pathLength={1}
+            strokeDasharray="1 1"
+            style={{
+              strokeDashoffset: 1 - pct,
+              transition: "stroke-dashoffset 0.65s cubic-bezier(0.22,1,0.36,1)",
+            }}
           />
-          {pct > 0.001 && (
-            <path
-              d={progPath}
-              fill="none"
-              stroke="var(--accent-yellow)"
-              strokeWidth={stroke}
-              strokeLinecap="round"
-            />
-          )}
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <div className="num-tight text-[44px] font-extrabold leading-none tracking-tight">
+          <div className="num-tight text-[44px] font-extrabold leading-none tracking-tight" style={{ color: "#FFFFFF" }}>
             {consumed}
           </div>
-          <div className="mt-1 text-[12px] text-muted-foreground">
+          <div className="mt-1 text-[12px]" style={{ color: "rgba(246,242,232,0.55)" }}>
             z {goal} kcal
           </div>
           <div
-            className="mt-3 rounded-full bg-card px-3 py-1 text-[11px] font-semibold"
-            style={{ boxShadow: "var(--shadow-card)" }}
+            className="mt-3 rounded-full px-3 py-1 text-[11px] font-semibold"
+            style={{
+              background: "rgba(255,255,255,0.10)",
+              color: "#FFFFFF",
+            }}
           >
             Pozostało {remaining}
           </div>
         </div>
       </div>
-      {/* Spalone — discreet bottom-right */}
-      <div className="mt-2 flex items-center justify-end gap-1 text-[11px] text-muted-foreground">
+
+      {/* Spalone — discreet top-right */}
+      <div
+        className="absolute right-4 top-4 flex items-center gap-1 text-[11px]"
+        style={{ color: "rgba(246,242,232,0.5)" }}
+      >
         <Flame size={11} strokeWidth={1.6} />
-        <span className="num-tight">Spalone {burned} kcal</span>
+        <span className="num-tight">Spalone {burned}</span>
+      </div>
+
+      {/* Macros — three slim bars */}
+      <div className="mt-4 space-y-3">
+        <DarkMacroRow label="Białko" cur={protein.cur} goal={protein.goal} color="var(--macro-protein)" />
+        <DarkMacroRow label="Węglowodany" cur={carbs.cur} goal={carbs.goal} color="var(--macro-carbs)" />
+        <DarkMacroRow label="Tłuszcz" cur={fat.cur} goal={fat.goal} color="var(--macro-fat)" />
+      </div>
+    </motion.div>
+  );
+}
+
+function DarkMacroRow({
+  label,
+  cur,
+  goal,
+  color,
+}: {
+  label: string;
+  cur: number;
+  goal: number;
+  color: string;
+}) {
+  const pct = Math.max(0, Math.min(1, goal > 0 ? cur / goal : 0));
+  return (
+    <div>
+      <div className="flex items-baseline justify-between">
+        <span className="text-[12px] font-semibold" style={{ color: "#F6F2E8" }}>{label}</span>
+        <span className="num-tight text-[12px] font-semibold" style={{ color: "#F6F2E8" }}>
+          <span>{cur}</span>
+          <span style={{ color: "rgba(246,242,232,0.5)" }}> / {goal} g</span>
+        </span>
+      </div>
+      <div
+        className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full"
+        style={{ background: "rgba(255,255,255,0.10)" }}
+      >
+        <motion.div
+          className="h-full rounded-full"
+          initial={false}
+          animate={{ width: `${pct * 100}%` }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          style={{ background: color }}
+        />
       </div>
     </div>
   );
@@ -326,39 +385,4 @@ function describeArc(cx: number, cy: number, r: number, startAngle: number, endA
     "M", start.x, start.y,
     "A", r, r, 0, largeArcFlag, 0, end.x, end.y,
   ].join(" ");
-}
-
-
-function MacroRow({
-  label,
-  cur,
-  goal,
-  color,
-}: {
-  label: string;
-  cur: number;
-  goal: number;
-  color: string;
-}) {
-  const pct = Math.max(0, Math.min(1, goal > 0 ? cur / goal : 0));
-  return (
-    <div>
-      <div className="flex items-baseline justify-between">
-        <span className="text-[13px] font-semibold">{label}</span>
-        <span className="num-tight text-[13px] font-semibold">
-          <span>{cur}</span>
-          <span className="text-muted-foreground"> / {goal} g</span>
-        </span>
-      </div>
-      <div
-        className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full"
-        style={{ background: "var(--hairline)" }}
-      >
-        <div
-          className="h-full rounded-full"
-          style={{ width: `${pct * 100}%`, background: color }}
-        />
-      </div>
-    </div>
-  );
 }
