@@ -335,26 +335,43 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
           touchAction: "pan-y",
           background: "var(--card)",
         }}
-        className="relative flex items-center gap-3 py-2.5"
+        className="relative flex items-center gap-3 py-3"
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2">
-            <span className="truncate text-[14px] font-bold tracking-tight">{e.name}</span>
+            <span className="truncate text-[16px] font-bold tracking-tight">{e.name}</span>
             {e.grams ? (
-              <span className="num-tight shrink-0 text-[11px] font-semibold text-muted-foreground">
+              <span className="num-tight shrink-0 text-[12px] font-semibold text-muted-foreground">
                 {Math.round(e.grams)} g
               </span>
             ) : null}
           </div>
-          <div className="num-tight mt-0.5 text-[11px] text-muted-foreground">
-            B {Math.round(e.protein)} · W {Math.round(e.carbs)} · T {Math.round(e.fat)} g
+          <div className="num-tight mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] font-semibold text-muted-foreground">
+            <MacroDot color="var(--macro-protein)" label="Białko" value={Math.round(e.protein)} />
+            <MacroDot color="var(--macro-carbs)" label="Węglowodany" value={Math.round(e.carbs)} />
+            <MacroDot color="var(--macro-fat)" label="Tłuszcz" value={Math.round(e.fat)} />
           </div>
         </div>
         <div className="num-tight text-right">
-          <span className="text-[15px] font-extrabold tracking-tight">{Math.round(e.kcal)}</span>
-          <span className="ml-1 text-[10px] font-semibold text-muted-foreground">kcal</span>
+          <span className="text-[18px] font-extrabold tracking-tight">{Math.round(e.kcal)}</span>
+          <span className="ml-1 text-[11px] font-semibold text-muted-foreground">kcal</span>
         </div>
       </div>
     </motion.li>
   );
 }
+
+function MacroDot({ color, label, value }: { color: string; label: string; value: number }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span
+        className="inline-block h-2 w-2 rounded-full"
+        style={{ background: color }}
+        aria-hidden
+      />
+      <span className="text-foreground/80">{label}</span>
+      <span className="num-tight">{value} g</span>
+    </span>
+  );
+}
+
