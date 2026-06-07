@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import {
   Layers,
   Zap,
@@ -12,7 +12,10 @@ import {
 import { type Meal, MEAL_LABEL, type Product, usePlate, ymd } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 import { CompoundMealFlow } from "./CompoundMealFlow";
-import { BarcodeScanFlow } from "./BarcodeScanFlow";
+
+const BarcodeScanFlow = lazy(() =>
+  import("./BarcodeScanFlow").then((m) => ({ default: m.BarcodeScanFlow })),
+);
 import { AssistantFlow } from "./AssistantFlow";
 
 type Mode = "menu" | "quick" | "manual" | "scan" | "search" | "compound" | "barcode" | "assistant";
@@ -143,14 +146,16 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                 />
               )}
               {mode === "barcode" && (
-                <BarcodeScanFlow
-                  meal={meal}
-                  setMeal={setMeal}
-                  onSubmit={(payload) => {
-                    addEntry({ ...payload, date, meal });
-                    close();
-                  }}
-                />
+                <Suspense fallback={<div className="py-12 text-center text-sm text-muted-foreground">Ładowanie skanera…</div>}>
+                  <BarcodeScanFlow
+                    meal={meal}
+                    setMeal={setMeal}
+                    onSubmit={(payload) => {
+                      addEntry({ ...payload, date, meal });
+                      close();
+                    }}
+                  />
+                </Suspense>
               )}
               {mode === "assistant" && (
                 <AssistantFlow defaultMeal={meal} onClose={close} />
