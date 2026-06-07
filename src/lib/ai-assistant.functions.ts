@@ -366,6 +366,7 @@ async function handleTextPath(
   history: z.infer<typeof HistorySchema>,
   ctx: z.infer<typeof DayContextSchema>,
   apiKey: string,
+  settings: AssistantCallSettings,
 ): Promise<AssistantResult> {
   const contents: Array<{ role: string; parts: GeminiPart[] }> = [];
   for (const h of FEW_SHOT_HISTORY) {
@@ -374,17 +375,30 @@ async function handleTextPath(
   for (const h of history) {
     contents.push({ role: h.role, parts: [{ text: h.text }] });
   }
+  const mealHint =
+    settings.defaultMeal === "auto"
+      ? "Jeśli posiłek nie jest jawnie podany, wnioskuj z pory dnia."
+      : `Jeśli posiłek nie jest jawnie podany, użyj domyślnego: ${MEAL_PL[settings.defaultMeal]} (${settings.defaultMeal}).`;
+  const lengthHint =
+    settings.responseLength === "short"
+      ? "Odpowiadaj BARDZO krótko — 1-2 zdania, konkretne liczby."
+      : "Odpowiadaj szczegółowo — możesz użyć 3-6 zdań z uzasadnieniem i konkretnymi przykładami.";
+  const dynamicSystem = `${SYSTEM_INSTRUCTION}\n\nDODATKOWE REGUŁY SESJI:\n- ${mealHint}\n- ${lengthHint}${
+    settings.allowAddEntries ? "" : "\n- NIE WOLNO Ci dodawać wpisów do dziennika — odpowiadaj tylko tekstem, nawet gdy użytkownik prosi o dodanie jedzenia (poinformuj że dodawanie przez AI jest wyłączone w ustawieniach)."
+  }`;
   contents.push({
     role: "user",
     parts: [{ text: `KONTEKST DNIA:\n${buildDayContextText(ctx)}\n\nPYTANIE/POLECENIE: ${message}` }],
   });
 
-  const body = {
-    system_instruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+  const body: Record<string, unknown> = {
+    system_instruction: { parts: [{ text: dynamicSystem }] },
     contents,
-    tools: TOOLS,
     generationConfig: { temperature: 0.2 },
   };
+  if (settings.allowAddEntries) {
+    body.tools = TOOLS;
+  }
 
   const tryOnce = async () => {
     const resp = await callGemini(body, apiKey);
