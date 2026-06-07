@@ -287,7 +287,7 @@ function QuickForm({
 
   return (
     <form
-      className="space-y-3"
+      className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
         if (!valid) return;
@@ -301,53 +301,80 @@ function QuickForm({
       }}
     >
       <MealPicker meal={meal} setMeal={setMeal} />
-      <Field label="Nazwa">
-        <input
-          autoFocus
-          className={inputCls}
-          value={name}
-          maxLength={80}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="np. Jogurt naturalny"
-        />
-      </Field>
-      <Field label="Kalorie (kcal)">
-        <input
-          className={inputCls}
-          inputMode="numeric"
-          value={kcal}
-          onChange={(e) => setKcal(e.target.value.replace(",", "."))}
-          placeholder="0"
-        />
-      </Field>
-      <div className="grid grid-cols-3 gap-2">
-        <Field label="Białko (g)">
+
+      <input
+        autoFocus
+        className="w-full rounded-2xl bg-muted px-4 py-3 text-[15px] font-semibold outline-none placeholder:text-muted-foreground/70 focus:ring-2 focus:ring-ring"
+        value={name}
+        maxLength={80}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Nazwa, np. Jogurt naturalny"
+      />
+
+      {/* Hero kcal field */}
+      <div
+        className="rounded-2xl bg-card p-4"
+        style={{
+          border: "2px solid var(--accent-yellow)",
+          boxShadow: "var(--shadow-card)",
+        }}
+      >
+        <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+          Kalorie
+        </div>
+        <div className="mt-1 flex items-baseline gap-2">
           <input
-            className={inputCls}
-            inputMode="decimal"
-            value={p}
-            onChange={(e) => setP(e.target.value.replace(",", "."))}
+            className="num-tight w-full bg-transparent text-[40px] font-extrabold leading-none tracking-tight outline-none placeholder:text-foreground/20"
+            inputMode="numeric"
+            value={kcal}
+            onChange={(e) => setKcal(e.target.value.replace(",", "."))}
+            placeholder="0"
           />
-        </Field>
-        <Field label="Węglowodany (g)">
-          <input
-            className={inputCls}
-            inputMode="decimal"
-            value={c}
-            onChange={(e) => setC(e.target.value.replace(",", "."))}
-          />
-        </Field>
-        <Field label="Tłuszcz (g)">
-          <input
-            className={inputCls}
-            inputMode="decimal"
-            value={f}
-            onChange={(e) => setF(e.target.value.replace(",", "."))}
-          />
-        </Field>
+          <span className="text-[13px] font-semibold text-muted-foreground">kcal</span>
+        </div>
       </div>
+
+      {/* Optional macros */}
+      <div className="grid grid-cols-3 gap-2">
+        <MacroField color="var(--macro-protein)" label="Białko" value={p} onChange={setP} />
+        <MacroField color="var(--macro-carbs)" label="Węglowodany" value={c} onChange={setC} />
+        <MacroField color="var(--macro-fat)" label="Tłuszcz" value={f} onChange={setF} />
+      </div>
+
       <SubmitButton disabled={!valid}>Dodaj do dziennika</SubmitButton>
     </form>
+  );
+}
+
+function MacroField({
+  color,
+  label,
+  value,
+  onChange,
+}: {
+  color: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="block rounded-2xl bg-muted p-3">
+      <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+        <span
+          className="inline-block h-2 w-2 rounded-full"
+          style={{ background: color }}
+          aria-hidden
+        />
+        {label}
+      </span>
+      <input
+        className="num-tight mt-1 w-full bg-transparent text-[18px] font-extrabold tracking-tight outline-none placeholder:text-foreground/25"
+        inputMode="decimal"
+        value={value}
+        onChange={(e) => onChange(e.target.value.replace(",", "."))}
+        placeholder="opcjonalnie"
+      />
+    </label>
   );
 }
 
