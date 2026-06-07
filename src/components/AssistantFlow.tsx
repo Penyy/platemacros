@@ -67,6 +67,7 @@ export function AssistantFlow({ defaultMeal }: Props) {
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [busy, setBusy] = useState<false | "text" | "image">(false);
+  const [pendingImage, setPendingImage] = useState<{ dataUrl: string; base64: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const ask = useServerFn(askAssistant);
 
