@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
-export type Meal = "breakfast" | "lunch" | "dinner" | "snack";
+export type Meal = "breakfast" | "second_breakfast" | "lunch" | "dinner" | "snack";
 export type Theme = "light" | "dark" | "system";
 
 export interface LogEntry {
