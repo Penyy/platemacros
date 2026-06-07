@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Pencil, Plus, Trash2, X, Check, Search } from "lucide-react";
+import { Plus, Trash2, X, Check, Search } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { usePlate, type Product } from "@/lib/store";
 
