@@ -5,7 +5,7 @@ import { z } from "zod";
 // Types
 // ============================================================
 
-const MealEnum = z.enum(["breakfast", "lunch", "dinner", "snack"]);
+const MealEnum = z.enum(["breakfast", "second_breakfast", "lunch", "dinner", "snack"]);
 
 const FoodActionSchema = z.object({
   meal: MealEnum,
