@@ -553,7 +553,8 @@ function LabelCard({
 
 function guessMeal(): Meal {
   const h = new Date().getHours();
-  if (h < 11) return "breakfast";
+  if (h < 10) return "breakfast";
+  if (h < 12) return "second_breakfast";
   if (h < 16) return "lunch";
   if (h < 21) return "dinner";
   return "snack";
