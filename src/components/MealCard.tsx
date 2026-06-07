@@ -60,17 +60,19 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[16px] font-bold tracking-tight">{MEAL_LABEL[meal]}</div>
+          <div className="text-[17px] font-bold tracking-tight">{MEAL_LABEL[meal]}</div>
           {!isEmpty && (
-            <div className="num-tight mt-0.5 text-[12px] text-muted-foreground">
-              B {Math.round(sum.protein)} · W {Math.round(sum.carbs)} · T {Math.round(sum.fat)} g
+            <div className="num-tight mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] font-semibold text-muted-foreground">
+              <MacroDot color="var(--macro-protein)" label="Białko" value={Math.round(sum.protein)} />
+              <MacroDot color="var(--macro-carbs)" label="Węglowodany" value={Math.round(sum.carbs)} />
+              <MacroDot color="var(--macro-fat)" label="Tłuszcz" value={Math.round(sum.fat)} />
             </div>
           )}
         </div>
         <div className="flex items-center gap-2">
           {!isEmpty && (
             <div className="num-tight text-right">
-              <span className="text-[18px] font-extrabold tracking-tight">{Math.round(sum.kcal)}</span>
+              <span className="text-[20px] font-extrabold tracking-tight">{Math.round(sum.kcal)}</span>
               <span className="ml-1 text-[11px] font-semibold text-muted-foreground">kcal</span>
             </div>
           )}
@@ -90,7 +92,7 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
 
       {/* Entries list */}
       {!isEmpty ? (
-        <ul className="mt-3">
+        <ul className="mt-3 space-y-1">
           <AnimatePresence initial={false}>
             {entries.map((e) => (
               <SwipeRow
