@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
+import { AnimatePresence, motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { Plus, Coffee, UtensilsCrossed, Moon, Apple, Trash2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { type LogEntry, type Meal, MEAL_LABEL, sumEntries, usePlate } from "@/lib/store";
@@ -112,46 +112,51 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
   );
 }
 
-const DELETE_THRESHOLD = 90;
+const DELETE_THRESHOLD = 100;
 
 function SwipeRow({ entry: e, onDelete }: { entry: LogEntry; onDelete: () => void }) {
   const x = useMotionValue(0);
   const armed = useRef(false);
-  // background reveal width follows finger (positive distance)
-  const revealOpacity = useTransform(x, (v) => Math.min(1, Math.abs(Math.min(0, v)) / 60));
-  const labelOpacity = useTransform(x, (v) => (v <= -DELETE_THRESHOLD ? 1 : 0.6));
+  const dist = useTransform(x, (v) => Math.max(0, -v));
+  const panelOpacity = useTransform(dist, [0, 20, DELETE_THRESHOLD], [0, 0.9, 1]);
+  const iconScale = useTransform(dist, [0, DELETE_THRESHOLD, DELETE_THRESHOLD + 30], [0.6, 1, 1.1]);
+  const iconOpacity = useTransform(dist, [0, 30, DELETE_THRESHOLD], [0, 0.85, 1]);
+  const labelOpacity = useTransform(dist, [DELETE_THRESHOLD - 10, DELETE_THRESHOLD + 10], [0, 1]);
+  const armedBg = useTransform(
+    dist,
+    [DELETE_THRESHOLD - 1, DELETE_THRESHOLD],
+    ["#FF3B30", "#D9241B"]
+  );
 
   return (
     <motion.li
       layout
       initial={{ opacity: 1, height: "auto" }}
       exit={{ opacity: 0, height: 0, marginTop: 0, paddingTop: 0, paddingBottom: 0 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.22 }}
       className="relative overflow-hidden"
     >
       <motion.div
-        style={{ opacity: revealOpacity }}
-        className="pointer-events-none absolute inset-0 flex items-center justify-end gap-2 pr-4 text-white"
+        style={{ opacity: panelOpacity, background: armedBg }}
+        className="pointer-events-none absolute inset-0 flex items-center justify-end pr-5 text-white"
         aria-hidden
       >
-        <span
-          className="absolute inset-0"
-          style={{ background: "#FF3B30" }}
-        />
-        <motion.div
-          style={{ opacity: labelOpacity }}
-          className="relative flex items-center gap-2 text-sm font-semibold"
-        >
-          <Trash2 size={16} />
-          <span>Usuń</span>
-        </motion.div>
+        <div className="flex items-center gap-2">
+          <motion.span style={{ opacity: labelOpacity }} className="text-sm font-semibold">
+            Puść aby usunąć
+          </motion.span>
+          <motion.span style={{ scale: iconScale, opacity: iconOpacity }} className="inline-flex">
+            <Trash2 size={20} />
+          </motion.span>
+        </div>
       </motion.div>
       <motion.div
         drag="x"
         dragDirectionLock
         style={{ x }}
-        dragConstraints={{ left: -160, right: 0 }}
-        dragElastic={{ left: 0.1, right: 0 }}
+        dragConstraints={{ left: -140, right: 0 }}
+        dragElastic={0.25}
+        dragMomentum={false}
         onDrag={(_, info) => {
           if (!armed.current && info.offset.x <= -DELETE_THRESHOLD) {
             armed.current = true;
@@ -163,12 +168,17 @@ function SwipeRow({ entry: e, onDelete }: { entry: LogEntry; onDelete: () => voi
           }
         }}
         onDragEnd={(_, info) => {
-          if (info.offset.x <= -DELETE_THRESHOLD || info.velocity.x < -800) {
-            // animate off and delete
-            x.set(-400);
-            setTimeout(onDelete, 120);
+          const past = info.offset.x <= -DELETE_THRESHOLD || info.velocity.x < -800;
+          if (past) {
+            animate(x, -400, {
+              type: "spring",
+              stiffness: 380,
+              damping: 40,
+              velocity: info.velocity.x,
+              onComplete: onDelete,
+            });
           } else {
-            x.set(0);
+            animate(x, 0, { type: "spring", stiffness: 500, damping: 36 });
             armed.current = false;
           }
         }}
