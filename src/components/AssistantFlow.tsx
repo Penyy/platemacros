@@ -209,6 +209,7 @@ export function AssistantFlow({ defaultMeal }: Props) {
           message: trimmed,
           history: sessionHistory,
           dayContext,
+          settings: assistantSettings,
         },
       })) as AssistantResult;
 
