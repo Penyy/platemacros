@@ -138,67 +138,84 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
   );
 }
 
-const AXIS_LOCK_PX = 6; // px movement before we decide horizontal vs vertical
+const AXIS_LOCK_PX = 8;
 
 function SwipeRow({ entry: e, onDelete }: { entry: LogEntry; onDelete: () => void }) {
   const containerRef = useRef<HTMLLIElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
   const [dx, setDx] = useState(0);
   const [armed, setArmed] = useState(false);
-  const [exiting, setExiting] = useState(false);
+  const [animating, setAnimating] = useState(true); // CSS transition on/off
+  const dxRef = useRef(0);
 
-  const stateRef = useRef({
+  // Gesture state — all mutable, kept in ref so listeners read the latest.
+  const g = useRef({
+    active: false,
     startX: 0,
     startY: 0,
-    pointerId: -1,
-    axis: "none" as "none" | "x" | "y",
     width: 0,
+    mode: "undecided" as "undecided" | "horizontal" | "vertical",
     armed: false,
     moved: false,
   });
 
+  const setDxBoth = (v: number) => {
+    dxRef.current = v;
+    setDx(v);
+  };
+
+  // Mouse fallback (desktop) using pointer events — phones use the manual touch listeners below.
   const onPointerDown = (ev: React.PointerEvent<HTMLDivElement>) => {
-    if (ev.pointerType === "mouse" && ev.button !== 0) return;
-    const w = rowRef.current?.offsetWidth ?? 0;
-    stateRef.current = {
+    if (ev.pointerType !== "mouse") return;
+    if (ev.button !== 0) return;
+    g.current = {
+      active: true,
       startX: ev.clientX,
       startY: ev.clientY,
-      pointerId: ev.pointerId,
-      axis: "none",
-      width: w,
+      width: rowRef.current?.offsetWidth ?? 0,
+      mode: "undecided",
       armed: false,
       moved: false,
     };
+    setAnimating(false);
+  };
+  const onPointerMove = (ev: React.PointerEvent<HTMLDivElement>) => {
+    if (ev.pointerType !== "mouse" || !g.current.active) return;
+    handleMove(ev.clientX, ev.clientY, null);
+  };
+  const onPointerUp = (ev: React.PointerEvent<HTMLDivElement>) => {
+    if (ev.pointerType !== "mouse" || !g.current.active) return;
+    handleEnd();
   };
 
-  const onPointerMove = (ev: React.PointerEvent<HTMLDivElement>) => {
-    const s = stateRef.current;
-    if (s.pointerId !== ev.pointerId) return;
-    const deltaX = ev.clientX - s.startX;
-    const deltaY = ev.clientY - s.startY;
+  const handleMove = (clientX: number, clientY: number, touchEvent: TouchEvent | null) => {
+    const s = g.current;
+    const deltaX = clientX - s.startX;
+    const deltaY = clientY - s.startY;
 
-    if (s.axis === "none") {
+    if (s.mode === "undecided") {
       const ax = Math.abs(deltaX);
       const ay = Math.abs(deltaY);
       if (ax < AXIS_LOCK_PX && ay < AXIS_LOCK_PX) return;
       if (ax > ay) {
-        s.axis = "x";
-        // capture so we keep receiving move/up even off-element
-        try { (ev.currentTarget as HTMLElement).setPointerCapture(ev.pointerId); } catch { /* noop */ }
+        s.mode = "horizontal";
       } else {
-        s.axis = "y";
+        s.mode = "vertical";
+        s.active = false; // ignore the rest of this gesture
         return;
       }
     }
 
-    if (s.axis !== "x") return;
+    if (s.mode !== "horizontal") return;
     s.moved = true;
+    // Lock the gesture so browser does not steal it or start scrolling.
+    if (touchEvent && touchEvent.cancelable) touchEvent.preventDefault();
+
     const max = s.width || 1;
-    // Only allow left swipe; small elastic right
     let next = deltaX;
-    if (next > 0) next = next * 0.15;
+    if (next > 0) next = next * 0.15; // small elastic right
     if (next < -max) next = -max;
-    setDx(next);
+    setDxBoth(next);
 
     const threshold = max * 0.5;
     const past = -next >= threshold;
@@ -214,46 +231,75 @@ function SwipeRow({ entry: e, onDelete }: { entry: LogEntry; onDelete: () => voi
     }
   };
 
-  const finish = (commit: boolean) => {
-    const s = stateRef.current;
-    const max = s.width || (rowRef.current?.offsetWidth ?? 0) || 1;
-    if (commit) {
-      setExiting(true);
-      setDx(-max);
-      window.setTimeout(onDelete, 220);
-    } else {
+  const handleEnd = () => {
+    const s = g.current;
+    s.active = false;
+    setAnimating(true);
+    if (s.mode !== "horizontal" || !s.moved) {
+      setDxBoth(0);
       setArmed(false);
       s.armed = false;
-      setDx(0);
-    }
-  };
-
-  const onPointerUp = (ev: React.PointerEvent<HTMLDivElement>) => {
-    const s = stateRef.current;
-    if (s.pointerId !== ev.pointerId) return;
-    try { (ev.currentTarget as HTMLElement).releasePointerCapture(ev.pointerId); } catch { /* noop */ }
-    if (s.axis !== "x" || !s.moved) {
-      s.pointerId = -1;
       return;
     }
-    const max = s.width || 1;
-    const past = -dx >= max * 0.5;
-    s.pointerId = -1;
-    finish(past);
+    const max = s.width || (rowRef.current?.offsetWidth ?? 0) || 1;
+    const past = -dxRef.current >= max * 0.5;
+    if (past) {
+      setDxBoth(-max);
+      window.setTimeout(onDelete, 220);
+    } else {
+      setDxBoth(0);
+      setArmed(false);
+      s.armed = false;
+    }
   };
 
-  const onPointerCancel = (ev: React.PointerEvent<HTMLDivElement>) => {
-    const s = stateRef.current;
-    if (s.pointerId !== ev.pointerId) return;
-    s.pointerId = -1;
-    finish(false);
-  };
-
-  // Reset axis lock if entry changes
+  // Manual touch listeners — non-passive so we can preventDefault and own the gesture.
   useEffect(() => {
-    return () => {
-      stateRef.current.pointerId = -1;
+    const el = rowRef.current;
+    if (!el) return;
+
+    const onTouchStart = (ev: TouchEvent) => {
+      if (ev.touches.length !== 1) return;
+      const t = ev.touches[0];
+      g.current = {
+        active: true,
+        startX: t.clientX,
+        startY: t.clientY,
+        width: el.offsetWidth,
+        mode: "undecided",
+        armed: false,
+        moved: false,
+      };
+      setAnimating(false);
     };
+    const onTouchMove = (ev: TouchEvent) => {
+      if (!g.current.active) return;
+      const t = ev.touches[0];
+      if (!t) return;
+      handleMove(t.clientX, t.clientY, ev);
+    };
+    const onTouchEnd = () => {
+      if (!g.current.active && g.current.mode !== "horizontal") {
+        // gesture was either never started or marked vertical — nothing to commit
+        if (g.current.mode === "horizontal") {
+          handleEnd();
+        }
+        return;
+      }
+      handleEnd();
+    };
+
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    el.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+      el.removeEventListener("touchcancel", onTouchEnd);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const max = rowRef.current?.offsetWidth ?? 1;
@@ -293,15 +339,11 @@ function SwipeRow({ entry: e, onDelete }: { entry: LogEntry; onDelete: () => voi
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerCancel={onPointerCancel}
         style={{
           transform: `translate3d(${dx}px,0,0)`,
-          transition:
-            stateRef.current.pointerId === -1
-              ? exiting
-                ? "transform 220ms cubic-bezier(0.4,0,0.2,1)"
-                : "transform 320ms cubic-bezier(0.22,1,0.36,1)"
-              : "none",
+          transition: animating
+            ? "transform 320ms cubic-bezier(0.22,1,0.36,1)"
+            : "none",
           touchAction: "pan-y",
         }}
         className="relative flex items-center gap-3 bg-card py-2"
@@ -318,3 +360,4 @@ function SwipeRow({ entry: e, onDelete }: { entry: LogEntry; onDelete: () => voi
     </motion.li>
   );
 }
+
