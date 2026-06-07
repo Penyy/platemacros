@@ -261,17 +261,7 @@ function PlateDial({
 
   return (
     <div className="surface-hero relative p-5">
-      <div className="flex items-start justify-between">
-        <h2 className="text-[17px] font-bold tracking-tight">Talerz dnia</h2>
-        <button
-          className="grid h-9 w-9 place-items-center rounded-xl bg-card"
-          style={{ boxShadow: "var(--shadow-card)" }}
-          aria-label="Otwórz"
-        >
-          <ArrowUpRight size={16} strokeWidth={2} />
-        </button>
-      </div>
-      <div className="relative mt-2 grid place-items-center">
+      <div className="relative grid place-items-center">
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
           <circle
             cx={cx}
