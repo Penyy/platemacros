@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { type Meal, MEAL_LABEL, type Product, usePlate, ymd, defaultPlusMenuVisibility, type PlusMenuItemId } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { CompoundMealFlow } from "./CompoundMealFlow";
 
 const BarcodeScanFlow = lazy(() =>
@@ -32,6 +33,7 @@ const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snac
 
 export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
   const [mode, setMode] = useState<Mode>("menu");
+  useScrollLock(open);
   const [meal, setMeal] = useState<Meal>(defaultMeal ?? "breakfast");
   const addEntry = usePlate((s) => s.addEntry);
 
