@@ -226,7 +226,7 @@ function CombinedChart({
   onTap: () => void;
 }) {
   const dailyKcal = days.map((d) => Math.round(d.totals.kcal));
-  const scaleMax = Math.max(Math.max(...dailyKcal, 0), goalKcal) * 1.1 || 1;
+  const scaleMax = Math.max(Math.max(...dailyKcal, 0), goalKcal) * 1.22 || 1;
   const goalTop = (1 - goalKcal / scaleMax) * 100;
   const showLabels = range === 7;
 
@@ -253,7 +253,7 @@ function CombinedChart({
             className="num-tight mt-0.5 text-[20px]"
             style={{ fontWeight: 800, color: "var(--ink)" }}
           >
-            śr. {avgKcal} kcal / dzień
+            śr. {avgKcal} kcal / dzień · cel {goalKcal}
           </div>
         </div>
         <div className="flex items-center gap-2.5">
@@ -273,17 +273,6 @@ function CombinedChart({
             opacity: 0.5,
           }}
         />
-        <div
-          className="absolute right-0 num-tight text-[9px] px-1"
-          style={{
-            top: `calc(${goalTop}% - 12px)`,
-            color: "var(--accent-yellow)",
-            opacity: 0.8,
-            fontWeight: 700,
-          }}
-        >
-          cel {goalKcal}
-        </div>
 
         <div className="flex h-full items-end gap-[3px]">
           {days.map((d, i) => {
