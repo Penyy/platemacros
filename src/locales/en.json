@@ -408,6 +408,16 @@
     "fri": "Fri",
     "sat": "Sat",
     "sun": "Sun"
+  },
+  "productSearch": {
+    "title": "Search product",
+    "placeholder": "Search the library",
+    "empty": "Your library is empty. Add products in \"{{name}}\".",
+    "noResults": "No results — add a product in \"{{name}}\".",
+    "pickAnother": "← Pick another product",
+    "grams": "Grams",
+    "total": "Total",
+    "submit": "Add to diary"
   }
 }
 
