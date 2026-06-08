@@ -112,9 +112,9 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
           </ul>
           {/* Meal macro summary pills */}
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            <MacroPill color="var(--macro-protein)" label="B" value={Math.round(sum.protein)} />
-            <MacroPill color="var(--macro-carbs)" label="W" value={Math.round(sum.carbs)} />
-            <MacroPill color="var(--macro-fat)" label="T" value={Math.round(sum.fat)} />
+            <MacroPill color="var(--macro-protein)" label={t("macro.short.protein")} value={Math.round(sum.protein)} />
+            <MacroPill color="var(--macro-carbs)" label={t("macro.short.carbs")} value={Math.round(sum.carbs)} />
+            <MacroPill color="var(--macro-fat)" label={t("macro.short.fat")} value={Math.round(sum.fat)} />
           </div>
         </>
       ) : (
