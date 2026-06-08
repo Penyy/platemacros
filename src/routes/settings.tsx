@@ -101,10 +101,45 @@ function SettingsPage() {
     (s) => s.profile.plus_menu_visibility ?? defaultPlusMenuVisibility,
   );
   const replaceAll = usePlate((s) => s.replaceAll);
+  const bootstrap = usePlate((s) => s.bootstrap);
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [legacy, setLegacy] = useState<ReturnType<typeof readLegacyLocalStorage>>(null);
   const [migrating, setMigrating] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetCountdown, setResetCountdown] = useState(5);
+  const [resetting, setResetting] = useState(false);
+
+  useEffect(() => {
+    if (!resetOpen) {
+      setResetCountdown(5);
+      return;
+    }
+    setResetCountdown(5);
+    const t = setInterval(() => {
+      setResetCountdown((n) => (n > 0 ? n - 1 : 0));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [resetOpen]);
+
+  const handleResetData = async () => {
+    if (resetCountdown > 0 || resetting) return;
+    setResetting(true);
+    try {
+      const { error } = await supabase.rpc("reset_user_data");
+      if (error) throw error;
+      await bootstrap();
+      setResetOpen(false);
+      toast.success("Dane zostały zresetowane");
+      navigate({ to: "/" });
+    } catch (err) {
+      console.error("reset_user_data failed", err);
+      toast.error("Nie udało się zresetować danych");
+    } finally {
+      setResetting(false);
+    }
+  };
 
   useEffect(() => {
     setLegacy(readLegacyLocalStorage());
