@@ -555,7 +555,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
           type="button"
           onClick={() => {
             if (pendingImages.length >= MAX_IMAGES) {
-              toast.message(`Maks. ${MAX_IMAGES} zdjęć.`);
+              toast.message(t("ai.maxImages", { n: MAX_IMAGES }));
               return;
             }
             fileRef.current?.click();
