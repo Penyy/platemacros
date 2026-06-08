@@ -274,13 +274,13 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     if (phase !== "scan") return;
     if (typeof window === "undefined") return;
     if (!navigator?.mediaDevices?.getUserMedia) {
-      setScannerError("Kamera niedostępna w tej przeglądarce.");
+      setScannerError(t("scan.cameraUnavail"));
       return;
     }
 
     let cancelled = false;
     setScannerError(null);
-    setStatus("Nakieruj na kod kreskowy");
+    setStatus(t("scan.aim"));
     lastHitRef.current = null;
 
     const v = videoRef.current;
