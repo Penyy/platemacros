@@ -651,6 +651,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
 }
 
 function HistoryRow({ item }: { item: HistoryItem }) {
+  const { t } = useTranslation();
   if (item.kind === "user") {
     return (
       <div className="ml-auto max-w-[80%] space-y-1">
