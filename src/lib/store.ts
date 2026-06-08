@@ -63,6 +63,40 @@ export const defaultAssistantSettings: AssistantSettings = {
   responseLength: "short",
 };
 
+export type PlusMenuItemId =
+  | "assistant"
+  | "barcode"
+  | "compound"
+  | "search"
+  | "quick"
+  | "manual";
+
+export const PLUS_MENU_ITEMS: PlusMenuItemId[] = [
+  "assistant",
+  "barcode",
+  "compound",
+  "search",
+  "quick",
+  "manual",
+];
+
+export const PLUS_MENU_LABELS: Record<PlusMenuItemId, string> = {
+  assistant: "PlateAI",
+  barcode: "Skanuj kod kreskowy",
+  compound: "Złożony posiłek",
+  search: "Szukaj produktu",
+  quick: "Szybkie dodawanie",
+  manual: "Wpisz ręcznie",
+};
+
+export type PlusMenuVisibility = Record<string, boolean>;
+
+export const defaultPlusMenuVisibility: PlusMenuVisibility =
+  PLUS_MENU_ITEMS.reduce((acc, id) => {
+    acc[id] = true;
+    return acc;
+  }, {} as PlusMenuVisibility);
+
 export interface Profile {
   theme: Theme;
   goal_kcal: number;
@@ -74,6 +108,7 @@ export interface Profile {
   weekly_targets_enabled?: boolean;
   weekly_macro_targets?: WeeklyMacroTargets;
   assistant?: AssistantSettings;
+  plus_menu_visibility?: PlusMenuVisibility;
 }
 
 export interface Product {
