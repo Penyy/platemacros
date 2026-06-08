@@ -305,7 +305,7 @@ function HeroLight({
       }}
     >
       <div className="relative grid place-items-center">
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ overflow: "visible" }}>
           <path
             d={trackPath}
             fill="none"
