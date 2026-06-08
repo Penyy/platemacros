@@ -151,6 +151,7 @@ function MacroPill({ color, label, value }: { color: string; label: string; valu
 const AXIS_LOCK_PX = 8;
 
 function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: () => void; onTap?: () => void }) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLLIElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
   const [dx, setDx] = useState(0);
