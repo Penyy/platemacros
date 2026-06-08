@@ -28,8 +28,8 @@ export function BottomNav({ onAdd }: Props) {
         className="pointer-events-auto grid flex-1 grid-cols-4 items-center rounded-[28px] bg-card px-2 py-1.5"
         style={{ boxShadow: "var(--shadow-card)" }}
       >
-        {TABS.map((t) => (
-          <NavItem key={t.to} {...t} active={path === t.to} />
+        {TABS.map((tab) => (
+          <NavItem key={tab.to} to={tab.to} label={t(`nav.${tab.key}`)} icon={tab.icon} active={path === tab.to} />
         ))}
       </nav>
 
