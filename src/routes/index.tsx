@@ -367,9 +367,9 @@ function HeroLight({
 
       {/* Macros — three slim bars */}
       <div className="mt-4 space-y-3">
-        <LightMacroRow label={t("today.protein")} cur={protein.cur} goal={protein.goal} color="var(--macro-protein)" />
-        <LightMacroRow label={t("today.carbs")} cur={carbs.cur} goal={carbs.goal} color="var(--macro-carbs)" />
-        <LightMacroRow label={t("today.fat")} cur={fat.cur} goal={fat.goal} color="var(--macro-fat)" />
+        <LightMacroRow label={t("macro.protein")} cur={protein.cur} goal={protein.goal} color="var(--macro-protein)" />
+        <LightMacroRow label={t("macro.carbs")} cur={carbs.cur} goal={carbs.goal} color="var(--macro-carbs)" />
+        <LightMacroRow label={t("macro.fat")} cur={fat.cur} goal={fat.goal} color="var(--macro-fat)" />
       </div>
     </motion.div>
   );
