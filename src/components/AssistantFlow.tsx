@@ -528,7 +528,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
             disabled={(!input.trim() && pendingImages.length === 0) || !!busy}
             className="grid h-8 w-8 shrink-0 place-items-center rounded-full disabled:opacity-40"
             style={{ background: "var(--ink)", color: "var(--card)" }}
-            aria-label="Wyślij"
+            aria-label={t("ai.send")}
           >
             <Send size={14} strokeWidth={2} />
           </button>
