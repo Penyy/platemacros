@@ -782,12 +782,12 @@ function ItemsPreviewSheet({
         }}
       >
         <div className="flex items-center justify-between px-5 pb-2 pt-4">
-          <div className="text-[18px]" style={{ fontWeight: 700 }}>Podgląd z PlateAI</div>
+          <div className="text-[18px]" style={{ fontWeight: 700 }}>{t("preview.title")}</div>
           <button
             onClick={onClose}
             className="grid h-8 w-8 place-items-center rounded-full"
             style={{ background: "var(--muted)", color: "var(--ink)" }}
-            aria-label="Zamknij"
+            aria-label={t("preview.close")}
           >
             <X size={14} />
           </button>
@@ -801,27 +801,27 @@ function ItemsPreviewSheet({
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-                Suma
+                {t("preview.sum")}
               </span>
               <span className="num-tight text-[18px]" style={{ fontWeight: 800 }}>
                 {Math.round(sum.kcal)} <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>kcal</span>
               </span>
             </div>
             <div className="num-tight mt-1 flex gap-3 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-              <span>B {sum.protein.toFixed(1)} g</span>
-              <span>W {sum.carbs.toFixed(1)} g</span>
-              <span>T {sum.fat.toFixed(1)} g</span>
+              <span>{t("macro.short.protein")} {sum.protein.toFixed(1)} g</span>
+              <span>{t("macro.short.carbs")} {sum.carbs.toFixed(1)} g</span>
+              <span>{t("macro.short.fat")} {sum.fat.toFixed(1)} g</span>
             </div>
           </div>
 
           {/* Dish name */}
-          <Field label="Nazwa dania">
+          <Field label={t("preview.dishName")}>
             <input
               value={data.dishName}
               onChange={(e) => onChange({ ...data, dishName: e.target.value })}
               className="w-full bg-transparent text-[15px] outline-none"
               style={{ color: "var(--ink)", fontWeight: 600 }}
-              placeholder="Posiłek"
+              placeholder={t("ai.fallbackDish")}
             />
           </Field>
 
@@ -831,7 +831,7 @@ function ItemsPreviewSheet({
               className="pb-2 text-[11px] font-semibold uppercase tracking-wider"
               style={{ color: "var(--muted-foreground)" }}
             >
-              Posiłek
+              {t("preview.meal")}
             </div>
             <div className="flex flex-wrap gap-1.5">
               {MEAL_PILLS.map((m) => {
@@ -847,7 +847,7 @@ function ItemsPreviewSheet({
                       fontWeight: active ? 700 : 600,
                     }}
                   >
-                    {MEAL_LABEL[m]}
+                    {t(`meal.${m}`)}
                   </button>
                 );
               })}
@@ -866,7 +866,7 @@ function ItemsPreviewSheet({
             ))}
             {data.items.length === 0 && (
               <div className="text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-                Brak pozycji — dodaj zdjęcie lub opisz ilości.
+                {t("preview.empty")}
               </div>
             )}
           </div>
@@ -888,7 +888,7 @@ function ItemsPreviewSheet({
             style={{ background: "var(--muted)", color: "var(--ink)" }}
           >
             <span className="text-[13px]" style={{ fontWeight: 600 }}>
-              Dodaj jako jeden wpis (całość)
+              {t("preview.mergeOne")}
             </span>
             <span
               className="grid h-6 w-10 rounded-full p-0.5 transition"
@@ -907,7 +907,7 @@ function ItemsPreviewSheet({
             className="w-full rounded-full py-3 text-[14px] font-semibold disabled:opacity-40"
             style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
           >
-            Dodaj
+            {t("preview.add")}
           </button>
         </div>
       </motion.div>
