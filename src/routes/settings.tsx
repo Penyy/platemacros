@@ -752,17 +752,6 @@ function ResponseLengthSelect({
     { v: "detailed", l: t("settings.assistant.lenLong") },
   ];
 
-function ResponseLengthSelect({
-  value,
-  onChange,
-}: {
-  value: AssistantResponseLength;
-  onChange: (v: AssistantResponseLength) => void;
-}) {
-  const opts: { v: AssistantResponseLength; l: string }[] = [
-    { v: "short", l: "Krótkie" },
-    { v: "detailed", l: "Szczegółowe" },
-  ];
   return (
     <div className="flex gap-0.5 rounded-full p-0.5" style={{ background: "var(--hairline)" }}>
       {opts.map((o) => {
