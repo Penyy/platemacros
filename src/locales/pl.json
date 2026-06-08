@@ -1,0 +1,162 @@
+{
+  "common": {
+    "cancel": "Anuluj",
+    "save": "Zapisz",
+    "today": "Dziś",
+    "ok": "OK"
+  },
+  "meal": {
+    "breakfast": "Śniadanie",
+    "second_breakfast": "Lunch",
+    "lunch": "Obiad",
+    "dinner": "Kolacja",
+    "snack": "Przekąska"
+  },
+  "weekday": {
+    "0": "Poniedziałek",
+    "1": "Wtorek",
+    "2": "Środa",
+    "3": "Czwartek",
+    "4": "Piątek",
+    "5": "Sobota",
+    "6": "Niedziela"
+  },
+  "month": {
+    "0": "stycznia",
+    "1": "lutego",
+    "2": "marca",
+    "3": "kwietnia",
+    "4": "maja",
+    "5": "czerwca",
+    "6": "lipca",
+    "7": "sierpnia",
+    "8": "września",
+    "9": "października",
+    "10": "listopada",
+    "11": "grudnia"
+  },
+  "today": {
+    "metaTitle": "Plate — Dzisiaj",
+    "metaDescription": "Twój dzienny przegląd kalorii i makroskładników w jednym widoku.",
+    "prevDay": "Poprzedni dzień",
+    "nextDay": "Następny dzień",
+    "notifications": "Powiadomienia",
+    "profile": "Profil",
+    "ofKcal": "z {{goal}} kcal",
+    "remaining": "Pozostało {{n}}",
+    "burned": "Spalone {{n}}",
+    "editBurned": "Edytuj spalone kalorie",
+    "protein": "Białko",
+    "carbs": "Węglowodany",
+    "fat": "Tłuszcz"
+  },
+  "settings": {
+    "title": "Ustawienia",
+    "version": "Plate · wersja 0.1",
+    "metaTitle": "Plate — Ustawienia",
+    "metaDescription": "Ustaw cele dzienne i wygląd aplikacji.",
+    "sec": {
+      "appearance": "Wygląd",
+      "language": "Język",
+      "goals": "Cele dzienne",
+      "weekly": "Cele tygodniowe",
+      "activity": "Aktywność",
+      "assistant": "Asystent AI",
+      "plusMenu": "Menu dodawania",
+      "plusMenuSubtitle": "Wybierz, co widać po dotknięciu +",
+      "data": "Dane",
+      "migration": "Migracja",
+      "account": "Konto",
+      "feedback": "Opinie",
+      "danger": "Strefa zagrożenia"
+    },
+    "theme": {
+      "label": "Motyw",
+      "light": "Jasny",
+      "dark": "Ciemny",
+      "system": "System"
+    },
+    "language": {
+      "label": "Język",
+      "pl": "PL",
+      "en": "EN"
+    },
+    "goals": {
+      "kcal": "Kalorie",
+      "protein": "Białko",
+      "carbs": "Węglowodany",
+      "fat": "Tłuszcz",
+      "unitKcal": "kcal",
+      "unitG": "g"
+    },
+    "weekly": {
+      "switch": "Inne cele na każdy dzień tygodnia",
+      "note": "Dla cyklizacji węglowodanów — kcal liczone z B×4 + W×4 + T×9."
+    },
+    "weekday": {
+      "mon": "Pon",
+      "tue": "Wt",
+      "wed": "Śr",
+      "thu": "Czw",
+      "fri": "Pt",
+      "sat": "Sob",
+      "sun": "Niedz"
+    },
+    "activity": {
+      "includeBurned": "Uwzględniaj spalone kcal",
+      "note": "Gdy włączone, spalone kalorie powiększają dzienny cel (cel + spalone − zjedzone)."
+    },
+    "assistant": {
+      "autoAddPhoto": "Auto-dodaj ze zdjęcia z opisem",
+      "autoAddPhotoNote": "Gdy włączone, zdjęcie posiłku z opisem dodaje się bez dodatkowego potwierdzenia.",
+      "allowAddEntries": "Asystent może dodawać wpisy",
+      "allowAddEntriesNote": "Gdy wyłączone, AI tylko odpowiada — nie zapisuje nic do dziennika.",
+      "defaultMeal": "Domyślny posiłek",
+      "defaultMealAuto": "Wnioskuj z pory",
+      "responseLength": "Długość odpowiedzi",
+      "lenShort": "Krótkie",
+      "lenLong": "Szczegółowe"
+    },
+    "plusMenu": {
+      "assistant": "PlateAI",
+      "barcode": "Skanuj kod kreskowy",
+      "compound": "Złożony posiłek",
+      "search": "Szukaj produktu",
+      "quick": "Szybkie dodawanie",
+      "manual": "Wpisz ręcznie"
+    },
+    "data": {
+      "export": "Eksportuj dane",
+      "exportNote": "Pobierz plik JSON z całą historią",
+      "import": "Importuj dane",
+      "importNote": "Wczytaj kopię zapasową (nadpisze obecne)"
+    },
+    "migration": {
+      "movingLabel": "Przenoszę…",
+      "moveLabel": "Przenieś moje dane do chmury",
+      "found": "Znaleziono {{entries}} wpisów i {{products}} produktów lokalnie."
+    },
+    "account": {
+      "logout": "Wyloguj się"
+    },
+    "feedback": {
+      "send": "Prześlij opinię",
+      "note": "Powiedz nam co poprawić lub co Ci się podoba"
+    },
+    "danger": {
+      "reset": "Resetuj wszystkie dane",
+      "resetNote": "Usuwa wpisy, produkty i historię. Konto pozostaje.",
+      "dialogTitle": "Zresetować wszystkie dane?",
+      "dialogDesc": "Tej operacji nie można cofnąć. Usuniesz wszystkie wpisy, produkty i historię, a cele oraz ustawienia wrócą do stanu początkowego. Konto pozostaje. Rozważ najpierw Eksport JSON.",
+      "deleting": "Usuwanie…",
+      "deleteCountdown": "Usuń dane ({{n}})",
+      "delete": "Usuń dane",
+      "resetSuccess": "Dane zostały zresetowane",
+      "resetError": "Nie udało się zresetować danych"
+    },
+    "toast": {
+      "migrateOk": "Dane zostały przeniesione do chmury.",
+      "migrateErr": "Nie udało się przenieść danych."
+    }
+  }
+}
