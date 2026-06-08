@@ -337,7 +337,7 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
         aria-hidden
       >
         <div className="flex items-center gap-2">
-          {armed && <span className="text-sm font-semibold">Puść aby usunąć</span>}
+          {armed && <span className="text-sm font-semibold">{t("a11y.releaseToDelete")}</span>}
           <span className="inline-flex" style={{ transform: `scale(${0.7 + progress * 0.4})` }}>
             <Trash2 size={20} />
           </span>
