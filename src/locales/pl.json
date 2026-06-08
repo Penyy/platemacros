@@ -5,6 +5,19 @@
     "today": "Dziś",
     "ok": "OK"
   },
+  "nav": {
+    "today": "Dziś",
+    "stats": "Statystyki",
+    "products": "Produkty",
+    "settings": "Ustawienia"
+  },
+  "a11y": {
+    "notifications": "Powiadomienia",
+    "profile": "Profil",
+    "addItem": "Dodaj pozycję",
+    "repeatYesterday": "Powtórz z wczoraj",
+    "releaseToDelete": "Puść aby usunąć"
+  },
   "meal": {
     "breakfast": "Śniadanie",
     "second_breakfast": "Lunch",
@@ -12,28 +25,18 @@
     "dinner": "Kolacja",
     "snack": "Przekąska"
   },
-  "weekday": {
-    "0": "Poniedziałek",
-    "1": "Wtorek",
-    "2": "Środa",
-    "3": "Czwartek",
-    "4": "Piątek",
-    "5": "Sobota",
-    "6": "Niedziela"
+  "macro": {
+    "protein": "Białko",
+    "carbs": "Węglowodany",
+    "fat": "Tłuszcz",
+    "short": {
+      "protein": "B",
+      "carbs": "W",
+      "fat": "T"
+    }
   },
-  "month": {
-    "0": "stycznia",
-    "1": "lutego",
-    "2": "marca",
-    "3": "kwietnia",
-    "4": "maja",
-    "5": "czerwca",
-    "6": "lipca",
-    "7": "sierpnia",
-    "8": "września",
-    "9": "października",
-    "10": "listopada",
-    "11": "grudnia"
+  "card": {
+    "addMeal": "Dodaj posiłek"
   },
   "today": {
     "metaTitle": "Plate — Dzisiaj",
@@ -43,7 +46,9 @@
     "notifications": "Powiadomienia",
     "profile": "Profil",
     "ofKcal": "z {{goal}} kcal",
-    "remaining": "Pozostało {{n}}",
+    "remaining": "zostało {{n}}",
+    "left": "zostało {{n}}",
+    "over": "ponad o {{n}}",
     "burned": "Spalone {{n}}",
     "editBurned": "Edytuj spalone kalorie",
     "protein": "Białko",
