@@ -137,13 +137,13 @@ function MacroPill({ color, label, value }: { color: string; label: string; valu
     <span
       className="num-tight inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold"
       style={{
-        color,
-        background: `color-mix(in oklab, ${color} 12%, white)`,
+        background: `color-mix(in oklab, ${color} 16%, transparent)`,
+        border: `1px solid color-mix(in oklab, ${color} 38%, transparent)`,
       }}
     >
-      <span>{label}</span>
-      <span>{value}</span>
-      <span className="font-semibold opacity-70">g</span>
+      <span style={{ color, fontWeight: 800 }}>{label}</span>
+      <span style={{ color: "var(--ink)" }}>{value}</span>
+      <span className="font-semibold" style={{ color: "var(--muted-foreground)" }}>g</span>
     </span>
   );
 }
