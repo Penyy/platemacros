@@ -73,8 +73,8 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
             onClick={() => onAdd(meal)}
             className="grid h-8 w-8 place-items-center rounded-full text-foreground"
             style={{ background: "var(--muted)" }}
-            aria-label="Dodaj pozycję"
-            title="Dodaj pozycję"
+            aria-label={t("a11y.addItem")}
+            title={t("a11y.addItem")}
           >
             <Plus size={15} strokeWidth={2.2} />
           </button>
