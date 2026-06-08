@@ -368,7 +368,7 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
             ) : null}
           </div>
           <div className="num-tight mt-1 text-[12px] font-medium text-muted-foreground">
-            B {Math.round(e.protein)} · W {Math.round(e.carbs)} · T {Math.round(e.fat)} g
+            {t("macro.short.protein")} {Math.round(e.protein)} · {t("macro.short.carbs")} {Math.round(e.carbs)} · {t("macro.short.fat")} {Math.round(e.fat)} g
           </div>
         </div>
         <div className="num-tight text-right">
