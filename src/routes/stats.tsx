@@ -226,7 +226,7 @@ function CombinedChart({
   onTap: () => void;
 }) {
   const dailyKcal = days.map((d) => Math.round(d.totals.kcal));
-  const scaleMax = Math.max(Math.max(...dailyKcal, 0), goalKcal) * 1.1 || 1;
+  const scaleMax = Math.max(Math.max(...dailyKcal, 0), goalKcal) * 1.22 || 1;
   const goalTop = (1 - goalKcal / scaleMax) * 100;
   const showLabels = range === 7;
 
