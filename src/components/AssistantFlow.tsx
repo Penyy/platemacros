@@ -569,27 +569,67 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
             <Mic size={18} strokeWidth={1.9} />
           </button>
         )}
-        <button
-          type="button"
-          onClick={() => {
-            if (pendingImages.length >= MAX_IMAGES) {
-              toast.message(t("ai.maxImages", { n: MAX_IMAGES }));
-              return;
-            }
-            fileRef.current?.click();
-          }}
-          disabled={!!busy}
-          className="grid h-12 w-12 shrink-0 place-items-center rounded-[18px] disabled:opacity-40"
-          style={{
-            background: pendingImages.length > 0 ? "var(--accent-yellow)" : "var(--card)",
-            color: "var(--ink)",
-            border: "1px solid var(--hairline)",
-            boxShadow: "var(--shadow-card)",
-          }}
-          aria-label={t("ai.camera")}
-        >
-          <Camera size={18} strokeWidth={1.9} />
-        </button>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => {
+              if (pendingImages.length >= MAX_IMAGES) {
+                toast.message(t("ai.maxImages", { n: MAX_IMAGES }));
+                return;
+              }
+              setPickerOpen((v) => !v);
+            }}
+            disabled={!!busy}
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-[18px] disabled:opacity-40"
+            style={{
+              background: pendingImages.length > 0 ? "var(--accent-yellow)" : "var(--card)",
+              color: "var(--ink)",
+              border: "1px solid var(--hairline)",
+              boxShadow: "var(--shadow-card)",
+            }}
+            aria-label={t("ai.camera")}
+          >
+            <Camera size={18} strokeWidth={1.9} />
+          </button>
+          {pickerOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setPickerOpen(false)}
+              />
+              <div
+                className="absolute bottom-full right-0 mb-2 z-50 w-44 overflow-hidden rounded-2xl bg-card"
+                style={{ border: "1px solid var(--hairline)", boxShadow: "var(--shadow-card)" }}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPickerOpen(false);
+                    setCameraOpen(true);
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] active:bg-foreground/5"
+                  style={{ color: "var(--ink)", fontWeight: 500 }}
+                >
+                  <Camera size={16} strokeWidth={1.9} />
+                  {t("scan.takePhoto")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPickerOpen(false);
+                    fileRef.current?.click();
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] active:bg-foreground/5"
+                  style={{ color: "var(--ink)", fontWeight: 500, borderTop: "1px solid var(--hairline)" }}
+                >
+                  <ImageIcon size={16} strokeWidth={1.9} />
+                  {t("scan.fromGallery")}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
       </form>
 
       {history.length === 0 && !busy && (
