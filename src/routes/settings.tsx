@@ -406,19 +406,31 @@ function SettingsPage() {
 
 function Section({
   title,
+  subtitle,
   children,
 }: {
   title: string;
+  subtitle?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="mt-4">
-      <h2
-        className="px-[26px] pb-2 text-[11px] font-semibold"
-        style={{ color: "var(--muted-foreground)" }}
-      >
-        {title}
-      </h2>
+      <div className="px-[26px] pb-2">
+        <h2
+          className="text-[13px]"
+          style={{ fontFamily: "Manrope, sans-serif", fontWeight: 700, color: "var(--ink)" }}
+        >
+          {title}
+        </h2>
+        {subtitle && (
+          <p
+            className="mt-0.5 text-[11px]"
+            style={{ fontFamily: "Manrope, sans-serif", fontWeight: 600, color: "#9E988C" }}
+          >
+            {subtitle}
+          </p>
+        )}
+      </div>
       <div
         className="mx-[18px] divide-y overflow-hidden rounded-[24px] bg-card"
         style={{ boxShadow: "var(--shadow-card)", borderColor: "var(--hairline)" }}
