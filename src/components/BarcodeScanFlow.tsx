@@ -554,9 +554,9 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-12">
         <Loader2 size={20} className="animate-spin text-muted-foreground" />
-        <div className="text-sm text-muted-foreground">Szukam produktu w bazie…</div>
+        <div className="text-sm text-muted-foreground">{t("scan.searchingDb")}</div>
         {barcode && (
-          <div className="num-tight text-[11px] text-muted-foreground">Kod: {barcode}</div>
+          <div className="num-tight text-[11px] text-muted-foreground">{t("scan.code", { code: barcode })}</div>
         )}
       </div>
     );
