@@ -123,7 +123,7 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
           className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-2xl py-3 text-[13px] font-semibold text-muted-foreground"
           style={{ background: "var(--muted)" }}
         >
-          <Plus size={16} strokeWidth={2} /> Dodaj posiłek
+          <Plus size={16} strokeWidth={2} /> {t("card.addMeal")}
         </button>
       )}
 
