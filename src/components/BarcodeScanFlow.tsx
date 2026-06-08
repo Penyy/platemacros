@@ -880,21 +880,21 @@ function ManualFallback({
         });
       }}
     >
-      <Field label="Nazwa">
+      <Field label={t("scan.fieldName")}>
         <input className={inputCls} value={name} maxLength={80} onChange={(e) => setName(e.target.value)} />
       </Field>
       <div className="rounded-2xl bg-foreground/5 p-3">
         <div className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          Wartości na 100 g
+          {t("scan.per100Title")}
         </div>
         <div className="grid grid-cols-4 gap-2">
           <SmallField label="kcal" value={kcal} onChange={setKcal} />
-          <SmallField label="B" value={p} onChange={setP} />
-          <SmallField label="W" value={c} onChange={setC} />
-          <SmallField label="T" value={f} onChange={setF} />
+          <SmallField label={t("macro.short.protein")} value={p} onChange={setP} />
+          <SmallField label={t("macro.short.carbs")} value={c} onChange={setC} />
+          <SmallField label={t("macro.short.fat")} value={f} onChange={setF} />
         </div>
       </div>
-      <Field label="Ile gramów">
+      <Field label={t("scan.fieldGramsShort")}>
         <input
           className={inputCls}
           inputMode="decimal"
@@ -910,7 +910,7 @@ function ManualFallback({
           onChange={(e) => setSaveToLib(e.target.checked)}
           className="h-4 w-4 accent-primary"
         />
-        <span>Zapisz do moich produktów</span>
+        <span>{t("scan.saveToLib")}</span>
       </label>
       <div className="flex gap-2">
         <button
@@ -918,14 +918,14 @@ function ManualFallback({
           onClick={onCancel}
           className="flex-1 rounded-2xl bg-foreground/10 py-3 text-sm font-semibold"
         >
-          Skanuj ponownie
+          {t("scan.scanAgain")}
         </button>
         <button
           type="submit"
           disabled={!valid}
           className="flex-1 rounded-2xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-40"
         >
-          Dodaj
+          {t("scan.add")}
         </button>
       </div>
     </form>
