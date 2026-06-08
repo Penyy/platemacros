@@ -697,19 +697,19 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     >
       <div className="flex items-center justify-between">
         <div className="num-tight text-[11px] text-muted-foreground">
-          Kod: {barcode}
+          {t("scan.code", { code: barcode })}
         </div>
         <button
           type="button"
           onClick={reset}
           className="grid h-8 w-8 place-items-center rounded-full bg-foreground/10"
-          aria-label="Skanuj ponownie"
+          aria-label={t("scan.scanAgain")}
         >
           <RotateCcw size={14} />
         </button>
       </div>
 
-      <Field label="Nazwa">
+      <Field label={t("scan.fieldName")}>
         <input
           className={inputCls}
           value={product.name}
@@ -721,7 +721,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
       {hasServing && (
         <div className="flex items-center justify-between gap-2 rounded-2xl bg-foreground/5 px-3 py-2">
           <span className="text-[11px] font-semibold text-muted-foreground">
-            Porcja: {sg} g <span className="opacity-60">(z bazy)</span>
+            {t("scan.servingBadge", { g: sg })}
           </span>
           <div className="flex gap-1 rounded-full bg-background/60 p-0.5 text-[11px] font-semibold">
             <button
@@ -729,14 +729,14 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
               onClick={() => togglePortion(true)}
               className={`rounded-full px-2.5 py-1 ${usePortion ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
             >
-              Porcja ({sg} g)
+              {t("scan.toggleServing", { g: sg })}
             </button>
             <button
               type="button"
               onClick={() => togglePortion(false)}
               className={`rounded-full px-2.5 py-1 ${!usePortion ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
             >
-              100 g
+              {t("scan.togglePer100")}
             </button>
           </div>
         </div>
@@ -744,23 +744,23 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
 
       <div className="rounded-2xl bg-foreground/5 p-3">
         <div className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          Wartości na 100 g
+          {t("scan.per100Title")}
         </div>
         <div className="grid grid-cols-4 gap-2">
           <SmallField label="kcal" value={String(product.kcal)} onChange={(v) => updatePer100("kcal", v)} />
-          <SmallField label="B" value={String(product.protein)} onChange={(v) => updatePer100("protein", v)} />
-          <SmallField label="W" value={String(product.carbs)} onChange={(v) => updatePer100("carbs", v)} />
-          <SmallField label="T" value={String(product.fat)} onChange={(v) => updatePer100("fat", v)} />
+          <SmallField label={t("macro.short.protein")} value={String(product.protein)} onChange={(v) => updatePer100("protein", v)} />
+          <SmallField label={t("macro.short.carbs")} value={String(product.carbs)} onChange={(v) => updatePer100("carbs", v)} />
+          <SmallField label={t("macro.short.fat")} value={String(product.fat)} onChange={(v) => updatePer100("fat", v)} />
         </div>
         <div className="mt-2 grid grid-cols-4 gap-2">
-          <SmallField label="Błonnik" value={product.fiber_g == null ? "" : String(product.fiber_g)} onChange={(v) => updatePer100("fiber_g", v)} />
-          <SmallField label="Cukry" value={product.sugars_g == null ? "" : String(product.sugars_g)} onChange={(v) => updatePer100("sugars_g", v)} />
-          <SmallField label="Nasyc." value={product.saturated_fat_g == null ? "" : String(product.saturated_fat_g)} onChange={(v) => updatePer100("saturated_fat_g", v)} />
-          <SmallField label="Sód mg" value={product.sodium_mg == null ? "" : String(product.sodium_mg)} onChange={(v) => updatePer100("sodium_mg", v)} />
+          <SmallField label={t("scan.fieldFiber")} value={product.fiber_g == null ? "" : String(product.fiber_g)} onChange={(v) => updatePer100("fiber_g", v)} />
+          <SmallField label={t("scan.fieldSugars")} value={product.sugars_g == null ? "" : String(product.sugars_g)} onChange={(v) => updatePer100("sugars_g", v)} />
+          <SmallField label={t("scan.fieldSat")} value={product.saturated_fat_g == null ? "" : String(product.saturated_fat_g)} onChange={(v) => updatePer100("saturated_fat_g", v)} />
+          <SmallField label={t("scan.fieldSodium")} value={product.sodium_mg == null ? "" : String(product.sodium_mg)} onChange={(v) => updatePer100("sodium_mg", v)} />
         </div>
       </div>
 
-      <Field label="Ile gramów zjadłeś/aś?">
+      <Field label={t("scan.fieldGrams")}>
         <input
           className={inputCls}
           inputMode="decimal"
