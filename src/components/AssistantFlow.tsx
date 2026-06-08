@@ -623,7 +623,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
           style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
         >
           <Loader2 size={12} className="animate-spin" />
-          {busy === "image" ? "Analizuję zdjęcia…" : "Myślę…"}
+          {busy === "image" ? t("ai.busyImage") : t("ai.busyText")}
         </div>
       )}
 
