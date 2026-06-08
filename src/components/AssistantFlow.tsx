@@ -583,20 +583,20 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
             className="mb-2 flex items-center gap-1.5 text-[10px] uppercase tracking-wider"
             style={{ color: "var(--muted-foreground)", fontWeight: 700 }}
           >
-            <MessageCircle size={12} strokeWidth={1.9} /> Mogę pomóc na 3 sposoby
+            <MessageCircle size={12} strokeWidth={1.9} /> {t("ai.introTitle")}
           </div>
           <ul className="space-y-1.5 text-[13px] leading-snug" style={{ color: "var(--ink)" }}>
             <li className="flex gap-2">
               <Sparkles size={14} strokeWidth={1.9} className="mt-0.5 shrink-0" style={{ color: "var(--accent-yellow)" }} />
-              <span><b>Opisz co zjadłeś</b> — dodam z makro</span>
+              <span dangerouslySetInnerHTML={{ __html: t("ai.introDescribe") }} />
             </li>
             <li className="flex gap-2">
               <Camera size={14} strokeWidth={1.9} className="mt-0.5 shrink-0" style={{ color: "var(--accent-yellow)" }} />
-              <span><b>Dodaj zdjęcia etykiet</b> (do 5) i opisz ilości</span>
+              <span dangerouslySetInnerHTML={{ __html: t("ai.introPhoto") }} />
             </li>
             <li className="flex gap-2">
               <MessageCircle size={14} strokeWidth={1.9} className="mt-0.5 shrink-0" style={{ color: "var(--accent-yellow)" }} />
-              <span><b>Zapytaj o makro</b> — ile zostało, co dojeść</span>
+              <span dangerouslySetInnerHTML={{ __html: t("ai.introAsk") }} />
             </li>
           </ul>
         </div>
