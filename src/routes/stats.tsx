@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { Flame, ChevronLeft, Hand } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { sumEntries, usePlate, ymd } from "@/lib/store";
 
@@ -18,14 +19,20 @@ export const Route = createFileRoute("/stats")({
 });
 
 type Range = 7 | 30;
+type View = "combined" | "split";
 
 function StatsPage() {
   const entries = usePlate((s) => s.entries);
   const profile = usePlate((s) => s.profile);
   const [range, setRange] = useState<Range>(7);
+  const [view, setView] = useState<View>("combined");
 
   const days = useMemo(() => {
-    const out: { date: string; label: string; totals: ReturnType<typeof sumEntries> }[] = [];
+    const out: {
+      date: string;
+      label: string;
+      totals: ReturnType<typeof sumEntries>;
+    }[] = [];
     const now = new Date();
     for (let i = range - 1; i >= 0; i--) {
       const d = new Date(now);
@@ -41,15 +48,17 @@ function StatsPage() {
     return out;
   }, [entries, range]);
 
+  const today = ymd(new Date());
   const loggedDays = days.filter((d) => d.totals.kcal > 0).length;
-  const avg = loggedDays === 0
-    ? { kcal: 0, protein: 0, carbs: 0, fat: 0 }
-    : {
-        kcal: Math.round(days.reduce((s, d) => s + d.totals.kcal, 0) / loggedDays),
-        protein: Math.round(days.reduce((s, d) => s + d.totals.protein, 0) / loggedDays),
-        carbs: Math.round(days.reduce((s, d) => s + d.totals.carbs, 0) / loggedDays),
-        fat: Math.round(days.reduce((s, d) => s + d.totals.fat, 0) / loggedDays),
-      };
+  const avg =
+    loggedDays === 0
+      ? { kcal: 0, protein: 0, carbs: 0, fat: 0 }
+      : {
+          kcal: Math.round(days.reduce((s, d) => s + d.totals.kcal, 0) / loggedDays),
+          protein: Math.round(days.reduce((s, d) => s + d.totals.protein, 0) / loggedDays),
+          carbs: Math.round(days.reduce((s, d) => s + d.totals.carbs, 0) / loggedDays),
+          fat: Math.round(days.reduce((s, d) => s + d.totals.fat, 0) / loggedDays),
+        };
 
   let streak = 0;
   for (let i = days.length - 1; i >= 0; i--) {
@@ -59,48 +68,116 @@ function StatsPage() {
 
   return (
     <div className="pb-4">
-      <ScreenHeader title="Statystyki" subtitle={`Ostatnie ${range} dni`} />
+      {/* Custom header with streak */}
+      <div className="px-[18px] pt-3 pb-2 flex items-end justify-between">
+        <div>
+          <h1
+            className="text-[28px] leading-tight"
+            style={{ fontWeight: 800, color: "var(--ink)", fontFamily: "Manrope, sans-serif" }}
+          >
+            Statystyki
+          </h1>
+          <div
+            className="text-[13px] mt-0.5"
+            style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+          >
+            Ostatnie {range} dni
+          </div>
+        </div>
+        {streak > 0 && (
+          <div
+            className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
+            style={{
+              background: "rgba(255,255,255,.035)",
+              border: "1px solid var(--hairline)",
+            }}
+          >
+            <Flame
+              size={14}
+              strokeWidth={1.8}
+              style={{ color: "var(--accent-yellow)", opacity: 0.8 }}
+            />
+            <span
+              className="num-tight text-[13px]"
+              style={{ fontWeight: 800, color: "var(--ink)" }}
+            >
+              {streak}
+            </span>
+          </div>
+        )}
+      </div>
 
       <div className="px-[18px] space-y-3">
         <Pills value={range} onChange={setRange} />
 
-        <div className="grid grid-cols-2 gap-2.5">
-          <StatCard label="Dni z wpisem" value={`${loggedDays}/${range}`} />
-          <StatCard label="Seria" value={`${streak} ${streak === 1 ? "dzień" : "dni"}`} />
-        </div>
-
-        <ChartCard
-          title="Kalorie"
-          unit="kcal"
-          color="var(--ink)"
-          goal={profile.goal_kcal}
-          values={days.map((d) => ({ label: d.label, v: Math.round(d.totals.kcal) }))}
-          avg={avg.kcal}
-        />
-        <ChartCard
-          title="Białko"
-          unit="g"
-          color="var(--macro-protein)"
-          goal={profile.goal_protein}
-          values={days.map((d) => ({ label: d.label, v: d.totals.protein }))}
-          avg={avg.protein}
-        />
-        <ChartCard
-          title="Węglowodany"
-          unit="g"
-          color="var(--macro-carbs)"
-          goal={profile.goal_carbs}
-          values={days.map((d) => ({ label: d.label, v: d.totals.carbs }))}
-          avg={avg.carbs}
-        />
-        <ChartCard
-          title="Tłuszcz"
-          unit="g"
-          color="var(--macro-fat)"
-          goal={profile.goal_fat}
-          values={days.map((d) => ({ label: d.label, v: d.totals.fat }))}
-          avg={avg.fat}
-        />
+        <AnimatePresence mode="wait">
+          {view === "combined" ? (
+            <motion.div
+              key="combined"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.25 }}
+            >
+              <CombinedChart
+                days={days}
+                today={today}
+                range={range}
+                goalKcal={profile.goal_kcal}
+                avgKcal={avg.kcal}
+                onTap={() => setView("split")}
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="split"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.25 }}
+              className="space-y-3"
+            >
+              <button
+                onClick={() => setView("combined")}
+                className="flex items-center gap-1 -ml-1 px-1 py-1 text-[13px] active:scale-[0.98] transition"
+                style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+              >
+                <ChevronLeft size={16} strokeWidth={1.8} />
+                Widok zbiorczy
+              </button>
+              {(
+                [
+                  { key: "kcal", title: "Kalorie", unit: "kcal", color: "var(--ink)", goal: profile.goal_kcal, avg: avg.kcal },
+                  { key: "protein", title: "Białko", unit: "g", color: "var(--macro-protein)", goal: profile.goal_protein, avg: avg.protein },
+                  { key: "carbs", title: "Węglowodany", unit: "g", color: "var(--macro-carbs)", goal: profile.goal_carbs, avg: avg.carbs },
+                  { key: "fat", title: "Tłuszcz", unit: "g", color: "var(--macro-fat)", goal: profile.goal_fat, avg: avg.fat },
+                ] as const
+              ).map((m, idx) => (
+                <motion.div
+                  key={m.key}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: idx * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <SplitChartCard
+                    title={m.title}
+                    unit={m.unit}
+                    color={m.color}
+                    goal={m.goal}
+                    avg={m.avg}
+                    today={today}
+                    range={range}
+                    values={days.map((d) => ({
+                      label: d.label,
+                      date: d.date,
+                      v: Math.round(d.totals[m.key as keyof typeof d.totals]),
+                    }))}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -133,46 +210,237 @@ function Pills({ value, onChange }: { value: Range; onChange: (r: Range) => void
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function CombinedChart({
+  days,
+  today,
+  range,
+  goalKcal,
+  avgKcal,
+  onTap,
+}: {
+  days: { date: string; label: string; totals: ReturnType<typeof sumEntries> }[];
+  today: string;
+  range: Range;
+  goalKcal: number;
+  avgKcal: number;
+  onTap: () => void;
+}) {
+  const dailyKcal = days.map((d) => Math.round(d.totals.kcal));
+  const scaleMax = Math.max(Math.max(...dailyKcal, 0), goalKcal) * 1.1 || 1;
+  const goalTop = (1 - goalKcal / scaleMax) * 100;
+  const showLabels = range === 7;
+
   return (
-    <div
-      className="rounded-[24px] bg-card p-4"
-      style={{ boxShadow: "var(--shadow-card)" }}
+    <motion.div
+      whileTap={{ scale: 0.99 }}
+      onClick={onTap}
+      className="rounded-[24px] p-4 cursor-pointer"
+      style={{
+        background: "var(--card)",
+        boxShadow: "var(--shadow-card)",
+        border: "1px solid var(--hairline)",
+      }}
     >
-      <div className="text-[11px] font-semibold" style={{ color: "var(--muted-foreground)" }}>
+      <div className="flex items-end justify-between">
+        <div>
+          <div
+            className="text-[11px] font-semibold"
+            style={{ color: "var(--muted-foreground)" }}
+          >
+            Rozkład kalorii
+          </div>
+          <div
+            className="num-tight mt-0.5 text-[20px]"
+            style={{ fontWeight: 800, color: "var(--ink)" }}
+          >
+            śr. {avgKcal} kcal / dzień
+          </div>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <LegendDot color="var(--macro-protein)" label="Białko" />
+          <LegendDot color="var(--macro-carbs)" label="Węgle" />
+          <LegendDot color="var(--macro-fat)" label="Tłuszcz" />
+        </div>
+      </div>
+
+      <div className="relative mt-4 h-32">
+        {/* Goal line */}
+        <div
+          className="absolute left-0 right-0 border-t border-dashed pointer-events-none"
+          style={{
+            top: `${goalTop}%`,
+            borderColor: "var(--accent-yellow)",
+            opacity: 0.5,
+          }}
+        />
+        <div
+          className="absolute right-0 num-tight text-[9px] px-1"
+          style={{
+            top: `calc(${goalTop}% - 12px)`,
+            color: "var(--accent-yellow)",
+            opacity: 0.8,
+            fontWeight: 700,
+          }}
+        >
+          cel {goalKcal}
+        </div>
+
+        <div className="flex h-full items-end gap-[3px]">
+          {days.map((d, i) => {
+            const kcal = Math.round(d.totals.kcal);
+            const h = Math.min(100, (kcal / scaleMax) * 100);
+            const pK = d.totals.protein * 4;
+            const cK = d.totals.carbs * 4;
+            const fK = d.totals.fat * 9;
+            const macroSum = pK + cK + fK;
+            const isToday = d.date === today;
+            return (
+              <div key={i} className="relative flex-1 h-full flex flex-col justify-end items-center">
+                {showLabels && kcal > 0 && (
+                  <div
+                    className="num-tight text-[9px] mb-1"
+                    style={{
+                      color: isToday ? "var(--ink)" : "var(--muted-foreground)",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {kcal}
+                  </div>
+                )}
+                <motion.div
+                  className="w-full flex flex-col-reverse overflow-hidden"
+                  style={{
+                    borderRadius: "8px 8px 4px 4px",
+                  }}
+                  initial={{ height: 0 }}
+                  animate={{ height: `${h}%` }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: i * 0.02 }}
+                >
+                  {macroSum > 0 ? (
+                    <>
+                      <div
+                        style={{
+                          flexBasis: `${(pK / macroSum) * 100}%`,
+                          background: "var(--macro-protein)",
+                          boxShadow: "inset 0 -1.5px 0 rgba(0,0,0,.5)",
+                        }}
+                      />
+                      <div
+                        style={{
+                          flexBasis: `${(cK / macroSum) * 100}%`,
+                          background: "var(--macro-carbs)",
+                          boxShadow: "inset 0 -1.5px 0 rgba(0,0,0,.5)",
+                        }}
+                      />
+                      <div
+                        style={{
+                          flexBasis: `${(fK / macroSum) * 100}%`,
+                          background: "var(--macro-fat)",
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <div style={{ flex: 1, background: "var(--hairline)", opacity: 0.6 }} />
+                  )}
+                </motion.div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {showLabels && (
+        <div className="mt-1.5 flex gap-[3px]">
+          {days.map((d, i) => (
+            <div
+              key={i}
+              className="flex-1 text-center text-[10px]"
+              style={{
+                color: d.date === today ? "var(--ink)" : "var(--muted-foreground)",
+                fontWeight: 600,
+              }}
+            >
+              {d.label}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div
+        className="mt-3 flex items-center justify-center gap-1.5 text-[11px]"
+        style={{ color: "var(--muted-foreground)", opacity: 0.7, fontWeight: 600 }}
+      >
+        <Hand size={12} strokeWidth={1.8} />
+        Dotknij, aby rozbić na osobne wykresy
+      </div>
+    </motion.div>
+  );
+}
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <div className="flex items-center gap-1">
+      <span
+        className="inline-block rounded-full"
+        style={{ width: 7, height: 7, background: color }}
+      />
+      <span
+        className="text-[10px]"
+        style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+      >
         {label}
-      </div>
-      <div className="num-tight mt-1 text-[22px]" style={{ fontWeight: 800, color: "var(--ink)" }}>
-        {value}
-      </div>
+      </span>
     </div>
   );
 }
 
-function ChartCard({
+function SplitChartCard({
   title,
   unit,
   color,
   goal,
-  values,
   avg,
+  today,
+  range,
+  values,
 }: {
   title: string;
   unit: string;
   color: string;
   goal: number;
-  values: { label: string; v: number }[];
   avg: number;
+  today: string;
+  range: Range;
+  values: { label: string; date: string; v: number }[];
 }) {
-  const max = Math.max(goal * 1.1, ...values.map((d) => d.v), 1);
-  const showLabels = values.length <= 7;
+  const max = Math.max(Math.max(...values.map((d) => d.v), 0), goal) * 1.1 || 1;
+  const goalTop = (1 - goal / max) * 100;
+  const showLabels = range === 7;
+  const diff = avg - goal;
+  const onTarget = goal > 0 && Math.abs(diff) <= goal * 0.02;
 
   return (
     <div
-      className="rounded-[24px] bg-card p-4"
-      style={{ boxShadow: "var(--shadow-card)" }}
+      className="rounded-[24px] p-4 relative overflow-hidden"
+      style={{
+        background: "var(--card)",
+        boxShadow: "var(--shadow-card)",
+      }}
     >
-      <div className="flex items-end justify-between">
+      {/* Corner glow */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          top: -40,
+          right: -40,
+          width: 180,
+          height: 180,
+          background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
+          opacity: 0.1,
+        }}
+      />
+
+      <div className="relative flex items-end justify-between">
         <div>
           <div
             className="text-[11px] font-semibold"
@@ -186,6 +454,19 @@ function ChartCard({
           >
             śr. {Math.round(avg)} {unit}
           </div>
+          {avg > 0 && (
+            <div
+              className="num-tight text-[10px] mt-0.5"
+              style={{
+                color: onTarget ? "var(--accent-yellow)" : "var(--muted-foreground)",
+                fontWeight: 700,
+              }}
+            >
+              {onTarget
+                ? "≈ na celu"
+                : `${diff > 0 ? "+" : ""}${Math.round(diff)} vs cel`}
+            </div>
+          )}
         </div>
         <div
           className="num-tight text-right text-[11px]"
@@ -195,43 +476,78 @@ function ChartCard({
         </div>
       </div>
 
-      <div className="relative mt-3 h-24">
-        {/* Goal line (dashed) */}
+      <div className="relative mt-3" style={{ height: 108 }}>
+        {/* Goal line */}
         <div
-          className="absolute left-0 right-0 border-t border-dashed"
+          className="absolute left-0 right-0 border-t border-dashed pointer-events-none"
           style={{
-            bottom: `${(goal / max) * 100}%`,
-            borderColor: "color-mix(in oklab, var(--ink) 25%, transparent)",
+            top: `${goalTop}%`,
+            borderColor: color,
+            opacity: 0.45,
           }}
         />
-        {/* Average line (solid, accent) */}
-        {avg > 0 && (
-          <div
-            className="absolute left-0 right-0"
-            style={{
-              bottom: `${(avg / max) * 100}%`,
-              height: 1.5,
-              background: "var(--accent-yellow)",
-              opacity: 0.9,
-            }}
-          />
-        )}
         <div className="flex h-full items-end gap-[3px]">
           {values.map((d, i) => {
             const h = Math.min(100, (d.v / max) * 100);
-            const hit = d.v > 0 && d.v >= goal * 0.9 && d.v <= goal * 1.1;
+            const isToday = d.date === today;
             return (
-              <div key={i} className="relative flex-1" style={{ height: "100%" }}>
-                <motion.div
-                  className="absolute bottom-0 left-0 right-0 rounded-t-md"
-                  initial={{ height: 0 }}
-                  animate={{ height: `${h}%` }}
-                  transition={{ duration: 0.6, ease: "easeOut", delay: i * 0.02 }}
+              <div
+                key={i}
+                className="relative flex-1 h-full flex flex-col justify-end items-center"
+              >
+                {showLabels && d.v > 0 && (
+                  <div
+                    className="num-tight text-[9px] mb-1"
+                    style={{
+                      color: isToday ? "var(--ink)" : "var(--muted-foreground)",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {d.v}
+                  </div>
+                )}
+                {/* Track */}
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 bottom-0 rounded-[9px_9px_5px_5px]"
                   style={{
-                    background: color,
-                    opacity: d.v === 0 ? 0.15 : hit ? 1 : 0.7,
+                    width: "60%",
+                    height: "100%",
+                    background: "var(--hairline)",
+                    opacity: 0.35,
                   }}
                 />
+                {/* Bar */}
+                <motion.div
+                  className="relative overflow-hidden"
+                  style={{
+                    width: "60%",
+                    background: color,
+                    borderRadius: "9px 9px 5px 5px",
+                    opacity: isToday || !isAnyToday(values, today) && i === values.length - 1 ? 1 : 0.8,
+                  }}
+                  initial={{ height: 0 }}
+                  animate={{ height: `${h}%` }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: i * 0.02 }}
+                >
+                  {/* Sheen top */}
+                  <div
+                    className="absolute inset-x-0 top-0 pointer-events-none"
+                    style={{
+                      height: "40%",
+                      background:
+                        "linear-gradient(180deg, rgba(255,255,255,.22), transparent)",
+                    }}
+                  />
+                  {/* Bottom darken */}
+                  <div
+                    className="absolute inset-x-0 bottom-0 pointer-events-none"
+                    style={{
+                      height: "40%",
+                      background:
+                        "linear-gradient(transparent, rgba(0,0,0,.2))",
+                    }}
+                  />
+                </motion.div>
               </div>
             );
           })}
@@ -244,7 +560,10 @@ function ChartCard({
             <div
               key={i}
               className="flex-1 text-center text-[10px]"
-              style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+              style={{
+                color: d.date === today ? "var(--ink)" : "var(--muted-foreground)",
+                fontWeight: 600,
+              }}
             >
               {d.label}
             </div>
@@ -253,4 +572,8 @@ function ChartCard({
       )}
     </div>
   );
+}
+
+function isAnyToday(values: { date: string }[], today: string) {
+  return values.some((v) => v.date === today);
 }
