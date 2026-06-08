@@ -546,7 +546,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
               boxShadow: "var(--shadow-card)",
               animation: listening ? "pulse 1.2s ease-in-out infinite" : undefined,
             }}
-            aria-label={listening ? "Zatrzymaj nasłuch" : "Dyktuj głosem"}
+            aria-label={listening ? t("ai.micStop") : t("ai.micStart")}
           >
             <Mic size={18} strokeWidth={1.9} />
           </button>
