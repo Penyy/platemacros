@@ -425,7 +425,7 @@ function Section({
         {subtitle && (
           <p
             className="mt-0.5 text-[11px]"
-            style={{ fontFamily: "Manrope, sans-serif", fontWeight: 600, color: "#9E988C" }}
+            style={{ fontFamily: "Manrope, sans-serif", fontWeight: 600, color: "var(--muted-foreground)" }}
           >
             {subtitle}
           </p>
