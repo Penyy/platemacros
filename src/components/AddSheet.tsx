@@ -248,7 +248,7 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
               className="mt-1 text-[12.5px] leading-snug"
               style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
             >
-              Opisz słowami albo zrób zdjęcie posiłku lub etykiety
+              {t("add.heroSubtitle")}
             </div>
           </div>
           <ArrowRight size={20} strokeWidth={1.9} style={{ color: "var(--accent-yellow)" }} />
