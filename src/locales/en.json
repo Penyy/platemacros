@@ -355,7 +355,9 @@
     "toast": {
       "migrateOk": "Data has been moved to the cloud.",
       "migrateErr": "Failed to move data."
+    }
   },
+
   "profile": {
     "title": "Profile",
     "metaTitle": "Plate — Profile",
