@@ -253,7 +253,15 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
         return;
       }
       setProduct(p);
+      if (p.servingGrams != null && p.servingGrams > 0) {
+        setUsePortion(true);
+        setGrams(String(Math.round(p.servingGrams * 10) / 10));
+      } else {
+        setUsePortion(false);
+        setGrams("100");
+      }
       setPhase("review");
+
     } catch {
       setPhase("neterror");
     }
