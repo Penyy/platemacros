@@ -82,7 +82,17 @@ const AskInputSchema = z.object({
   // new: up to 5 images at once
   images: z.array(z.string().min(100).max(8_000_000)).max(5).optional(),
   settings: SettingsSchema.optional(),
+  lang: z.enum(["pl", "en"]).optional().default("pl"),
 });
+
+type Lang = "pl" | "en";
+
+function languageAddendum(lang: Lang): string {
+  return lang === "en"
+    ? "IMPORTANT: Respond in English. All user-facing text (replies, notes, item names) must be in English. EXCEPTION: the `meal` field MUST stay as the Polish enum (Śniadanie / Obiad / Kolacja / Przekąska) — it is a database value, not display text."
+    : "WAŻNE: Odpowiadaj po polsku.";
+}
+
 
 // Output kinds
 const MacrosSchema = z.object({
@@ -323,7 +333,9 @@ async function handleImagesPath(
   userNote: string,
   previews: string[],
   hourFallback: number,
+  lang: Lang,
 ): Promise<AssistantResult> {
+
   const imageParts: GeminiPart[] = images.map((b64) => {
     const data = b64.startsWith("data:") ? b64.split(",")[1] ?? "" : b64;
     return { inline_data: { mime_type: "image/jpeg", data } };
@@ -360,7 +372,7 @@ async function handleImagesPath(
   };
 
   const body = {
-    system_instruction: { parts: [{ text: `${SYSTEM_INSTRUCTION}\n\n${ItemsSystemAddendum}` }] },
+    system_instruction: { parts: [{ text: `${SYSTEM_INSTRUCTION}\n\n${ItemsSystemAddendum}\n\n${languageAddendum(lang)}` }] },
     contents: [
       {
         role: "user",
@@ -425,6 +437,7 @@ async function handleTextPath(
   ctx: z.infer<typeof DayContextSchema>,
   apiKey: string,
   settings: AssistantCallSettings,
+  lang: Lang,
 ): Promise<AssistantResult> {
   const contents: Array<{ role: string; parts: GeminiPart[] }> = [];
   for (const h of FEW_SHOT_HISTORY) {
@@ -443,7 +456,7 @@ async function handleTextPath(
       : "Odpowiadaj szczegółowo — możesz użyć 3-6 zdań z uzasadnieniem i konkretnymi przykładami.";
   const dynamicSystem = `${SYSTEM_INSTRUCTION}\n\nDODATKOWE REGUŁY SESJI:\n- ${mealHint}\n- ${lengthHint}${
     settings.allowAddEntries ? "" : "\n- NIE WOLNO Ci dodawać wpisów do dziennika — odpowiadaj tylko tekstem, nawet gdy użytkownik prosi o dodanie jedzenia (poinformuj że dodawanie przez AI jest wyłączone w ustawieniach)."
-  }`;
+  }\n\n${languageAddendum(lang)}`;
   contents.push({
     role: "user",
     parts: [{ text: `KONTEKST DNIA:\n${buildDayContextText(ctx)}\n\nPYTANIE/POLECENIE: ${message}` }],
@@ -517,8 +530,9 @@ export const askAssistant = createServerFn({ method: "POST" })
       : data.imageBase64
         ? [data.imageBase64]
         : [];
+    const lang: Lang = data.lang ?? "pl";
     if (images.length > 0) {
-      return handleImagesPath(images, apiKey, data.message, [], data.dayContext.hour);
+      return handleImagesPath(images, apiKey, data.message, [], data.dayContext.hour, lang);
     }
 
     const settings: AssistantCallSettings = {
@@ -527,5 +541,5 @@ export const askAssistant = createServerFn({ method: "POST" })
       defaultMeal: data.settings?.defaultMeal ?? "auto",
       responseLength: data.settings?.responseLength ?? "short",
     };
-    return handleTextPath(data.message, data.history ?? [], data.dayContext, apiKey, settings);
+    return handleTextPath(data.message, data.history ?? [], data.dayContext, apiKey, settings, lang);
   });
