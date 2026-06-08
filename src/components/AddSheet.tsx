@@ -7,6 +7,7 @@ import {
   Search,
   ScanLine,
   Sparkles,
+  ArrowRight,
   X,
 } from "lucide-react";
 import { type Meal, MEAL_LABEL, type Product, usePlate, ymd, defaultPlusMenuVisibility, type PlusMenuItemId } from "@/lib/store";
@@ -57,25 +58,25 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
             className="fixed inset-0 z-40 bg-black/30"
           />
           <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 320, damping: 32 }}
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0 }}
+            transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
             className="fixed inset-x-0 z-50 mx-auto flex w-full max-w-[430px] flex-col"
             style={{ bottom: "var(--kb-inset, 0px)" }}
           >
             <div
-              className="mx-2 mb-[max(env(safe-area-inset-bottom),1.25rem)] rounded-t-[32px] rounded-b-[28px] bg-card p-6 pb-[max(env(safe-area-inset-bottom),1.5rem)]"
+              className="mx-2 mb-[max(env(safe-area-inset-bottom),1.25rem)] rounded-t-[30px] rounded-b-[28px] bg-card px-5 pt-3 pb-[max(env(safe-area-inset-bottom),1.5rem)]"
               style={{ boxShadow: "var(--shadow-card)" }}
             >
               <div
-                className="mx-auto mb-4 h-1.5 w-10 rounded-full"
+                className="mx-auto mb-3 h-1.5 w-11 rounded-full"
                 style={{ background: "var(--hairline)" }}
               />
               <div className="mb-5 flex items-center justify-between">
                 <h2
-                  className="text-[22px] leading-tight"
-                  style={{ fontFamily: "Manrope, sans-serif", fontWeight: 700, letterSpacing: "-0.03em", color: "var(--ink)" }}
+                  className={mode === "menu" ? "text-[27px] leading-tight" : "text-[22px] leading-tight"}
+                  style={{ fontFamily: "Manrope, sans-serif", fontWeight: mode === "menu" ? 800 : 700, letterSpacing: "-0.03em", color: "var(--ink)" }}
                 >
                   {mode === "menu"
                     ? "Dodaj pozycję"
@@ -95,11 +96,11 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                 </h2>
                 <button
                   onClick={mode === "menu" ? close : () => setMode("menu")}
-                  className="grid h-9 w-9 place-items-center rounded-full"
-                  style={{ background: "var(--hairline)", color: "var(--ink)" }}
+                  className="grid h-10 w-10 place-items-center rounded-full"
+                  style={{ background: "var(--card)", border: "1px solid var(--hairline)", color: "var(--muted-foreground)" }}
                   aria-label="Zamknij"
                 >
-                  <X size={16} />
+                  <X size={16} strokeWidth={1.9} />
                 </button>
               </div>
 
@@ -194,57 +195,111 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
   const visibility = usePlate(
     (s) => s.profile.plus_menu_visibility ?? defaultPlusMenuVisibility,
   );
-  const all: { id: PickMode; label: string; icon: typeof ScanLine; soon: boolean }[] = [
-    { id: "assistant", label: "PlateAI", icon: Sparkles, soon: false },
-    { id: "barcode", label: "Skanuj kod kreskowy", icon: ScanLine, soon: false },
-    { id: "compound", label: "Złożony posiłek", icon: Layers, soon: false },
-    { id: "search", label: "Szukaj produktu", icon: Search, soon: false },
-    { id: "quick", label: "Szybkie dodawanie", icon: Zap, soon: false },
-    { id: "manual", label: "Wpisz ręcznie", icon: PencilLine, soon: false },
+
+  const heroVisible = visibility["assistant" as PlusMenuItemId] !== false;
+
+  const gridAll: { id: PickMode; label: string; subtitle: string; icon: typeof ScanLine }[] = [
+    { id: "barcode", label: "Skanuj kod kreskowy", subtitle: "Kod kreskowy EAN", icon: ScanLine },
+    { id: "search", label: "Szukaj produktu", subtitle: "Baza Open Food Facts", icon: Search },
+    { id: "quick", label: "Szybkie dodawanie", subtitle: "Tylko kcal i makra", icon: Zap },
+    { id: "compound", label: "Złożony posiłek", subtitle: "Z wielu składników", icon: Layers },
+    { id: "manual", label: "Wpisz ręcznie", subtitle: "Własna pozycja z wartościami", icon: PencilLine },
   ];
-  const items = all.filter((it) => visibility[it.id as PlusMenuItemId] !== false);
+  const gridItems = gridAll.filter((it) => visibility[it.id as PlusMenuItemId] !== false);
+  const oddTail = gridItems.length % 2 === 1;
+
+  let idx = 0;
+
   return (
-    <div className="grid grid-cols-2 gap-3">
-      {items.map((it) => {
-        const Icon = it.icon;
-        const disabled = it.soon;
-        return (
-          <motion.button
-            key={it.id}
-            whileTap={disabled ? undefined : { scale: 0.97 }}
-            disabled={disabled}
-            onClick={() => !disabled && onPick(it.id)}
-            className={`group relative flex flex-col items-start gap-3 rounded-[22px] p-4 text-left ${
-              disabled ? "opacity-50" : ""
-            }`}
-            style={{
-              background: "var(--card)",
-              boxShadow: "var(--shadow-card)",
-            }}
+    <div className="flex flex-col gap-3">
+      {heroVisible && (
+        <motion.button
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.32, delay: idx++ * 0.04, ease: [0.22, 1, 0.36, 1] }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => onPick("assistant")}
+          className="flex w-full items-center gap-4 rounded-[20px] p-4 text-left"
+          style={{
+            background:
+              "radial-gradient(120% 140% at 90% 0%, rgba(244,181,0,.16), transparent 55%), linear-gradient(135deg, rgba(244,181,0,.10), rgba(244,181,0,.03))",
+            border: "1px solid rgba(244,181,0,.28)",
+          }}
+        >
+          <span
+            className="grid h-14 w-14 shrink-0 place-items-center rounded-full"
+            style={{ background: "var(--accent-yellow)", color: "#161616" }}
           >
-            <span
-              className="grid h-11 w-11 place-items-center rounded-2xl"
-              style={{ background: "var(--hairline)", color: "var(--ink)" }}
-            >
-              <Icon size={20} strokeWidth={1.9} />
-            </span>
+            <Sparkles size={26} strokeWidth={1.9} />
+          </span>
+          <div className="min-w-0 flex-1">
             <div
-              className="text-[14px] leading-tight"
-              style={{ fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em" }}
+              className="text-[18px] leading-tight"
+              style={{ fontFamily: "Manrope, sans-serif", fontWeight: 800, color: "var(--ink)", letterSpacing: "-0.02em" }}
             >
-              {it.label}
+              PlateAI
             </div>
-            {it.soon && (
-              <span
-                className="absolute right-2 top-2 rounded-full px-1.5 py-0.5 text-[9px] uppercase tracking-wider"
-                style={{ background: "var(--hairline)", color: "var(--muted-foreground)", fontWeight: 600 }}
+            <div
+              className="mt-1 text-[12.5px] leading-snug"
+              style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
+            >
+              Opisz słowami albo zrób zdjęcie posiłku lub etykiety
+            </div>
+          </div>
+          <ArrowRight size={20} strokeWidth={1.9} style={{ color: "var(--accent-yellow)" }} />
+        </motion.button>
+      )}
+
+      {gridItems.length > 0 && (
+        <div className="grid grid-cols-2 gap-3">
+          {gridItems.map((it, i) => {
+            const Icon = it.icon;
+            const spanFull = oddTail && i === gridItems.length - 1;
+            return (
+              <motion.button
+                key={it.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.32, delay: (idx++) * 0.04, ease: [0.22, 1, 0.36, 1] }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => onPick(it.id)}
+                className="relative flex min-h-[128px] flex-col items-start justify-between gap-3 rounded-[20px] p-[18px] text-left"
+                style={{
+                  background: "var(--card)",
+                  border: "1px solid var(--hairline)",
+                  gridColumn: spanFull ? "span 2" : undefined,
+                }}
               >
-                Wkrótce
-              </span>
-            )}
-          </motion.button>
-        );
-      })}
+                <span
+                  className="grid h-[52px] w-[52px] place-items-center rounded-2xl"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(255,255,255,.06), transparent), rgba(255,255,255,.05)",
+                    border: "1px solid var(--hairline)",
+                    color: "var(--ink)",
+                  }}
+                >
+                  <Icon size={24} strokeWidth={1.8} />
+                </span>
+                <div className="w-full">
+                  <div
+                    className="text-[16px] leading-tight"
+                    style={{ fontFamily: "Manrope, sans-serif", fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.01em" }}
+                  >
+                    {it.label}
+                  </div>
+                  <div
+                    className="mt-1 text-[12.5px] leading-snug"
+                    style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+                  >
+                    {it.subtitle}
+                  </div>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
