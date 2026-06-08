@@ -796,7 +796,7 @@ function SearchForm({
           autoFocus
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Szukaj w bibliotece"
+          placeholder={t("productSearch.placeholder")}
           className="flex-1 bg-transparent text-[15px] outline-none placeholder:text-[color:var(--muted-foreground)]"
           style={{ color: "var(--ink)", fontWeight: 500 }}
         />
@@ -806,14 +806,15 @@ function SearchForm({
           className="px-1 py-2 text-center text-[13px]"
           style={{ color: "var(--muted-foreground)" }}
         >
-          Twoja biblioteka jest pusta. Dodaj produkty w „Moje produkty”.
+          {t("productSearch.empty", { name: libraryName })}
         </p>
       ) : results.length === 0 ? (
         <p
           className="px-1 py-2 text-center text-[13px]"
           style={{ color: "var(--muted-foreground)" }}
         >
-          Brak wyników — dodaj produkt w „Moje produkty”.
+          {t("productSearch.noResults", { name: libraryName })}
+
         </p>
       ) : (
         <ul className="max-h-[52vh] space-y-2 overflow-y-auto pr-1">
