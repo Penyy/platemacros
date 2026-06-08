@@ -791,6 +791,7 @@ function PlusMenuVisibilityList({
   visibility: Record<string, boolean>;
   onToggle: (id: PlusMenuItemId, v: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const enabledCount = PLUS_MENU_ITEMS.filter((id) => visibility[id] !== false).length;
   return (
     <>
@@ -810,7 +811,7 @@ function PlusMenuVisibilityList({
               className="flex-1 text-[15px]"
               style={{ fontFamily: "Manrope, sans-serif", fontWeight: 500, color: "var(--ink)" }}
             >
-              {PLUS_MENU_LABELS[id]}
+              {t(`settings.plusMenu.${id}`)}
             </span>
             <div className={lastOne ? "opacity-50 pointer-events-none" : ""}>
               <Switch
