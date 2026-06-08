@@ -771,23 +771,23 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
 
       {valid && (
         <div className="rounded-2xl bg-foreground/5 p-3 num-tight">
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Razem</div>
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{t("scan.totalsTitle")}</div>
           <div className="mt-0.5 text-sm">
             <span className="text-lg font-bold">{totals.kcal}</span> kcal · {g} g
           </div>
           <div className="text-xs text-muted-foreground">
-            B {totals.protein} · W {totals.carbs} · T {totals.fat}
+            {t("macro.short.protein")} {totals.protein} · {t("macro.short.carbs")} {totals.carbs} · {t("macro.short.fat")} {totals.fat}
           </div>
           {complex != null && (
             <div className="text-[11px] text-muted-foreground">
-              w tym proste: {extras.sugars_g} g · złożone: {complex} g
+              {t("scan.totalsSimple", { s: extras.sugars_g, c: complex })}
             </div>
           )}
           {(extras.fiber_g != null || extras.saturated_fat_g != null || extras.sodium_mg != null) && (
             <div className="text-[11px] text-muted-foreground">
-              {extras.fiber_g != null && <>Błonnik {extras.fiber_g} g · </>}
-              {extras.saturated_fat_g != null && <>Nasyc. {extras.saturated_fat_g} g · </>}
-              {extras.sodium_mg != null && <>Sód {extras.sodium_mg} mg</>}
+              {extras.fiber_g != null && <>{t("scan.totalsFiber", { n: extras.fiber_g })}</>}
+              {extras.saturated_fat_g != null && <>{t("scan.totalsSat", { n: extras.saturated_fat_g })}</>}
+              {extras.sodium_mg != null && <>{t("scan.totalsSodium", { n: extras.sodium_mg })}</>}
             </div>
           )}
         </div>
