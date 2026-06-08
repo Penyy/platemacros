@@ -704,11 +704,10 @@ function HistoryRow({ item }: { item: HistoryItem }) {
           >
             <span className="truncate">
               <b>{a.name}</b>{" "}
-              <span style={{ color: "var(--muted-foreground)" }}>· {MEAL_LABEL[a.meal]}</span>
+              <span style={{ color: "var(--muted-foreground)" }}>· {t(`meal.${a.meal}`)}</span>
             </span>
             <span style={{ color: "var(--muted-foreground)" }}>
-              {Math.round(a.kcal)} kcal · B{Math.round(a.protein)} W{Math.round(a.carbs)} T
-              {Math.round(a.fat)}
+              {Math.round(a.kcal)} kcal · {t("macro.short.protein")}{Math.round(a.protein)} {t("macro.short.carbs")}{Math.round(a.carbs)} {t("macro.short.fat")}{Math.round(a.fat)}
             </span>
           </div>
         ))}
