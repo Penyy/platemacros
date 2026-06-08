@@ -597,10 +597,11 @@ function ThemeSelect({
   value: Theme;
   onChange: (t: Theme) => void;
 }) {
+  const { t } = useTranslation();
   const opts: { v: Theme; l: string }[] = [
-    { v: "light", l: "Jasny" },
-    { v: "dark", l: "Ciemny" },
-    { v: "system", l: "System" },
+    { v: "light", l: t("settings.theme.light") },
+    { v: "dark", l: t("settings.theme.dark") },
+    { v: "system", l: t("settings.theme.system") },
   ];
   return (
     <div className="flex gap-0.5 rounded-full p-0.5" style={{ background: "var(--hairline)" }}>
@@ -625,7 +626,38 @@ function ThemeSelect({
   );
 }
 
-const DAY_LABELS = ["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Niedz"];
+const DAY_LABEL_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+
+function LanguageSelect() {
+  const { t, i18n } = useTranslation();
+  const cur: AppLang = (i18n.language?.startsWith("en") ? "en" : "pl") as AppLang;
+  const opts: { v: AppLang; l: string }[] = [
+    { v: "pl", l: t("settings.language.pl") },
+    { v: "en", l: t("settings.language.en") },
+  ];
+  return (
+    <div className="flex gap-0.5 rounded-full p-0.5" style={{ background: "var(--hairline)" }}>
+      {opts.map((o) => {
+        const active = cur === o.v;
+        return (
+          <button
+            key={o.v}
+            onClick={() => setAppLanguage(o.v)}
+            className="rounded-full px-3 py-1 text-xs transition"
+            style={{
+              background: active ? "#1B1B19" : "transparent",
+              color: active ? "#FBF4E2" : "var(--muted-foreground)",
+              fontWeight: active ? 700 : 600,
+            }}
+          >
+            {o.l}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 
 function WeeklyEditor({
   value,
