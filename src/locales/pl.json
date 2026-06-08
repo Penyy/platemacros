@@ -408,6 +408,16 @@
     "fri": "Pt",
     "sat": "Sob",
     "sun": "Niedz"
+  },
+  "productSearch": {
+    "title": "Szukaj produktu",
+    "placeholder": "Szukaj w bibliotece",
+    "empty": "Twoja biblioteka jest pusta. Dodaj produkty w „{{name}}”.",
+    "noResults": "Brak wyników — dodaj produkt w „{{name}}”.",
+    "pickAnother": "← Wybierz inny produkt",
+    "grams": "Ile gramów",
+    "total": "Razem",
+    "submit": "Dodaj do dziennika"
   }
 }
 

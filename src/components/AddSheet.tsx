@@ -694,17 +694,21 @@ function SearchForm({
   setMeal: (m: Meal) => void;
   onSubmit: (p: FormPayload) => void;
 }) {
+  const { t, i18n } = useTranslation();
   const products = usePlate((s) => s.products);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Product | null>(null);
   const [grams, setGrams] = useState("100");
+  const locale = i18n.language?.startsWith("en") ? "en" : "pl";
+  const libraryName = t("products.title");
 
   const results = products
     .filter((p) =>
       p.name.toLowerCase().includes(query.trim().toLowerCase())
     )
-    .sort((a, b) => a.name.localeCompare(b.name, "pl"))
+    .sort((a, b) => a.name.localeCompare(b.name, locale))
     .slice(0, 30);
+
 
   const g = Number(grams) || 0;
   const scale = g / 100;
@@ -742,16 +746,16 @@ function SearchForm({
           onClick={() => setSelected(null)}
           className="text-xs font-medium text-muted-foreground underline-offset-2 hover:underline"
         >
-          ← Wybierz inny produkt
+          {t("productSearch.pickAnother")}
         </button>
         <div className="rounded-2xl bg-foreground/5 p-3">
           <div className="text-sm font-semibold">{selected.name}</div>
           <div className="num-tight mt-0.5 text-[11px] text-muted-foreground">
-            {Math.round(selected.kcal)} kcal · B {Math.round(selected.protein)} ·
-            W {Math.round(selected.carbs)} · T {Math.round(selected.fat)} / 100 g
+            {Math.round(selected.kcal)} kcal · {t("macro.short.protein")} {Math.round(selected.protein)} ·
+            {" "}{t("macro.short.carbs")} {Math.round(selected.carbs)} · {t("macro.short.fat")} {Math.round(selected.fat)} / 100 g
           </div>
         </div>
-        <Field label="Ile gramów">
+        <Field label={t("productSearch.grams")}>
           <input
             autoFocus
             className={inputCls}
@@ -763,22 +767,23 @@ function SearchForm({
         {total && (
           <div className="rounded-2xl bg-foreground/5 p-3 num-tight">
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-              Razem
+              {t("productSearch.total")}
             </div>
             <div className="mt-0.5 text-sm">
               <span className="text-lg font-bold">{Math.round(total.kcal)}</span>{" "}
               kcal · {Math.round(g)} g
             </div>
             <div className="text-xs text-muted-foreground">
-              B {Math.round(total.protein)} · W {Math.round(total.carbs)} · T{" "}
+              {t("macro.short.protein")} {Math.round(total.protein)} · {t("macro.short.carbs")} {Math.round(total.carbs)} · {t("macro.short.fat")}{" "}
               {Math.round(total.fat)}
             </div>
           </div>
         )}
-        <SubmitButton disabled={!valid}>Dodaj do dziennika</SubmitButton>
+        <SubmitButton disabled={!valid}>{t("productSearch.submit")}</SubmitButton>
       </form>
     );
   }
+
 
   return (
     <div className="space-y-3">
@@ -791,7 +796,7 @@ function SearchForm({
           autoFocus
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Szukaj w bibliotece"
+          placeholder={t("productSearch.placeholder")}
           className="flex-1 bg-transparent text-[15px] outline-none placeholder:text-[color:var(--muted-foreground)]"
           style={{ color: "var(--ink)", fontWeight: 500 }}
         />
@@ -801,14 +806,15 @@ function SearchForm({
           className="px-1 py-2 text-center text-[13px]"
           style={{ color: "var(--muted-foreground)" }}
         >
-          Twoja biblioteka jest pusta. Dodaj produkty w „Moje produkty”.
+          {t("productSearch.empty", { name: libraryName })}
         </p>
       ) : results.length === 0 ? (
         <p
           className="px-1 py-2 text-center text-[13px]"
           style={{ color: "var(--muted-foreground)" }}
         >
-          Brak wyników — dodaj produkt w „Moje produkty”.
+          {t("productSearch.noResults", { name: libraryName })}
+
         </p>
       ) : (
         <ul className="max-h-[52vh] space-y-2 overflow-y-auto pr-1">
