@@ -159,7 +159,7 @@ function TodayPage() {
           <button
             onClick={() => shiftDay(1)}
             aria-label={t("today.nextDay")}
-            disabled={isToday}
+            disabled={isMaxDay}
             className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground active:scale-95 disabled:opacity-30"
           >
             <ChevronRight size={18} />
