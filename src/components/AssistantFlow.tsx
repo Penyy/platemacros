@@ -329,7 +329,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
     if (files.length === 0 || busy) return;
     const slotsLeft = MAX_IMAGES - pendingImages.length;
     if (slotsLeft <= 0) {
-      toast.message(`Maks. ${MAX_IMAGES} zdjęć.`);
+      toast.message(t("ai.maxImages", { n: MAX_IMAGES }));
       return;
     }
     const toAdd = files.slice(0, slotsLeft);
@@ -339,7 +339,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
         const dataUrl = await shrinkImage(f);
         results.push({ dataUrl, base64: dataUrl.split(",")[1] ?? "" });
       } catch {
-        toast.error("Nie udało się wczytać zdjęcia.");
+        toast.error(t("ai.toast.loadImage"));
       }
     }
     if (results.length > 0) setPendingImages((p) => [...p, ...results]);
