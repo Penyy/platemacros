@@ -305,7 +305,7 @@ function HeroLight({
       }}
     >
       <div className="relative grid place-items-center">
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ overflow: "visible" }}>
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} overflow="visible">
           <path
             d={trackPath}
             fill="none"
@@ -316,22 +316,37 @@ function HeroLight({
           <path
             d={trackPath}
             fill="none"
-            stroke="#F4B500"
-            strokeWidth={stroke}
+            stroke="var(--accent-yellow)"
+            strokeWidth={stroke + 18}
             strokeLinecap="round"
             pathLength={1}
             strokeDasharray={`${pct} 1`}
-            style={{
-              strokeDashoffset: 0,
-              filter: "blur(8px)",
-              opacity: 0.7,
-              transition: "stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)",
-            }}
+            style={{ opacity: 0.08, transition: "stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)" }}
           />
           <path
             d={trackPath}
             fill="none"
-            stroke="#FF0000"
+            stroke="var(--accent-yellow)"
+            strokeWidth={stroke + 11}
+            strokeLinecap="round"
+            pathLength={1}
+            strokeDasharray={`${pct} 1`}
+            style={{ opacity: 0.12, transition: "stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)" }}
+          />
+          <path
+            d={trackPath}
+            fill="none"
+            stroke="var(--accent-yellow)"
+            strokeWidth={stroke + 5}
+            strokeLinecap="round"
+            pathLength={1}
+            strokeDasharray={`${pct} 1`}
+            style={{ opacity: 0.18, transition: "stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)" }}
+          />
+          <path
+            d={trackPath}
+            fill="none"
+            stroke="var(--accent-yellow)"
             strokeWidth={stroke}
             strokeLinecap="round"
             pathLength={1}
@@ -341,6 +356,7 @@ function HeroLight({
               transition: "stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)",
             }}
           />
+
 
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
