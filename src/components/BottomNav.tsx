@@ -1,6 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Home, BarChart3, BookOpen, Settings as Cog } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 interface Props {
@@ -14,22 +15,86 @@ const TABS = [
   { to: "/settings", key: "settings", icon: Cog },
 ] as const;
 
+const INDICATOR_SIZE = 32; // matches h-8 w-8
+
 export function BottomNav({ onAdd }: Props) {
   const { t } = useTranslation();
   const loc = useLocation();
   const path = loc.pathname;
 
+  const activeIndex = Math.max(
+    0,
+    TABS.findIndex((tab) => tab.to === path),
+  );
+
+  const navRef = useRef<HTMLElement | null>(null);
+  const tabRefs = useRef<Array<HTMLAnchorElement | null>>([]);
+  const [targetX, setTargetX] = useState(0);
+  const [ready, setReady] = useState(false);
+
+  const recompute = () => {
+    const el = tabRefs.current[activeIndex];
+    if (!el) return;
+    const x = el.offsetLeft + (el.offsetWidth - INDICATOR_SIZE) / 2;
+    setTargetX(x);
+    setReady(true);
+  };
+
+  useLayoutEffect(() => {
+    recompute();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex]);
+
+  useEffect(() => {
+    const onResize = () => recompute();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex]);
+
   return (
-    <div
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto flex w-full max-w-[430px] items-center gap-2 px-3 pb-[max(env(safe-area-inset-bottom),0.6rem)] pt-2"
-    >
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto flex w-full max-w-[430px] items-center gap-2 px-3 pb-[max(env(safe-area-inset-bottom),0.6rem)] pt-2">
       {/* Tab group */}
       <nav
-        className="pointer-events-auto grid flex-1 grid-cols-4 items-center rounded-[28px] bg-card px-2 py-1.5"
+        ref={navRef}
+        className="pointer-events-auto relative grid flex-1 grid-cols-4 items-center rounded-[28px] bg-card px-2 py-1.5"
         style={{ boxShadow: "var(--shadow-card)" }}
       >
-        {TABS.map((tab) => (
-          <NavItem key={tab.to} to={tab.to} label={t(`nav.${tab.key}`)} icon={tab.icon} active={path === tab.to} />
+        {/* Sliding indicator */}
+        <motion.div
+          aria-hidden
+          className="absolute rounded-full"
+          style={{
+            width: INDICATOR_SIZE,
+            height: INDICATOR_SIZE,
+            top: "50%",
+            left: 0,
+            marginTop: -INDICATOR_SIZE / 2 - 6, // align with icon (icon sits above label)
+            background: "color-mix(in oklab, var(--ink) 8%, transparent)",
+            transformOrigin: "center",
+            zIndex: 0,
+            opacity: ready ? 1 : 0,
+          }}
+          initial={false}
+          animate={{ x: targetX, scaleX: [1.3, 1], scaleY: [0.9, 1] }}
+          transition={{
+            x: { type: "spring", stiffness: 320, damping: 30 },
+            scaleX: { duration: 0.35, ease: "easeOut" },
+            scaleY: { duration: 0.35, ease: "easeOut" },
+          }}
+        />
+
+        {TABS.map((tab, i) => (
+          <NavItem
+            key={tab.to}
+            to={tab.to}
+            label={t(`nav.${tab.key}`)}
+            icon={tab.icon}
+            active={i === activeIndex}
+            innerRef={(el) => {
+              tabRefs.current[i] = el;
+            }}
+          />
         ))}
       </nav>
 
@@ -69,33 +134,25 @@ function NavItem({
   label,
   icon: Icon,
   active,
+  innerRef,
 }: {
   to: string;
   label: string;
   icon: React.ComponentType<{ size?: number; strokeWidth?: number }>;
   active: boolean;
+  innerRef: (el: HTMLAnchorElement | null) => void;
 }) {
   return (
     <Link
       to={to}
-      className="flex flex-col items-center justify-center gap-0.5 py-1"
-      style={{ color: active ? "var(--ink)" : "var(--muted-foreground)" }}
+      ref={innerRef}
+      className="relative flex flex-col items-center justify-center gap-0.5 py-1"
+      style={{ color: active ? "var(--ink)" : "var(--muted-foreground)", zIndex: 1 }}
     >
       <span className="relative grid h-8 w-8 place-items-center rounded-full">
-        {active && (
-          <motion.span
-            layoutId="navActive"
-            className="absolute inset-0 rounded-full"
-            style={{ background: "color-mix(in oklab, var(--ink) 8%, transparent)" }}
-            transition={{ type: "spring", stiffness: 380, damping: 32 }}
-          />
-        )}
         <Icon size={19} strokeWidth={active ? 2.3 : 1.8} />
       </span>
-      <span
-        className="text-[10px] tracking-tight"
-        style={{ fontWeight: active ? 800 : 600 }}
-      >
+      <span className="text-[10px] tracking-tight" style={{ fontWeight: active ? 800 : 600 }}>
         {label}
       </span>
     </Link>
