@@ -71,18 +71,18 @@ export function BottomNav({ onAdd }: Props) {
           style={{
             width: INDICATOR_SIZE,
             height: INDICATOR_SIZE,
-            top: "50%",
+            top: 0,
             left: 0,
-            marginTop: -INDICATOR_SIZE / 2 - 6, // align with icon (icon sits above label)
             background: "color-mix(in oklab, var(--ink) 8%, transparent)",
             transformOrigin: "center",
             zIndex: 0,
             opacity: ready ? 1 : 0,
           }}
           initial={false}
-          animate={{ x: targetX, scaleX: [1.3, 1], scaleY: [0.9, 1] }}
+          animate={{ x: target.x, y: target.y, scaleX: [1.3, 1], scaleY: [0.9, 1] }}
           transition={{
             x: { type: "spring", stiffness: 320, damping: 30 },
+            y: { type: "spring", stiffness: 320, damping: 30 },
             scaleX: { duration: 0.35, ease: "easeOut" },
             scaleY: { duration: 0.35, ease: "easeOut" },
           }}
