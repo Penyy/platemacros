@@ -86,6 +86,10 @@ function SettingsPage() {
   const setWeeklyEnabled = usePlate((s) => s.setWeeklyEnabled);
   const setWeeklyDay = usePlate((s) => s.setWeeklyDay);
   const setAssistant = usePlate((s) => s.setAssistant);
+  const setPlusMenuItem = usePlate((s) => s.setPlusMenuItem);
+  const plusVisibility = usePlate(
+    (s) => s.profile.plus_menu_visibility ?? defaultPlusMenuVisibility,
+  );
   const replaceAll = usePlate((s) => s.replaceAll);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [legacy, setLegacy] = useState<ReturnType<typeof readLegacyLocalStorage>>(null);
