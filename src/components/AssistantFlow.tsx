@@ -306,17 +306,17 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
       } else if (result.kind === "text") {
         setHistory((h) => [...h, { id: nid(), kind: "text", text: result.text }]);
       } else {
-        setHistory((h) => [...h, { id: nid(), kind: "text", text: "Hmm, brak odpowiedzi." }]);
+        setHistory((h) => [...h, { id: nid(), kind: "text", text: t("ai.history.noAnswer") }]);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes("AI_RATE_LIMIT")) toast.error("Za dużo żądań, spróbuj za chwilę.");
-      else if (msg.includes("AI_CREDITS")) toast.error("Brak kredytów AI / problem z kluczem.");
-      else if (msg.includes("GEMINI_KEY_MISSING")) toast.error("Brak klucza Gemini.");
-      else toast.error("Nie udało się — spróbuj ponownie lub dodaj ręcznie.");
+      if (msg.includes("AI_RATE_LIMIT")) toast.error(t("ai.toast.rate"));
+      else if (msg.includes("AI_CREDITS")) toast.error(t("ai.toast.credits"));
+      else if (msg.includes("GEMINI_KEY_MISSING")) toast.error(t("ai.toast.geminiKey"));
+      else toast.error(t("ai.toast.textFail"));
       setHistory((h) => [
         ...h,
-        { id: nid(), kind: "text", text: "Nie udało się — spróbuj ponownie lub dodaj ręcznie." },
+        { id: nid(), kind: "text", text: t("ai.history.fail") },
       ]);
     } finally {
       setBusy(false);
