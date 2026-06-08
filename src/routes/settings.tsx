@@ -363,16 +363,16 @@ function SettingsPage() {
       </Section>
 
 
-      <Section title={t("settings.sec.data")}>
+      <Section title={t("data.title")}>
         <button
           onClick={handleExport}
           className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
         >
           <Download size={18} className="text-muted-foreground" />
           <div className="flex-1">
-            <div className="text-[15px]">{t("settings.data.export")}</div>
+            <div className="text-[15px]">{t("data.export")}</div>
             <div className="text-[11px] text-muted-foreground">
-              {t("settings.data.exportNote")}
+              {t("data.exportHint")}
             </div>
           </div>
         </button>
@@ -382,12 +382,13 @@ function SettingsPage() {
         >
           <Upload size={18} className="text-muted-foreground" />
           <div className="flex-1">
-            <div className="text-[15px]">{t("settings.data.import")}</div>
+            <div className="text-[15px]">{t("data.import")}</div>
             <div className="text-[11px] text-muted-foreground">
-              {t("settings.data.importNote")}
+              {t("data.importHint")}
             </div>
           </div>
         </button>
+
         <input
           ref={fileRef}
           type="file"
@@ -433,17 +434,18 @@ function SettingsPage() {
         </button>
       </Section>
 
-      <Section title={t("settings.sec.feedback")}>
+      <Section title={t("feedback.title")}>
         <button
           onClick={() => setFeedbackOpen(true)}
           className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
         >
           <MessageSquare size={18} className="text-muted-foreground" />
           <div className="flex-1">
-            <div className="text-[15px]">{t("settings.feedback.send")}</div>
+            <div className="text-[15px]">{t("feedback.send")}</div>
             <div className="text-[11px] text-muted-foreground">
               {t("settings.feedback.note")}
             </div>
+
           </div>
         </button>
       </Section>
