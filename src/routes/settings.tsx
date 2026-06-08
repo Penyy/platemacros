@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Download, Upload, LogOut, CloudUpload, MessageSquare, Layers, Zap, PencilLine, Search as SearchIcon, ScanLine, Sparkles, Trash2 } from "lucide-react";
+import { setAppLanguage, getAppLanguage, type AppLang } from "@/lib/i18n";
 import {
   AlertDialog,
   AlertDialogAction,
