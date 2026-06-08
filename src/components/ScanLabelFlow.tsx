@@ -190,43 +190,43 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
         <div className="flex-1">
           <ConfidenceBadge confidence={label.confidence} />
           <div className="mt-1 text-[11px] text-muted-foreground">
-            Sprawdź i popraw wartości jeśli trzeba.
+            {t("label.checkValues")}
           </div>
         </div>
         <button
           type="button"
           onClick={reset}
           className="grid h-9 w-9 place-items-center rounded-full bg-foreground/10"
-          aria-label="Zrób ponownie"
+          aria-label={t("label.retake")}
         >
           <RotateCcw size={14} />
         </button>
       </div>
 
-      <Field label="Nazwa">
+      <Field label={t("label.name")}>
         <input
           className={inputCls}
           value={label.name}
           maxLength={80}
           onChange={(e) => setLabel({ ...label, name: e.target.value })}
-          placeholder="np. Jogurt naturalny"
+          placeholder={t("label.namePlaceholder")}
           autoFocus={!label.name}
         />
       </Field>
 
       <div className="rounded-2xl bg-foreground/5 p-3">
         <div className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          Wartości na 100 g
+          {t("label.per100Title")}
         </div>
         <div className="grid grid-cols-4 gap-2">
           <SmallField label="kcal" value={String(label.per100.kcal)} onChange={(v) => updatePer100("kcal", v)} />
-          <SmallField label="B" value={String(label.per100.protein)} onChange={(v) => updatePer100("protein", v)} />
-          <SmallField label="W" value={String(label.per100.carbs)} onChange={(v) => updatePer100("carbs", v)} />
-          <SmallField label="T" value={String(label.per100.fat)} onChange={(v) => updatePer100("fat", v)} />
+          <SmallField label={t("macro.short.protein")} value={String(label.per100.protein)} onChange={(v) => updatePer100("protein", v)} />
+          <SmallField label={t("macro.short.carbs")} value={String(label.per100.carbs)} onChange={(v) => updatePer100("carbs", v)} />
+          <SmallField label={t("macro.short.fat")} value={String(label.per100.fat)} onChange={(v) => updatePer100("fat", v)} />
         </div>
       </div>
 
-      <Field label="Ile gramów zjadłeś/aś?">
+      <Field label={t("label.gramsLabel")}>
         <input
           className={inputCls}
           inputMode="decimal"
@@ -238,13 +238,13 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
       {valid && (
         <div className="rounded-2xl bg-foreground/5 p-3 num-tight">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            Razem
+            {t("label.total")}
           </div>
           <div className="mt-0.5 text-sm">
             <span className="text-lg font-bold">{totals.kcal}</span> kcal · {g} g
           </div>
           <div className="text-xs text-muted-foreground">
-            B {totals.protein} · W {totals.carbs} · T {totals.fat}
+            {t("macro.short.protein")} {totals.protein} · {t("macro.short.carbs")} {totals.carbs} · {t("macro.short.fat")} {totals.fat}
           </div>
         </div>
       )}
@@ -258,7 +258,7 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
           onChange={(e) => setSaveToLib(e.target.checked)}
           className="h-4 w-4 accent-primary"
         />
-        <span>Zapisz do moich produktów</span>
+        <span>{t("label.saveToLib")}</span>
       </label>
 
       <motion.button
@@ -267,7 +267,7 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
         disabled={!valid}
         className="mt-1 w-full rounded-2xl bg-primary py-3 text-base font-semibold text-primary-foreground disabled:opacity-40"
       >
-        Dodaj do dziennika
+        {t("label.submit")}
       </motion.button>
     </form>
   );
