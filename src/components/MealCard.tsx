@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Trash2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { EditEntrySheet } from "./EditEntrySheet";
-import { type LogEntry, type Meal, MEAL_LABEL, sumEntries, usePlate } from "@/lib/store";
+import { type LogEntry, type Meal, sumEntries, usePlate } from "@/lib/store";
 
 interface Props {
   meal: Meal;
