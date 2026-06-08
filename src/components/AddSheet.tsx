@@ -196,6 +196,7 @@ function guessMeal(): Meal {
 type PickMode = "quick" | "manual" | "search" | "compound" | "barcode" | "assistant";
 
 function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
+  const { t } = useTranslation();
   const visibility = usePlate(
     (s) => s.profile.plus_menu_visibility ?? defaultPlusMenuVisibility,
   );
@@ -203,11 +204,11 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
   const heroVisible = visibility["assistant" as PlusMenuItemId] !== false;
 
   const gridAll: { id: PickMode; label: string; subtitle: string; icon: typeof ScanLine }[] = [
-    { id: "barcode", label: "Skanuj kod kreskowy", subtitle: "Kod kreskowy EAN", icon: ScanLine },
-    { id: "search", label: "Szukaj produktu", subtitle: "Baza Open Food Facts", icon: Search },
-    { id: "quick", label: "Szybkie dodawanie", subtitle: "Tylko kcal i makra", icon: Zap },
-    { id: "compound", label: "Złożony posiłek", subtitle: "Z wielu składników", icon: Layers },
-    { id: "manual", label: "Wpisz ręcznie", subtitle: "Własna pozycja z wartościami", icon: PencilLine },
+    { id: "barcode", label: t("add.menu.barcodeLabel"), subtitle: t("add.menu.barcodeSubtitle"), icon: ScanLine },
+    { id: "search", label: t("add.menu.searchLabel"), subtitle: t("add.menu.searchSubtitle"), icon: Search },
+    { id: "quick", label: t("add.menu.quickLabel"), subtitle: t("add.menu.quickSubtitle"), icon: Zap },
+    { id: "compound", label: t("add.menu.compoundLabel"), subtitle: t("add.menu.compoundSubtitle"), icon: Layers },
+    { id: "manual", label: t("add.menu.manualLabel"), subtitle: t("add.menu.manualSubtitle"), icon: PencilLine },
   ];
   const gridItems = gridAll.filter((it) => visibility[it.id as PlusMenuItemId] !== false);
   const oddTail = gridItems.length % 2 === 1;
