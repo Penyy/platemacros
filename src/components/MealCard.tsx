@@ -69,15 +69,6 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
               <span className="ml-1 text-[11px] font-semibold text-muted-foreground">kcal</span>
             </div>
           )}
-          <button
-            onClick={() => onAdd(meal)}
-            className="grid h-8 w-8 place-items-center rounded-full text-foreground"
-            style={{ background: "var(--muted)" }}
-            aria-label={t("a11y.addItem")}
-            title={t("a11y.addItem")}
-          >
-            <Plus size={15} strokeWidth={2.2} />
-          </button>
           {prevDayHasEntries && (
             <button
               onClick={handleRepeat}
@@ -89,6 +80,15 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
               <RotateCcw size={15} strokeWidth={1.8} />
             </button>
           )}
+          <button
+            onClick={() => onAdd(meal)}
+            className="grid h-8 w-8 place-items-center rounded-full text-foreground"
+            style={{ background: "var(--muted)" }}
+            aria-label={t("a11y.addItem")}
+            title={t("a11y.addItem")}
+          >
+            <Plus size={15} strokeWidth={2.2} />
+          </button>
         </div>
       </div>
 
