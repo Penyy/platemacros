@@ -249,50 +249,56 @@ function SettingsPage() {
 
   return (
     <div>
-      <ScreenHeader title="Ustawienia" />
+      <ScreenHeader title={t("settings.title")} />
 
-      <Section title="Wygląd">
-        <Row label="Motyw">
-          <ThemeSelect value={profile.theme} onChange={(t) => setTheme(t)} />
+      <Section title={t("settings.sec.appearance")}>
+        <Row label={t("settings.theme.label")}>
+          <ThemeSelect value={profile.theme} onChange={(th) => setTheme(th)} />
         </Row>
       </Section>
 
-      <Section title="Cele dzienne">
+      <Section title={t("settings.sec.language")}>
+        <Row label={t("settings.language.label")}>
+          <LanguageSelect />
+        </Row>
+      </Section>
+
+      <Section title={t("settings.sec.goals")}>
         <NumberRow
-          label="Kalorie"
-          unit="kcal"
+          label={t("settings.goals.kcal")}
+          unit={t("settings.goals.unitKcal")}
           value={profile.goal_kcal}
           onChange={(v) => setGoals({ goal_kcal: v })}
         />
         <NumberRow
-          label="Białko"
-          unit="g"
+          label={t("settings.goals.protein")}
+          unit={t("settings.goals.unitG")}
           value={profile.goal_protein}
           onChange={(v) => setGoals({ goal_protein: v })}
         />
         <NumberRow
-          label="Węglowodany"
-          unit="g"
+          label={t("settings.goals.carbs")}
+          unit={t("settings.goals.unitG")}
           value={profile.goal_carbs}
           onChange={(v) => setGoals({ goal_carbs: v })}
         />
         <NumberRow
-          label="Tłuszcz"
-          unit="g"
+          label={t("settings.goals.fat")}
+          unit={t("settings.goals.unitG")}
           value={profile.goal_fat}
           onChange={(v) => setGoals({ goal_fat: v })}
         />
       </Section>
 
-      <Section title="Cele tygodniowe">
-        <Row label="Inne cele na każdy dzień tygodnia">
+      <Section title={t("settings.sec.weekly")}>
+        <Row label={t("settings.weekly.switch")}>
           <Switch
             checked={!!profile.weekly_targets_enabled}
             onCheckedChange={(v) => setWeeklyEnabled(v)}
           />
         </Row>
         <p className="px-4 pb-2 pt-1 text-[11px] text-muted-foreground">
-          Dla cyklizacji węglowodanów — kcal liczone z B×4 + W×4 + T×9.
+          {t("settings.weekly.note")}
         </p>
         {profile.weekly_targets_enabled && (
           <WeeklyEditor
@@ -302,44 +308,44 @@ function SettingsPage() {
         )}
       </Section>
 
-      <Section title="Aktywność">
-        <Row label="Uwzględniaj spalone kcal">
+      <Section title={t("settings.sec.activity")}>
+        <Row label={t("settings.activity.includeBurned")}>
           <Switch
             checked={!!profile.include_burned}
             onCheckedChange={(v) => setIncludeBurned(v)}
           />
         </Row>
         <p className="px-4 pb-3 pt-1 text-[11px] text-muted-foreground">
-          Gdy włączone, spalone kalorie powiększają dzienny cel (cel + spalone − zjedzone).
+          {t("settings.activity.note")}
         </p>
       </Section>
 
-      <Section title="Asystent AI">
-        <Row label="Auto-dodaj ze zdjęcia z opisem">
+      <Section title={t("settings.sec.assistant")}>
+        <Row label={t("settings.assistant.autoAddPhoto")}>
           <Switch
             checked={(profile.assistant ?? defaultAssistantSettings).autoAddPhoto}
             onCheckedChange={(v) => setAssistant({ autoAddPhoto: v })}
           />
         </Row>
         <p className="px-4 pb-2 pt-1 text-[11px] text-muted-foreground">
-          Gdy włączone, zdjęcie posiłku z opisem dodaje się bez dodatkowego potwierdzenia.
+          {t("settings.assistant.autoAddPhotoNote")}
         </p>
-        <Row label="Asystent może dodawać wpisy">
+        <Row label={t("settings.assistant.allowAddEntries")}>
           <Switch
             checked={(profile.assistant ?? defaultAssistantSettings).allowAddEntries}
             onCheckedChange={(v) => setAssistant({ allowAddEntries: v })}
           />
         </Row>
         <p className="px-4 pb-2 pt-1 text-[11px] text-muted-foreground">
-          Gdy wyłączone, AI tylko odpowiada — nie zapisuje nic do dziennika.
+          {t("settings.assistant.allowAddEntriesNote")}
         </p>
-        <Row label="Domyślny posiłek">
+        <Row label={t("settings.assistant.defaultMeal")}>
           <DefaultMealSelect
             value={(profile.assistant ?? defaultAssistantSettings).defaultMeal}
             onChange={(v) => setAssistant({ defaultMeal: v })}
           />
         </Row>
-        <Row label="Długość odpowiedzi">
+        <Row label={t("settings.assistant.responseLength")}>
           <ResponseLengthSelect
             value={(profile.assistant ?? defaultAssistantSettings).responseLength}
             onChange={(v) => setAssistant({ responseLength: v })}
@@ -348,8 +354,8 @@ function SettingsPage() {
       </Section>
 
       <Section
-        title="Menu dodawania"
-        subtitle="Wybierz, co widać po dotknięciu +"
+        title={t("settings.sec.plusMenu")}
+        subtitle={t("settings.sec.plusMenuSubtitle")}
       >
         <PlusMenuVisibilityList
           visibility={plusVisibility}
@@ -358,16 +364,16 @@ function SettingsPage() {
       </Section>
 
 
-      <Section title="Dane">
+      <Section title={t("settings.sec.data")}>
         <button
           onClick={handleExport}
           className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
         >
           <Download size={18} className="text-muted-foreground" />
           <div className="flex-1">
-            <div className="text-[15px]">Eksportuj dane</div>
+            <div className="text-[15px]">{t("settings.data.export")}</div>
             <div className="text-[11px] text-muted-foreground">
-              Pobierz plik JSON z całą historią
+              {t("settings.data.exportNote")}
             </div>
           </div>
         </button>
@@ -377,9 +383,9 @@ function SettingsPage() {
         >
           <Upload size={18} className="text-muted-foreground" />
           <div className="flex-1">
-            <div className="text-[15px]">Importuj dane</div>
+            <div className="text-[15px]">{t("settings.data.import")}</div>
             <div className="text-[11px] text-muted-foreground">
-              Wczytaj kopię zapasową (nadpisze obecne)
+              {t("settings.data.importNote")}
             </div>
           </div>
         </button>
@@ -397,7 +403,7 @@ function SettingsPage() {
       </Section>
 
       {legacy && (
-        <Section title="Migracja">
+        <Section title={t("settings.sec.migration")}>
           <button
             onClick={handleMigrate}
             disabled={migrating}
@@ -406,38 +412,38 @@ function SettingsPage() {
             <CloudUpload size={18} className="text-muted-foreground" />
             <div className="flex-1">
               <div className="text-[15px]">
-                {migrating ? "Przenoszę…" : "Przenieś moje dane do chmury"}
+                {migrating ? t("settings.migration.movingLabel") : t("settings.migration.moveLabel")}
               </div>
               <div className="text-[11px] text-muted-foreground">
-                Znaleziono {legacy.entries.length} wpisów i {legacy.products.length} produktów lokalnie.
+                {t("settings.migration.found", { entries: legacy.entries.length, products: legacy.products.length })}
               </div>
             </div>
           </button>
         </Section>
       )}
 
-      <Section title="Konto">
+      <Section title={t("settings.sec.account")}>
         <button
           onClick={handleLogout}
           className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
         >
           <LogOut size={18} className="text-muted-foreground" />
           <div className="flex-1">
-            <div className="text-[15px]">Wyloguj się</div>
+            <div className="text-[15px]">{t("settings.account.logout")}</div>
           </div>
         </button>
       </Section>
 
-      <Section title="Opinie">
+      <Section title={t("settings.sec.feedback")}>
         <button
           onClick={() => setFeedbackOpen(true)}
           className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
         >
           <MessageSquare size={18} className="text-muted-foreground" />
           <div className="flex-1">
-            <div className="text-[15px]">Prześlij opinię</div>
+            <div className="text-[15px]">{t("settings.feedback.send")}</div>
             <div className="text-[11px] text-muted-foreground">
-              Powiedz nam co poprawić lub co Ci się podoba
+              {t("settings.feedback.note")}
             </div>
           </div>
         </button>
@@ -445,7 +451,7 @@ function SettingsPage() {
 
       <FeedbackSheet open={feedbackOpen} onOpenChange={setFeedbackOpen} />
 
-      <Section title="Strefa zagrożenia">
+      <Section title={t("settings.sec.danger")}>
         <button
           onClick={() => setResetOpen(true)}
           className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
@@ -453,10 +459,10 @@ function SettingsPage() {
           <Trash2 size={18} style={{ color: "#D64545" }} />
           <div className="flex-1">
             <div className="text-[15px]" style={{ color: "#D64545", fontWeight: 600 }}>
-              Resetuj wszystkie dane
+              {t("settings.danger.reset")}
             </div>
             <div className="text-[11px] text-muted-foreground">
-              Usuwa wpisy, produkty i historię. Konto pozostaje.
+              {t("settings.danger.resetNote")}
             </div>
           </div>
         </button>
@@ -465,15 +471,13 @@ function SettingsPage() {
       <AlertDialog open={resetOpen} onOpenChange={(v) => !resetting && setResetOpen(v)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Zresetować wszystkie dane?</AlertDialogTitle>
+            <AlertDialogTitle>{t("settings.danger.dialogTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Tej operacji nie można cofnąć. Usuniesz wszystkie wpisy, produkty i historię,
-              a cele oraz ustawienia wrócą do stanu początkowego. Konto pozostaje.
-              Rozważ najpierw Eksport JSON.
+              {t("settings.danger.dialogDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={resetting}>Anuluj</AlertDialogCancel>
+            <AlertDialogCancel disabled={resetting}>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
@@ -487,17 +491,18 @@ function SettingsPage() {
               }}
             >
               {resetting
-                ? "Usuwanie…"
+                ? t("settings.danger.deleting")
                 : resetCountdown > 0
-                  ? `Usuń dane (${resetCountdown})`
-                  : "Usuń dane"}
+                  ? t("settings.danger.deleteCountdown", { n: resetCountdown })
+                  : t("settings.danger.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       <p className="px-6 pt-2 pb-6 text-center text-[11px] text-muted-foreground">
-        Plate · wersja 0.1
+        {t("settings.version")}
+
       </p>
     </div>
   );
