@@ -162,7 +162,7 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                 />
               )}
               {mode === "barcode" && (
-                <Suspense fallback={<div className="py-12 text-center text-sm text-muted-foreground">Ładowanie skanera…</div>}>
+                <Suspense fallback={<div className="py-12 text-center text-sm text-muted-foreground">{t("add.barcodeLoading")}</div>}>
                   <BarcodeScanFlow
                     meal={meal}
                     setMeal={setMeal}
