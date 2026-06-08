@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Camera, Loader2, MessageCircle, Mic, Send, Sparkles, X, Plus } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   askAssistant,
   type AssistantResult,
@@ -13,7 +14,6 @@ import {
   defaultAssistantSettings,
   getDayGoals,
   type Meal,
-  MEAL_LABEL,
   sumEntries,
   usePlate,
   ymd,
@@ -30,7 +30,6 @@ type HistoryItem =
   | { id: string; kind: "text"; text: string }
   | { id: string; kind: "actions"; text: string; actions: FoodAction[] };
 
-const CHIPS = ["Ile mi zostało?", "Co dojeść na białko?", "Dodaj posiłek"];
 const MAX_IMAGES = 5;
 
 function nid() {
