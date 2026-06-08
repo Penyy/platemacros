@@ -216,14 +216,14 @@ function Logo() {
   return (
     <div className="flex items-baseline">
       <span
-        className="text-[24px] font-extrabold tracking-tight"
+        className="text-[28px] font-extrabold tracking-tight"
         style={{ color: "var(--ink)", letterSpacing: "-0.04em" }}
       >
         plate
       </span>
       <span
-        className="text-[24px] font-extrabold"
-        style={{ color: "var(--ink)" }}
+        className="text-[28px] font-extrabold"
+        style={{ color: "var(--accent-yellow)", letterSpacing: "-0.04em" }}
       >
         .
       </span>
