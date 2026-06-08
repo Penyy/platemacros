@@ -735,6 +735,7 @@ function ItemsPreviewSheet({
   onChange: (next: typeof data) => void;
   onAdd: (oneEntry: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const [oneEntry, setOneEntry] = useState(false);
 
   const sum = data.items.reduce(
