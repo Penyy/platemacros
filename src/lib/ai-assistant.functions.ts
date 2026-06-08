@@ -269,18 +269,29 @@ interface GeminiResponse {
 
 async function callGemini(body: unknown, apiKey: string): Promise<GeminiResponse> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    if (res.status === 429) throw new Error("AI_RATE_LIMIT");
+  const maxAttempts = 4;
+  let lastErr: unknown = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) return (await res.json()) as GeminiResponse;
     if (res.status === 402 || res.status === 403) throw new Error("AI_CREDITS");
     const txt = await res.text().catch(() => "");
+    const retriable = res.status === 429 || res.status === 503 || res.status === 502 || res.status === 504;
+    if (retriable && attempt < maxAttempts) {
+      const delay = 500 * 2 ** (attempt - 1) + Math.floor(Math.random() * 250);
+      await new Promise((r) => setTimeout(r, delay));
+      lastErr = new Error(`AI_HTTP_${res.status}`);
+      continue;
+    }
+    if (res.status === 429) throw new Error("AI_RATE_LIMIT");
+    if (res.status === 503) throw new Error("AI_OVERLOADED");
     throw new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`);
   }
-  return (await res.json()) as GeminiResponse;
+  throw (lastErr instanceof Error ? lastErr : new Error("AI_HTTP_UNKNOWN"));
 }
 
 // ============================================================
