@@ -95,6 +95,85 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
   const cameraRef = useRef<HTMLInputElement>(null);
   const ask = useServerFn(askAssistant);
 
+  // ── Speech recognition (Web Speech API) ──
+  const [listening, setListening] = useState(false);
+  const [sttSupported, setSttSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const baseInputRef = useRef<string>("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SR) setSttSupported(true);
+    return () => {
+      try {
+        recognitionRef.current?.stop?.();
+      } catch {
+        /* noop */
+      }
+    };
+  }, []);
+
+  const toggleMic = () => {
+    if (typeof window === "undefined") return;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    if (listening) {
+      try {
+        recognitionRef.current?.stop?.();
+      } catch {
+        /* noop */
+      }
+      return;
+    }
+    try {
+      const rec = new SR();
+      rec.lang = "pl-PL";
+      rec.interimResults = true;
+      rec.continuous = true;
+      baseInputRef.current = input ? input.trimEnd() + " " : "";
+      rec.onresult = (event: any) => {
+        let interim = "";
+        let finalText = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const res = event.results[i];
+          if (res.isFinal) finalText += res[0].transcript;
+          else interim += res[0].transcript;
+        }
+        const combined = baseInputRef.current + finalText + interim;
+        setInput(combined);
+        if (finalText) {
+          baseInputRef.current = baseInputRef.current + finalText;
+        }
+      };
+      rec.onerror = (e: any) => {
+        setListening(false);
+        const err = e?.error;
+        if (err === "not-allowed" || err === "service-not-allowed") {
+          toast.error("Brak dostępu do mikrofonu — sprawdź uprawnienia.");
+        } else if (err === "no-speech") {
+          toast.message("Nie wykryto mowy. Spróbuj ponownie.");
+        } else if (err === "network") {
+          toast.error("Problem z rozpoznawaniem mowy. Spróbuj ponownie.");
+        } else if (err && err !== "aborted") {
+          toast.error("Rozpoznawanie mowy nie powiodło się.");
+        }
+      };
+      rec.onend = () => {
+        setListening(false);
+        setTimeout(() => textareaRef.current?.focus(), 0);
+      };
+      recognitionRef.current = rec;
+      rec.start();
+      setListening(true);
+    } catch {
+      setListening(false);
+      toast.error("Nie udało się uruchomić mikrofonu.");
+    }
+  };
+
+
+
   const dayContext = useMemo(() => {
     const day = entries.filter((e) => e.date === targetDate);
     const sum = sumEntries(day);
