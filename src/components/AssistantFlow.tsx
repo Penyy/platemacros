@@ -568,7 +568,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
             border: "1px solid var(--hairline)",
             boxShadow: "var(--shadow-card)",
           }}
-          aria-label="Dodaj zdjęcia"
+          aria-label={t("ai.camera")}
         >
           <Camera size={18} strokeWidth={1.9} />
         </button>
