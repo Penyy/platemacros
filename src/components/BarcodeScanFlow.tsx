@@ -246,7 +246,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
 
   const lookup = async (code: string) => {
     setBarcode(code);
-    setStatus("Szukam produktu…");
+    setStatus(t("scan.searching"));
     setPhase("loading");
     try {
       const p = await fetchOpenFoodFacts(code);
