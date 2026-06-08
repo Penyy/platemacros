@@ -241,27 +241,56 @@ function CombinedChart({
         border: "1px solid var(--hairline)",
       }}
     >
-      <div className="flex items-end justify-between">
-        <div>
-          <div
-            className="text-[11px] font-semibold"
-            style={{ color: "var(--muted-foreground)" }}
-          >
-            Rozkład kalorii
-          </div>
-          <div
-            className="num-tight mt-0.5 text-[20px]"
-            style={{ fontWeight: 800, color: "var(--ink)" }}
-          >
-            śr. {avgKcal} kcal / dzień · cel {goalKcal}
-          </div>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <LegendDot color="var(--macro-protein)" label="Białko" />
-          <LegendDot color="var(--macro-carbs)" label="Węgle" />
-          <LegendDot color="var(--macro-fat)" label="Tłuszcz" />
-        </div>
-      </div>
+      {(() => {
+        const diff = avgKcal - goalKcal;
+        const onTarget = goalKcal > 0 && Math.abs(diff) <= goalKcal * 0.02;
+        return (
+          <>
+            <div className="relative flex items-end justify-between">
+              <div>
+                <div
+                  className="text-[11px] font-semibold"
+                  style={{ color: "var(--muted-foreground)" }}
+                >
+                  Rozkład kalorii
+                </div>
+                <div
+                  className="num-tight mt-0.5 text-[20px]"
+                  style={{ fontWeight: 800, color: "var(--ink)" }}
+                >
+                  śr. {avgKcal} kcal
+                </div>
+                {avgKcal > 0 && (
+                  <div
+                    className="num-tight text-[10px] mt-0.5"
+                    style={{
+                      color: onTarget ? "var(--accent-yellow)" : "var(--muted-foreground)",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {onTarget
+                      ? "≈ na celu"
+                      : `${diff > 0 ? "+" : ""}${Math.round(diff)} vs cel`}
+                  </div>
+                )}
+              </div>
+              <div
+                className="num-tight text-right text-[11px]"
+                style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+              >
+                cel {goalKcal} kcal
+              </div>
+            </div>
+
+            <div className="mt-2 flex items-center gap-2.5">
+              <LegendDot color="var(--macro-protein)" label="Białko" />
+              <LegendDot color="var(--macro-carbs)" label="Węgle" />
+              <LegendDot color="var(--macro-fat)" label="Tłuszcz" />
+            </div>
+          </>
+        );
+      })()}
+
 
       <div className="relative mt-4 h-32">
         {/* Goal line */}
