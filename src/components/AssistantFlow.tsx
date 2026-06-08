@@ -483,7 +483,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
               disabled={!!busy}
               className="grid h-14 w-14 shrink-0 place-items-center rounded-xl"
               style={{ background: "var(--muted)", color: "var(--ink)" }}
-              aria-label="Dodaj kolejne"
+              aria-label={t("ai.addMore")}
             >
               <Plus size={18} strokeWidth={2.2} />
             </button>
