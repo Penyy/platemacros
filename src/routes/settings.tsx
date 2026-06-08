@@ -722,21 +722,35 @@ function DefaultMealSelect({
   value: AssistantDefaultMeal;
   onChange: (v: AssistantDefaultMeal) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value as AssistantDefaultMeal)}
       className="rounded-lg border border-border/60 bg-card px-2 py-1 text-[13px]"
     >
-      <option value="auto">Wnioskuj z pory</option>
+      <option value="auto">{t("settings.assistant.defaultMealAuto")}</option>
       {(Object.keys(MEAL_LABEL) as Meal[]).map((m) => (
         <option key={m} value={m}>
-          {MEAL_LABEL[m]}
+          {t(`meal.${m}`)}
         </option>
       ))}
     </select>
   );
 }
+
+function ResponseLengthSelect({
+  value,
+  onChange,
+}: {
+  value: AssistantResponseLength;
+  onChange: (v: AssistantResponseLength) => void;
+}) {
+  const { t } = useTranslation();
+  const opts: { v: AssistantResponseLength; l: string }[] = [
+    { v: "short", l: t("settings.assistant.lenShort") },
+    { v: "detailed", l: t("settings.assistant.lenLong") },
+  ];
 
 function ResponseLengthSelect({
   value,
