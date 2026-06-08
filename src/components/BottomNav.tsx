@@ -153,7 +153,7 @@ function NavItem({
       className="relative flex flex-col items-center justify-center gap-0.5 py-1"
       style={{ color: active ? "var(--ink)" : "var(--muted-foreground)", zIndex: 1 }}
     >
-      <span className="relative grid h-8 w-8 place-items-center rounded-full">
+      <span data-nav-icon className="relative grid h-8 w-8 place-items-center rounded-full">
         <Icon size={19} strokeWidth={active ? 2.3 : 1.8} />
       </span>
       <span className="text-[10px] tracking-tight" style={{ fontWeight: active ? 800 : 600 }}>
