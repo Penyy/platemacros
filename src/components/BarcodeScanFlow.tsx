@@ -843,6 +843,7 @@ function ManualFallback({
   onSubmit: Props["onSubmit"];
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [kcal, setKcal] = useState("");
   const [p, setP] = useState("");
