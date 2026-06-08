@@ -51,6 +51,11 @@ function TodayPage() {
   const { t } = useTranslation();
   const formatDate = useLocalizedDate();
   const today = useMemo(() => ymd(new Date()), []);
+  const tomorrow = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return ymd(d);
+  }, []);
   const [selected, setSelected] = useState<string>(today);
   const [calOpen, setCalOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -95,6 +100,7 @@ function TodayPage() {
 
   const dateLabel = formatDate(new Date(selected + "T00:00:00"));
   const isToday = selected === today;
+  const isMaxDay = selected === tomorrow;
 
   return (
     <div className="space-y-3.5 pb-4">
@@ -136,7 +142,7 @@ function TodayPage() {
                   setCalOpen(false);
                 }
               }}
-              disabled={(d) => d > new Date()}
+              disabled={(d) => ymd(d) > tomorrow}
               initialFocus
             />
           </PopoverContent>
@@ -153,7 +159,7 @@ function TodayPage() {
           <button
             onClick={() => shiftDay(1)}
             aria-label={t("today.nextDay")}
-            disabled={isToday}
+            disabled={isMaxDay}
             className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground active:scale-95 disabled:opacity-30"
           >
             <ChevronRight size={18} />
