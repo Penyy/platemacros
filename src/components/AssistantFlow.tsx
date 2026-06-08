@@ -516,8 +516,8 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
             }}
             placeholder={
               pendingImages.length > 0
-                ? "Opisz ilości (np. 100 g ryżu, 1 całe opakowanie)…"
-                : "Opisz co zjadłeś albo zapytaj…"
+                ? t("ai.placeholderWithImages")
+                : t("ai.placeholderDefault")
             }
             disabled={!!busy}
             className="flex-1 resize-none bg-transparent text-[15px] leading-snug outline-none max-h-32 overflow-y-auto placeholder:text-[color:var(--muted-foreground)]"
