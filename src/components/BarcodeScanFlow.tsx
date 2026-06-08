@@ -586,16 +586,16 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
   if (phase === "neterror") {
     return (
       <div className="space-y-3 py-8 text-center">
-        <div className="text-sm font-semibold">Błąd połączenia</div>
+        <div className="text-sm font-semibold">{t("scan.netErrorTitle")}</div>
         <p className="text-xs text-muted-foreground">
-          Sprawdź internet i spróbuj ponownie.
+          {t("scan.netErrorHint")}
         </p>
         <button
           type="button"
           onClick={reset}
           className="mx-auto flex items-center gap-2 rounded-2xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
         >
-          <RotateCcw size={14} /> Spróbuj ponownie
+          <RotateCcw size={14} /> {t("scan.retry")}
         </button>
       </div>
     );
