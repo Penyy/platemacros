@@ -199,7 +199,9 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
   const [barcode, setBarcode] = useState<string | null>(null);
   const [product, setProduct] = useState<OFFProduct | null>(null);
   const [grams, setGrams] = useState("100");
+  const [usePortion, setUsePortion] = useState(true);
   const [saveToLib, setSaveToLib] = useState(false);
+
   const [status, setStatus] = useState("Nakieruj na kod kreskowy");
   const [flashHit, setFlashHit] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
