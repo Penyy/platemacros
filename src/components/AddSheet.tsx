@@ -9,7 +9,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { type Meal, MEAL_LABEL, type Product, usePlate, ymd } from "@/lib/store";
+import { type Meal, MEAL_LABEL, type Product, usePlate, ymd, defaultPlusMenuVisibility, type PlusMenuItemId } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 import { CompoundMealFlow } from "./CompoundMealFlow";
 
