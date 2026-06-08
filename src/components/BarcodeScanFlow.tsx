@@ -422,6 +422,8 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     setProduct(null);
     setBarcode(null);
     setGrams("100");
+    setUsePortion(true);
+
     setScannerError(null);
     setPhase("scan");
   };
