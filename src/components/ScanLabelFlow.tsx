@@ -68,13 +68,13 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes("AI_RATE_LIMIT")) {
-        toast.error("Za dużo żądań do AI. Spróbuj za chwilę.");
+        toast.error(t("label.errorRate"));
       } else if (msg.includes("AI_CREDITS")) {
-        toast.error("Brak kredytów AI lub problem z kluczem Gemini.");
+        toast.error(t("label.errorCredits"));
       } else if (msg.includes("GEMINI_KEY_MISSING")) {
-        toast.error("Brak klucza Gemini w sekretach.");
+        toast.error(t("label.errorGeminiKey"));
       } else {
-        toast.error("Nie udało się odczytać etykiety, spróbuj ponownie.");
+        toast.error(t("label.errorGeneric"));
       }
       setPreview(null);
       setLabel(null);
