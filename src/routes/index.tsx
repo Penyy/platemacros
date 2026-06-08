@@ -142,7 +142,7 @@ function TodayPage() {
                   setCalOpen(false);
                 }
               }}
-              disabled={(d) => d > new Date()}
+              disabled={(d) => ymd(d) > tomorrow}
               initialFocus
             />
           </PopoverContent>
