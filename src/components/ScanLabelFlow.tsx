@@ -134,7 +134,7 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
         )}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 size={16} className="animate-spin" />
-          Czytam etykietę…
+          {t("label.reading")}
         </div>
       </div>
     );
