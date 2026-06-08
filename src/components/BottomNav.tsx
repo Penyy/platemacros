@@ -1,19 +1,21 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Home, BarChart3, BookOpen, Settings as Cog } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   onAdd: () => void;
 }
 
 const TABS = [
-  { to: "/", label: "Dziś", icon: Home },
-  { to: "/stats", label: "Statystyki", icon: BarChart3 },
-  { to: "/products", label: "Produkty", icon: BookOpen },
-  { to: "/settings", label: "Ustawienia", icon: Cog },
+  { to: "/", key: "today", icon: Home },
+  { to: "/stats", key: "stats", icon: BarChart3 },
+  { to: "/products", key: "products", icon: BookOpen },
+  { to: "/settings", key: "settings", icon: Cog },
 ] as const;
 
 export function BottomNav({ onAdd }: Props) {
+  const { t } = useTranslation();
   const loc = useLocation();
   const path = loc.pathname;
 
