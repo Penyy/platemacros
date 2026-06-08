@@ -111,9 +111,9 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
             <Camera size={24} />
           </div>
           <div className="text-center">
-            <div className="text-base font-semibold">Zrób zdjęcie etykiety</div>
+            <div className="text-base font-semibold">{t("label.captureTitle")}</div>
             <div className="text-xs text-muted-foreground">
-              Najlepsze rezultaty: dobrze oświetlona tabela odżywcza
+              {t("label.captureHint")}
             </div>
           </div>
         </motion.button>
