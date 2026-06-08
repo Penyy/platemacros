@@ -344,7 +344,9 @@ function HeroLight({
               color: "var(--ink)",
             }}
           >
-            {t("today.remaining", { n: remaining })}
+            {consumed > goal
+              ? t("today.over", { n: Math.round(consumed - goal) })
+              : t("today.left", { n: remaining })}
           </div>
         </div>
       </div>
