@@ -51,6 +51,11 @@ function TodayPage() {
   const { t } = useTranslation();
   const formatDate = useLocalizedDate();
   const today = useMemo(() => ymd(new Date()), []);
+  const tomorrow = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return ymd(d);
+  }, []);
   const [selected, setSelected] = useState<string>(today);
   const [calOpen, setCalOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
