@@ -299,7 +299,15 @@ function SettingsPage() {
         </Row>
       </Section>
 
-
+      <Section
+        title="Menu dodawania"
+        subtitle="Wybierz, co widać po dotknięciu +"
+      >
+        <PlusMenuVisibilityList
+          visibility={plusVisibility}
+          onToggle={(id, v) => setPlusMenuItem(id, v)}
+        />
+      </Section>
 
 
       <Section title="Dane">
