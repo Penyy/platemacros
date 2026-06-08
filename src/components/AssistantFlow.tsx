@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Camera, Loader2, MessageCircle, Mic, Send, Sparkles, X, Plus } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   askAssistant,
   type AssistantResult,
@@ -13,7 +14,6 @@ import {
   defaultAssistantSettings,
   getDayGoals,
   type Meal,
-  MEAL_LABEL,
   sumEntries,
   usePlate,
   ymd,
@@ -30,7 +30,6 @@ type HistoryItem =
   | { id: string; kind: "text"; text: string }
   | { id: string; kind: "actions"; text: string; actions: FoodAction[] };
 
-const CHIPS = ["Ile mi zostało?", "Co dojeść na białko?", "Dodaj posiłek"];
 const MAX_IMAGES = 5;
 
 function nid() {
@@ -61,6 +60,9 @@ function guessMeal(): Meal {
 }
 
 export function AssistantFlow({ defaultMeal, date }: Props) {
+  const { t } = useTranslation();
+  const mealLabel = (m: Meal) => t(`meal.${m}`);
+  const CHIPS = [t("ai.chip1"), t("ai.chip2"), t("ai.chip3")];
   const targetDate = date ?? ymd(new Date());
   const profile = usePlate((s) => s.profile);
   const entries = usePlate((s) => s.entries);
@@ -156,13 +158,13 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
         setListening(false);
         const err = e?.error;
         if (err === "not-allowed" || err === "service-not-allowed") {
-          toast.error("Brak dostępu do mikrofonu — sprawdź uprawnienia.");
+          toast.error(t("ai.voice.notAllowed"));
         } else if (err === "no-speech") {
-          toast.message("Nie wykryto mowy. Spróbuj ponownie.");
+          toast.message(t("ai.voice.noSpeech"));
         } else if (err === "network") {
-          toast.error("Problem z rozpoznawaniem mowy. Spróbuj ponownie.");
+          toast.error(t("ai.voice.network"));
         } else if (err && err !== "aborted") {
-          toast.error("Rozpoznawanie mowy nie powiodło się.");
+          toast.error(t("ai.toast.recognitionFail"));
         }
       };
       rec.onend = () => {
@@ -174,7 +176,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
       setListening(true);
     } catch {
       setListening(false);
-      toast.error("Nie udało się uruchomić mikrofonu.");
+      toast.error(t("ai.toast.micFail"));
     }
   };
 
@@ -222,8 +224,8 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
   ) => {
     const trimmedNote = note.trim();
     const userText = trimmedNote
-      ? `📷 ${imgs.length} zdj · "${trimmedNote}"`
-      : `📷 ${imgs.length} zdj`;
+      ? t("ai.userTextImagesWithNote", { n: imgs.length, note: trimmedNote })
+      : t("ai.userTextImages", { n: imgs.length });
     setHistory((h) => [
       ...h,
       { id: nid(), kind: "user", text: userText, previews: imgs.map((i) => i.dataUrl) },
@@ -232,7 +234,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
     try {
       const result = (await ask({
         data: {
-          message: trimmedNote || "Rozpoznaj zdjęcia",
+          message: trimmedNote || t("ai.fallbackRecognize"),
           history: [],
           dayContext,
           images: imgs.map((i) => i.base64),
@@ -242,7 +244,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
       })) as AssistantResult;
       if (result.kind === "items") {
         setPreview({
-          dishName: result.dishName || "Posiłek",
+          dishName: result.dishName || t("ai.fallbackDish"),
           meal: effectiveDefaultMeal ?? result.meal ?? guessMeal(),
           items: result.items,
           notes: result.notes,
@@ -251,13 +253,13 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
       } else if (result.kind === "text") {
         setHistory((h) => [...h, { id: nid(), kind: "text", text: result.text }]);
       } else {
-        setHistory((h) => [...h, { id: nid(), kind: "text", text: "Brak rozpoznanych pozycji." }]);
+        setHistory((h) => [...h, { id: nid(), kind: "text", text: t("ai.history.noItems") }]);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes("AI_RATE_LIMIT")) toast.error("Za dużo żądań, spróbuj za chwilę.");
-      else if (msg.includes("AI_CREDITS")) toast.error("Brak kredytów AI / problem z kluczem.");
-      else toast.error("Nie udało się rozpoznać zdjęcia.");
+      if (msg.includes("AI_RATE_LIMIT")) toast.error(t("ai.toast.rate"));
+      else if (msg.includes("AI_CREDITS")) toast.error(t("ai.toast.credits"));
+      else toast.error(t("ai.toast.imageFail"));
     } finally {
       setBusy(false);
     }
@@ -304,17 +306,17 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
       } else if (result.kind === "text") {
         setHistory((h) => [...h, { id: nid(), kind: "text", text: result.text }]);
       } else {
-        setHistory((h) => [...h, { id: nid(), kind: "text", text: "Hmm, brak odpowiedzi." }]);
+        setHistory((h) => [...h, { id: nid(), kind: "text", text: t("ai.history.noAnswer") }]);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes("AI_RATE_LIMIT")) toast.error("Za dużo żądań, spróbuj za chwilę.");
-      else if (msg.includes("AI_CREDITS")) toast.error("Brak kredytów AI / problem z kluczem.");
-      else if (msg.includes("GEMINI_KEY_MISSING")) toast.error("Brak klucza Gemini.");
-      else toast.error("Nie udało się — spróbuj ponownie lub dodaj ręcznie.");
+      if (msg.includes("AI_RATE_LIMIT")) toast.error(t("ai.toast.rate"));
+      else if (msg.includes("AI_CREDITS")) toast.error(t("ai.toast.credits"));
+      else if (msg.includes("GEMINI_KEY_MISSING")) toast.error(t("ai.toast.geminiKey"));
+      else toast.error(t("ai.toast.textFail"));
       setHistory((h) => [
         ...h,
-        { id: nid(), kind: "text", text: "Nie udało się — spróbuj ponownie lub dodaj ręcznie." },
+        { id: nid(), kind: "text", text: t("ai.history.fail") },
       ]);
     } finally {
       setBusy(false);
@@ -327,7 +329,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
     if (files.length === 0 || busy) return;
     const slotsLeft = MAX_IMAGES - pendingImages.length;
     if (slotsLeft <= 0) {
-      toast.message(`Maks. ${MAX_IMAGES} zdjęć.`);
+      toast.message(t("ai.maxImages", { n: MAX_IMAGES }));
       return;
     }
     const toAdd = files.slice(0, slotsLeft);
@@ -337,7 +339,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
         const dataUrl = await shrinkImage(f);
         results.push({ dataUrl, base64: dataUrl.split(",")[1] ?? "" });
       } catch {
-        toast.error("Nie udało się wczytać zdjęcia.");
+        toast.error(t("ai.toast.loadImage"));
       }
     }
     if (results.length > 0) setPendingImages((p) => [...p, ...results]);
@@ -415,14 +417,16 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
       {
         id: nid(),
         kind: "text",
-        text: `Dodano ${oneEntry ? "1 wpis" : `${items.length} pozycji`}: ${dishName || "Posiłek"}.`,
+        text: oneEntry
+          ? t("ai.history.addedOne", { name: dishName || t("ai.fallbackDish") })
+          : t("ai.history.addedMany", { n: items.length, name: dishName || t("ai.fallbackDish") }),
       },
     ]);
 
-    toast(`Dodano · ${MEAL_LABEL[meal]}`, {
+    toast(t("ai.toast.added", { meal: mealLabel(meal) }), {
       duration: 5000,
       action: {
-        label: "Cofnij",
+        label: t("ai.toast.undo"),
         onClick: () => {
           const rm = usePlate.getState().removeEntry;
           for (const id of undoIds) rm(id);
@@ -466,7 +470,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
                 disabled={!!busy}
                 className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full"
                 style={{ background: "var(--ink)", color: "var(--card)" }}
-                aria-label="Usuń zdjęcie"
+                aria-label={t("ai.removeImage")}
               >
                 <X size={11} strokeWidth={2.4} />
               </button>
@@ -479,7 +483,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
               disabled={!!busy}
               className="grid h-14 w-14 shrink-0 place-items-center rounded-xl"
               style={{ background: "var(--muted)", color: "var(--ink)" }}
-              aria-label="Dodaj kolejne"
+              aria-label={t("ai.addMore")}
             >
               <Plus size={18} strokeWidth={2.2} />
             </button>
@@ -512,8 +516,8 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
             }}
             placeholder={
               pendingImages.length > 0
-                ? "Opisz ilości (np. 100 g ryżu, 1 całe opakowanie)…"
-                : "Opisz co zjadłeś albo zapytaj…"
+                ? t("ai.placeholderWithImages")
+                : t("ai.placeholderDefault")
             }
             disabled={!!busy}
             className="flex-1 resize-none bg-transparent text-[15px] leading-snug outline-none max-h-32 overflow-y-auto placeholder:text-[color:var(--muted-foreground)]"
@@ -524,7 +528,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
             disabled={(!input.trim() && pendingImages.length === 0) || !!busy}
             className="grid h-8 w-8 shrink-0 place-items-center rounded-full disabled:opacity-40"
             style={{ background: "var(--ink)", color: "var(--card)" }}
-            aria-label="Wyślij"
+            aria-label={t("ai.send")}
           >
             <Send size={14} strokeWidth={2} />
           </button>
@@ -542,7 +546,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
               boxShadow: "var(--shadow-card)",
               animation: listening ? "pulse 1.2s ease-in-out infinite" : undefined,
             }}
-            aria-label={listening ? "Zatrzymaj nasłuch" : "Dyktuj głosem"}
+            aria-label={listening ? t("ai.micStop") : t("ai.micStart")}
           >
             <Mic size={18} strokeWidth={1.9} />
           </button>
@@ -551,7 +555,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
           type="button"
           onClick={() => {
             if (pendingImages.length >= MAX_IMAGES) {
-              toast.message(`Maks. ${MAX_IMAGES} zdjęć.`);
+              toast.message(t("ai.maxImages", { n: MAX_IMAGES }));
               return;
             }
             fileRef.current?.click();
@@ -564,7 +568,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
             border: "1px solid var(--hairline)",
             boxShadow: "var(--shadow-card)",
           }}
-          aria-label="Dodaj zdjęcia"
+          aria-label={t("ai.camera")}
         >
           <Camera size={18} strokeWidth={1.9} />
         </button>
@@ -579,20 +583,20 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
             className="mb-2 flex items-center gap-1.5 text-[10px] uppercase tracking-wider"
             style={{ color: "var(--muted-foreground)", fontWeight: 700 }}
           >
-            <MessageCircle size={12} strokeWidth={1.9} /> Mogę pomóc na 3 sposoby
+            <MessageCircle size={12} strokeWidth={1.9} /> {t("ai.introTitle")}
           </div>
           <ul className="space-y-1.5 text-[13px] leading-snug" style={{ color: "var(--ink)" }}>
             <li className="flex gap-2">
               <Sparkles size={14} strokeWidth={1.9} className="mt-0.5 shrink-0" style={{ color: "var(--accent-yellow)" }} />
-              <span><b>Opisz co zjadłeś</b> — dodam z makro</span>
+              <span dangerouslySetInnerHTML={{ __html: t("ai.introDescribe") }} />
             </li>
             <li className="flex gap-2">
               <Camera size={14} strokeWidth={1.9} className="mt-0.5 shrink-0" style={{ color: "var(--accent-yellow)" }} />
-              <span><b>Dodaj zdjęcia etykiet</b> (do 5) i opisz ilości</span>
+              <span dangerouslySetInnerHTML={{ __html: t("ai.introPhoto") }} />
             </li>
             <li className="flex gap-2">
               <MessageCircle size={14} strokeWidth={1.9} className="mt-0.5 shrink-0" style={{ color: "var(--accent-yellow)" }} />
-              <span><b>Zapytaj o makro</b> — ile zostało, co dojeść</span>
+              <span dangerouslySetInnerHTML={{ __html: t("ai.introAsk") }} />
             </li>
           </ul>
         </div>
@@ -619,7 +623,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
           style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
         >
           <Loader2 size={12} className="animate-spin" />
-          {busy === "image" ? "Analizuję zdjęcia…" : "Myślę…"}
+          {busy === "image" ? t("ai.busyImage") : t("ai.busyText")}
         </div>
       )}
 
@@ -647,6 +651,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
 }
 
 function HistoryRow({ item }: { item: HistoryItem }) {
+  const { t } = useTranslation();
   if (item.kind === "user") {
     return (
       <div className="ml-auto max-w-[80%] space-y-1">
@@ -699,11 +704,10 @@ function HistoryRow({ item }: { item: HistoryItem }) {
           >
             <span className="truncate">
               <b>{a.name}</b>{" "}
-              <span style={{ color: "var(--muted-foreground)" }}>· {MEAL_LABEL[a.meal]}</span>
+              <span style={{ color: "var(--muted-foreground)" }}>· {t(`meal.${a.meal}`)}</span>
             </span>
             <span style={{ color: "var(--muted-foreground)" }}>
-              {Math.round(a.kcal)} kcal · B{Math.round(a.protein)} W{Math.round(a.carbs)} T
-              {Math.round(a.fat)}
+              {Math.round(a.kcal)} kcal · {t("macro.short.protein")}{Math.round(a.protein)} {t("macro.short.carbs")}{Math.round(a.carbs)} {t("macro.short.fat")}{Math.round(a.fat)}
             </span>
           </div>
         ))}
@@ -731,6 +735,7 @@ function ItemsPreviewSheet({
   onChange: (next: typeof data) => void;
   onAdd: (oneEntry: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const [oneEntry, setOneEntry] = useState(false);
 
   const sum = data.items.reduce(
@@ -777,12 +782,12 @@ function ItemsPreviewSheet({
         }}
       >
         <div className="flex items-center justify-between px-5 pb-2 pt-4">
-          <div className="text-[18px]" style={{ fontWeight: 700 }}>Podgląd z PlateAI</div>
+          <div className="text-[18px]" style={{ fontWeight: 700 }}>{t("preview.title")}</div>
           <button
             onClick={onClose}
             className="grid h-8 w-8 place-items-center rounded-full"
             style={{ background: "var(--muted)", color: "var(--ink)" }}
-            aria-label="Zamknij"
+            aria-label={t("preview.close")}
           >
             <X size={14} />
           </button>
@@ -796,27 +801,27 @@ function ItemsPreviewSheet({
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-                Suma
+                {t("preview.sum")}
               </span>
               <span className="num-tight text-[18px]" style={{ fontWeight: 800 }}>
                 {Math.round(sum.kcal)} <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>kcal</span>
               </span>
             </div>
             <div className="num-tight mt-1 flex gap-3 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-              <span>B {sum.protein.toFixed(1)} g</span>
-              <span>W {sum.carbs.toFixed(1)} g</span>
-              <span>T {sum.fat.toFixed(1)} g</span>
+              <span>{t("macro.short.protein")} {sum.protein.toFixed(1)} g</span>
+              <span>{t("macro.short.carbs")} {sum.carbs.toFixed(1)} g</span>
+              <span>{t("macro.short.fat")} {sum.fat.toFixed(1)} g</span>
             </div>
           </div>
 
           {/* Dish name */}
-          <Field label="Nazwa dania">
+          <Field label={t("preview.dishName")}>
             <input
               value={data.dishName}
               onChange={(e) => onChange({ ...data, dishName: e.target.value })}
               className="w-full bg-transparent text-[15px] outline-none"
               style={{ color: "var(--ink)", fontWeight: 600 }}
-              placeholder="Posiłek"
+              placeholder={t("ai.fallbackDish")}
             />
           </Field>
 
@@ -826,7 +831,7 @@ function ItemsPreviewSheet({
               className="pb-2 text-[11px] font-semibold uppercase tracking-wider"
               style={{ color: "var(--muted-foreground)" }}
             >
-              Posiłek
+              {t("preview.meal")}
             </div>
             <div className="flex flex-wrap gap-1.5">
               {MEAL_PILLS.map((m) => {
@@ -842,7 +847,7 @@ function ItemsPreviewSheet({
                       fontWeight: active ? 700 : 600,
                     }}
                   >
-                    {MEAL_LABEL[m]}
+                    {t(`meal.${m}`)}
                   </button>
                 );
               })}
@@ -861,7 +866,7 @@ function ItemsPreviewSheet({
             ))}
             {data.items.length === 0 && (
               <div className="text-center text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-                Brak pozycji — dodaj zdjęcie lub opisz ilości.
+                {t("preview.empty")}
               </div>
             )}
           </div>
@@ -883,7 +888,7 @@ function ItemsPreviewSheet({
             style={{ background: "var(--muted)", color: "var(--ink)" }}
           >
             <span className="text-[13px]" style={{ fontWeight: 600 }}>
-              Dodaj jako jeden wpis (całość)
+              {t("preview.mergeOne")}
             </span>
             <span
               className="grid h-6 w-10 rounded-full p-0.5 transition"
@@ -902,7 +907,7 @@ function ItemsPreviewSheet({
             className="w-full rounded-full py-3 text-[14px] font-semibold disabled:opacity-40"
             style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
           >
-            Dodaj
+            {t("preview.add")}
           </button>
         </div>
       </motion.div>
@@ -933,6 +938,7 @@ function ItemRow({
   onChange: (patch: Partial<RecognizedItem>) => void;
   onRemove: () => void;
 }) {
+  const { t } = useTranslation();
   const num = (v: string) => {
     const n = Number(v.replace(",", "."));
     return Number.isFinite(n) ? n : 0;
@@ -948,13 +954,13 @@ function ItemRow({
           onChange={(e) => onChange({ name: e.target.value })}
           className="flex-1 bg-transparent text-[14px] outline-none"
           style={{ color: "var(--ink)", fontWeight: 700 }}
-          placeholder="Nazwa"
+          placeholder={t("preview.itemName")}
         />
         <button
           onClick={onRemove}
           className="grid h-7 w-7 place-items-center rounded-full"
           style={{ background: "var(--muted)", color: "var(--muted-foreground)" }}
-          aria-label="Usuń pozycję"
+          aria-label={t("preview.removeItem")}
         >
           <X size={12} />
         </button>
@@ -962,9 +968,9 @@ function ItemRow({
       <div className="mt-2 grid grid-cols-5 gap-1.5">
         <MiniField label="g" value={item.grams} onChange={(v) => onChange({ grams: num(v) })} />
         <MiniField label="kcal" value={item.kcal} onChange={(v) => onChange({ kcal: num(v) })} bold />
-        <MiniField label="B" value={item.protein} onChange={(v) => onChange({ protein: num(v) })} dot="var(--macro-protein)" />
-        <MiniField label="W" value={item.carbs} onChange={(v) => onChange({ carbs: num(v) })} dot="var(--macro-carbs)" />
-        <MiniField label="T" value={item.fat} onChange={(v) => onChange({ fat: num(v) })} dot="var(--macro-fat)" />
+        <MiniField label={t("macro.short.protein")} value={item.protein} onChange={(v) => onChange({ protein: num(v) })} dot="var(--macro-protein)" />
+        <MiniField label={t("macro.short.carbs")} value={item.carbs} onChange={(v) => onChange({ carbs: num(v) })} dot="var(--macro-carbs)" />
+        <MiniField label={t("macro.short.fat")} value={item.fat} onChange={(v) => onChange({ fat: num(v) })} dot="var(--macro-fat)" />
       </div>
     </div>
   );

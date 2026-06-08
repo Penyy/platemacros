@@ -3,8 +3,9 @@ import { useRef, useState } from "react";
 import { Camera, Loader2, RotateCcw } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { scanNutritionLabel, type NutritionLabel } from "@/lib/nutrition.functions";
-import { type Meal, MEAL_LABEL, usePlate } from "@/lib/store";
+import { type Meal, usePlate } from "@/lib/store";
 
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
@@ -43,6 +44,7 @@ async function shrinkImage(file: File, maxDim = 1600, quality = 0.85): Promise<{
 }
 
 export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
+  const { t } = useTranslation();
   const fileRef = useRef<HTMLInputElement>(null);
   const [phase, setPhase] = useState<Phase>("capture");
   const [preview, setPreview] = useState<string | null>(null);
@@ -66,13 +68,13 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes("AI_RATE_LIMIT")) {
-        toast.error("Za dużo żądań do AI. Spróbuj za chwilę.");
+        toast.error(t("label.errorRate"));
       } else if (msg.includes("AI_CREDITS")) {
-        toast.error("Brak kredytów AI lub problem z kluczem Gemini.");
+        toast.error(t("label.errorCredits"));
       } else if (msg.includes("GEMINI_KEY_MISSING")) {
-        toast.error("Brak klucza Gemini w sekretach.");
+        toast.error(t("label.errorGeminiKey"));
       } else {
-        toast.error("Nie udało się odczytać etykiety, spróbuj ponownie.");
+        toast.error(t("label.errorGeneric"));
       }
       setPreview(null);
       setLabel(null);
@@ -109,9 +111,9 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
             <Camera size={24} />
           </div>
           <div className="text-center">
-            <div className="text-base font-semibold">Zrób zdjęcie etykiety</div>
+            <div className="text-base font-semibold">{t("label.captureTitle")}</div>
             <div className="text-xs text-muted-foreground">
-              Najlepsze rezultaty: dobrze oświetlona tabela odżywcza
+              {t("label.captureHint")}
             </div>
           </div>
         </motion.button>
@@ -132,7 +134,7 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
         )}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 size={16} className="animate-spin" />
-          Czytam etykietę…
+          {t("label.reading")}
         </div>
       </div>
     );
@@ -188,43 +190,43 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
         <div className="flex-1">
           <ConfidenceBadge confidence={label.confidence} />
           <div className="mt-1 text-[11px] text-muted-foreground">
-            Sprawdź i popraw wartości jeśli trzeba.
+            {t("label.checkValues")}
           </div>
         </div>
         <button
           type="button"
           onClick={reset}
           className="grid h-9 w-9 place-items-center rounded-full bg-foreground/10"
-          aria-label="Zrób ponownie"
+          aria-label={t("label.retake")}
         >
           <RotateCcw size={14} />
         </button>
       </div>
 
-      <Field label="Nazwa">
+      <Field label={t("label.name")}>
         <input
           className={inputCls}
           value={label.name}
           maxLength={80}
           onChange={(e) => setLabel({ ...label, name: e.target.value })}
-          placeholder="np. Jogurt naturalny"
+          placeholder={t("label.namePlaceholder")}
           autoFocus={!label.name}
         />
       </Field>
 
       <div className="rounded-2xl bg-foreground/5 p-3">
         <div className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          Wartości na 100 g
+          {t("label.per100Title")}
         </div>
         <div className="grid grid-cols-4 gap-2">
           <SmallField label="kcal" value={String(label.per100.kcal)} onChange={(v) => updatePer100("kcal", v)} />
-          <SmallField label="B" value={String(label.per100.protein)} onChange={(v) => updatePer100("protein", v)} />
-          <SmallField label="W" value={String(label.per100.carbs)} onChange={(v) => updatePer100("carbs", v)} />
-          <SmallField label="T" value={String(label.per100.fat)} onChange={(v) => updatePer100("fat", v)} />
+          <SmallField label={t("macro.short.protein")} value={String(label.per100.protein)} onChange={(v) => updatePer100("protein", v)} />
+          <SmallField label={t("macro.short.carbs")} value={String(label.per100.carbs)} onChange={(v) => updatePer100("carbs", v)} />
+          <SmallField label={t("macro.short.fat")} value={String(label.per100.fat)} onChange={(v) => updatePer100("fat", v)} />
         </div>
       </div>
 
-      <Field label="Ile gramów zjadłeś/aś?">
+      <Field label={t("label.gramsLabel")}>
         <input
           className={inputCls}
           inputMode="decimal"
@@ -236,13 +238,13 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
       {valid && (
         <div className="rounded-2xl bg-foreground/5 p-3 num-tight">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            Razem
+            {t("label.total")}
           </div>
           <div className="mt-0.5 text-sm">
             <span className="text-lg font-bold">{totals.kcal}</span> kcal · {g} g
           </div>
           <div className="text-xs text-muted-foreground">
-            B {totals.protein} · W {totals.carbs} · T {totals.fat}
+            {t("macro.short.protein")} {totals.protein} · {t("macro.short.carbs")} {totals.carbs} · {t("macro.short.fat")} {totals.fat}
           </div>
         </div>
       )}
@@ -256,7 +258,7 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
           onChange={(e) => setSaveToLib(e.target.checked)}
           className="h-4 w-4 accent-primary"
         />
-        <span>Zapisz do moich produktów</span>
+        <span>{t("label.saveToLib")}</span>
       </label>
 
       <motion.button
@@ -265,17 +267,18 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
         disabled={!valid}
         className="mt-1 w-full rounded-2xl bg-primary py-3 text-base font-semibold text-primary-foreground disabled:opacity-40"
       >
-        Dodaj do dziennika
+        {t("label.submit")}
       </motion.button>
     </form>
   );
 }
 
 function ConfidenceBadge({ confidence }: { confidence: NutritionLabel["confidence"] }) {
+  const { t } = useTranslation();
   const map = {
-    high: { label: "Wysoka pewność", cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" },
-    medium: { label: "Średnia pewność", cls: "bg-amber-500/15 text-amber-600 dark:text-amber-400" },
-    low: { label: "Niska pewność", cls: "bg-rose-500/15 text-rose-600 dark:text-rose-400" },
+    high: { label: t("label.confidenceHigh"), cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" },
+    medium: { label: t("label.confidenceMedium"), cls: "bg-amber-500/15 text-amber-600 dark:text-amber-400" },
+    low: { label: t("label.confidenceLow"), cls: "bg-rose-500/15 text-rose-600 dark:text-rose-400" },
   } as const;
   const it = map[confidence];
   return (
@@ -286,6 +289,7 @@ function ConfidenceBadge({ confidence }: { confidence: NutritionLabel["confidenc
 }
 
 function MealPicker({ meal, setMeal }: { meal: Meal; setMeal: (m: Meal) => void }) {
+  const { t } = useTranslation();
   return (
     <div className="flex gap-1 rounded-full bg-foreground/5 p-1">
       {MEALS.map((m) => (
@@ -297,7 +301,7 @@ function MealPicker({ meal, setMeal }: { meal: Meal; setMeal: (m: Meal) => void 
             meal === m ? "bg-primary text-primary-foreground" : "text-muted-foreground"
           }`}
         >
-          {MEAL_LABEL[m]}
+          {t(`meal.${m}`)}
         </button>
       ))}
     </div>

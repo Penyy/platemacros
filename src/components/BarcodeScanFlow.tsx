@@ -2,7 +2,8 @@ import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Loader2, RotateCcw, ScanLine, Image as ImageIcon, Flashlight, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { type Meal, MEAL_LABEL, usePlate } from "@/lib/store";
+import { useTranslation } from "react-i18next";
+import { type Meal, usePlate } from "@/lib/store";
 
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
@@ -188,6 +189,7 @@ function buildHints(lib: LibMod) {
 }
 
 export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
+  const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
@@ -202,7 +204,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
   const [usePortion, setUsePortion] = useState(true);
   const [saveToLib, setSaveToLib] = useState(false);
 
-  const [status, setStatus] = useState("Nakieruj na kod kreskowy");
+  const [status, setStatus] = useState<string>(() => t("scan.aim"));
   const [flashHit, setFlashHit] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
@@ -238,13 +240,13 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
       });
       setTorchOn((v) => !v);
     } catch {
-      toast.error("Latarka niedostępna na tym urządzeniu.");
+      toast.error(t("scan.torchUnavail"));
     }
   };
 
   const lookup = async (code: string) => {
     setBarcode(code);
-    setStatus("Szukam produktu…");
+    setStatus(t("scan.searching"));
     setPhase("loading");
     try {
       const p = await fetchOpenFoodFacts(code);
@@ -272,13 +274,13 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     if (phase !== "scan") return;
     if (typeof window === "undefined") return;
     if (!navigator?.mediaDevices?.getUserMedia) {
-      setScannerError("Kamera niedostępna w tej przeglądarce.");
+      setScannerError(t("scan.cameraUnavail"));
       return;
     }
 
     let cancelled = false;
     setScannerError(null);
-    setStatus("Nakieruj na kod kreskowy");
+    setStatus(t("scan.aim"));
     lastHitRef.current = null;
 
     const v = videoRef.current;
@@ -370,13 +372,13 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
       } catch (e: unknown) {
         if (cancelled) return;
         const err = e as { name?: string; message?: string };
-        let msg = "Nie udało się uruchomić skanera — dodaj ręcznie.";
+        let msg = t("scan.errGeneric");
         if (err?.name === "NotAllowedError" || err?.name === "SecurityError") {
-          msg = "Brak dostępu do kamery — sprawdź uprawnienia lub dodaj ręcznie.";
+          msg = t("scan.errNotAllowed");
         } else if (err?.name === "NotFoundError" || err?.name === "OverconstrainedError") {
-          msg = "Nie znaleziono kamery — dodaj ręcznie.";
+          msg = t("scan.errNotFoundCam");
         } else if (err?.name === "NotReadableError") {
-          msg = "Kamera jest używana przez inną aplikację.";
+          msg = t("scan.errNotReadable");
         }
         setScannerError(msg);
       }
@@ -408,11 +410,11 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
         await lookup(code);
       } catch {
         URL.revokeObjectURL(url);
-        toast.error("Nie wykryto kodu na zdjęciu, spróbuj ponownie.");
+        toast.error(t("scan.noCodeOnPhoto"));
         setPhase("scan");
       }
     } catch {
-      toast.error("Nie udało się odczytać zdjęcia.");
+      toast.error(t("scan.photoFail"));
       setPhase("scan");
     }
   };
@@ -436,7 +438,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-foreground/10">
             <AlertTriangle size={20} />
           </div>
-          <div className="text-sm font-semibold">Nie udało się uruchomić skanera</div>
+          <div className="text-sm font-semibold">{t("scan.fatalTitle")}</div>
           <p className="text-xs text-muted-foreground">{fatalError}</p>
           <ManualFallback meal={meal} setMeal={setMeal} onSubmit={onSubmit} onCancel={() => { setFatalError(null); reset(); }} />
         </div>
@@ -494,7 +496,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
             <button
               type="button"
               onClick={toggleTorch}
-              aria-label="Latarka"
+              aria-label={t("scan.torch")}
               className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full backdrop-blur"
               style={{
                 background: torchOn ? "var(--accent-yellow)" : "rgba(0,0,0,0.45)",
@@ -534,7 +536,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border/60 bg-card py-3 text-sm font-semibold active:bg-accent"
         >
           <ImageIcon size={16} />
-          Zrób zdjęcie kodu zamiast skanowania
+          {t("scan.fileFallback")}
         </button>
 
         {scannerError && (
@@ -552,9 +554,9 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-12">
         <Loader2 size={20} className="animate-spin text-muted-foreground" />
-        <div className="text-sm text-muted-foreground">Szukam produktu w bazie…</div>
+        <div className="text-sm text-muted-foreground">{t("scan.searchingDb")}</div>
         {barcode && (
-          <div className="num-tight text-[11px] text-muted-foreground">Kod: {barcode}</div>
+          <div className="num-tight text-[11px] text-muted-foreground">{t("scan.code", { code: barcode })}</div>
         )}
       </div>
     );
@@ -566,10 +568,10 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
         <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-foreground/10">
           <ScanLine size={20} />
         </div>
-        <div className="text-sm font-semibold">Produktu nie ma w bazie</div>
+        <div className="text-sm font-semibold">{t("scan.notFoundTitle")}</div>
         <p className="text-xs text-muted-foreground">
-          Możesz wpisać dane ręcznie.
-          {barcode ? <> Kod: <span className="num-tight">{barcode}</span></> : null}
+          {t("scan.notFoundHint")}
+          {barcode ? <> {t("scan.code", { code: barcode })}</> : null}
         </p>
         <ManualFallback
           meal={meal}
@@ -584,16 +586,16 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
   if (phase === "neterror") {
     return (
       <div className="space-y-3 py-8 text-center">
-        <div className="text-sm font-semibold">Błąd połączenia</div>
+        <div className="text-sm font-semibold">{t("scan.netErrorTitle")}</div>
         <p className="text-xs text-muted-foreground">
-          Sprawdź internet i spróbuj ponownie.
+          {t("scan.netErrorHint")}
         </p>
         <button
           type="button"
           onClick={reset}
           className="mx-auto flex items-center gap-2 rounded-2xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
         >
-          <RotateCcw size={14} /> Spróbuj ponownie
+          <RotateCcw size={14} /> {t("scan.retry")}
         </button>
       </div>
     );
@@ -695,19 +697,19 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     >
       <div className="flex items-center justify-between">
         <div className="num-tight text-[11px] text-muted-foreground">
-          Kod: {barcode}
+          {t("scan.code", { code: barcode })}
         </div>
         <button
           type="button"
           onClick={reset}
           className="grid h-8 w-8 place-items-center rounded-full bg-foreground/10"
-          aria-label="Skanuj ponownie"
+          aria-label={t("scan.scanAgain")}
         >
           <RotateCcw size={14} />
         </button>
       </div>
 
-      <Field label="Nazwa">
+      <Field label={t("scan.fieldName")}>
         <input
           className={inputCls}
           value={product.name}
@@ -719,7 +721,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
       {hasServing && (
         <div className="flex items-center justify-between gap-2 rounded-2xl bg-foreground/5 px-3 py-2">
           <span className="text-[11px] font-semibold text-muted-foreground">
-            Porcja: {sg} g <span className="opacity-60">(z bazy)</span>
+            {t("scan.servingBadge", { g: sg })}
           </span>
           <div className="flex gap-1 rounded-full bg-background/60 p-0.5 text-[11px] font-semibold">
             <button
@@ -727,14 +729,14 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
               onClick={() => togglePortion(true)}
               className={`rounded-full px-2.5 py-1 ${usePortion ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
             >
-              Porcja ({sg} g)
+              {t("scan.toggleServing", { g: sg })}
             </button>
             <button
               type="button"
               onClick={() => togglePortion(false)}
               className={`rounded-full px-2.5 py-1 ${!usePortion ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
             >
-              100 g
+              {t("scan.togglePer100")}
             </button>
           </div>
         </div>
@@ -742,23 +744,23 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
 
       <div className="rounded-2xl bg-foreground/5 p-3">
         <div className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          Wartości na 100 g
+          {t("scan.per100Title")}
         </div>
         <div className="grid grid-cols-4 gap-2">
           <SmallField label="kcal" value={String(product.kcal)} onChange={(v) => updatePer100("kcal", v)} />
-          <SmallField label="B" value={String(product.protein)} onChange={(v) => updatePer100("protein", v)} />
-          <SmallField label="W" value={String(product.carbs)} onChange={(v) => updatePer100("carbs", v)} />
-          <SmallField label="T" value={String(product.fat)} onChange={(v) => updatePer100("fat", v)} />
+          <SmallField label={t("macro.short.protein")} value={String(product.protein)} onChange={(v) => updatePer100("protein", v)} />
+          <SmallField label={t("macro.short.carbs")} value={String(product.carbs)} onChange={(v) => updatePer100("carbs", v)} />
+          <SmallField label={t("macro.short.fat")} value={String(product.fat)} onChange={(v) => updatePer100("fat", v)} />
         </div>
         <div className="mt-2 grid grid-cols-4 gap-2">
-          <SmallField label="Błonnik" value={product.fiber_g == null ? "" : String(product.fiber_g)} onChange={(v) => updatePer100("fiber_g", v)} />
-          <SmallField label="Cukry" value={product.sugars_g == null ? "" : String(product.sugars_g)} onChange={(v) => updatePer100("sugars_g", v)} />
-          <SmallField label="Nasyc." value={product.saturated_fat_g == null ? "" : String(product.saturated_fat_g)} onChange={(v) => updatePer100("saturated_fat_g", v)} />
-          <SmallField label="Sód mg" value={product.sodium_mg == null ? "" : String(product.sodium_mg)} onChange={(v) => updatePer100("sodium_mg", v)} />
+          <SmallField label={t("scan.fieldFiber")} value={product.fiber_g == null ? "" : String(product.fiber_g)} onChange={(v) => updatePer100("fiber_g", v)} />
+          <SmallField label={t("scan.fieldSugars")} value={product.sugars_g == null ? "" : String(product.sugars_g)} onChange={(v) => updatePer100("sugars_g", v)} />
+          <SmallField label={t("scan.fieldSat")} value={product.saturated_fat_g == null ? "" : String(product.saturated_fat_g)} onChange={(v) => updatePer100("saturated_fat_g", v)} />
+          <SmallField label={t("scan.fieldSodium")} value={product.sodium_mg == null ? "" : String(product.sodium_mg)} onChange={(v) => updatePer100("sodium_mg", v)} />
         </div>
       </div>
 
-      <Field label="Ile gramów zjadłeś/aś?">
+      <Field label={t("scan.fieldGrams")}>
         <input
           className={inputCls}
           inputMode="decimal"
@@ -769,23 +771,23 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
 
       {valid && (
         <div className="rounded-2xl bg-foreground/5 p-3 num-tight">
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Razem</div>
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{t("scan.totalsTitle")}</div>
           <div className="mt-0.5 text-sm">
             <span className="text-lg font-bold">{totals.kcal}</span> kcal · {g} g
           </div>
           <div className="text-xs text-muted-foreground">
-            B {totals.protein} · W {totals.carbs} · T {totals.fat}
+            {t("macro.short.protein")} {totals.protein} · {t("macro.short.carbs")} {totals.carbs} · {t("macro.short.fat")} {totals.fat}
           </div>
           {complex != null && (
             <div className="text-[11px] text-muted-foreground">
-              w tym proste: {extras.sugars_g} g · złożone: {complex} g
+              {t("scan.totalsSimple", { s: extras.sugars_g, c: complex })}
             </div>
           )}
           {(extras.fiber_g != null || extras.saturated_fat_g != null || extras.sodium_mg != null) && (
             <div className="text-[11px] text-muted-foreground">
-              {extras.fiber_g != null && <>Błonnik {extras.fiber_g} g · </>}
-              {extras.saturated_fat_g != null && <>Nasyc. {extras.saturated_fat_g} g · </>}
-              {extras.sodium_mg != null && <>Sód {extras.sodium_mg} mg</>}
+              {extras.fiber_g != null && <>{t("scan.totalsFiber", { n: extras.fiber_g })}</>}
+              {extras.saturated_fat_g != null && <>{t("scan.totalsSat", { n: extras.saturated_fat_g })}</>}
+              {extras.sodium_mg != null && <>{t("scan.totalsSodium", { n: extras.sodium_mg })}</>}
             </div>
           )}
         </div>
@@ -800,7 +802,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           onChange={(e) => setSaveToLib(e.target.checked)}
           className="h-4 w-4 accent-primary"
         />
-        <span>Zapisz do moich produktów</span>
+        <span>{t("scan.saveToLib")}</span>
       </label>
 
       <motion.button
@@ -809,7 +811,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
         disabled={!valid}
         className="mt-1 w-full rounded-2xl bg-primary py-3 text-base font-semibold text-primary-foreground disabled:opacity-40"
       >
-        Dodaj do dziennika
+        {t("scan.submit")}
       </motion.button>
     </form>
   );
@@ -822,7 +824,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     }
     return (
       <div className="space-y-3 py-6 text-center">
-        <div className="text-sm font-semibold">Nie udało się uruchomić skanera</div>
+        <div className="text-sm font-semibold">{t("scan.fatalTitle")}</div>
         <p className="text-xs text-muted-foreground">{msg}</p>
         <ManualFallback meal={meal} setMeal={setMeal} onSubmit={onSubmit} onCancel={reset} />
       </div>
@@ -841,6 +843,7 @@ function ManualFallback({
   onSubmit: Props["onSubmit"];
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [kcal, setKcal] = useState("");
   const [p, setP] = useState("");
@@ -877,21 +880,21 @@ function ManualFallback({
         });
       }}
     >
-      <Field label="Nazwa">
+      <Field label={t("scan.fieldName")}>
         <input className={inputCls} value={name} maxLength={80} onChange={(e) => setName(e.target.value)} />
       </Field>
       <div className="rounded-2xl bg-foreground/5 p-3">
         <div className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          Wartości na 100 g
+          {t("scan.per100Title")}
         </div>
         <div className="grid grid-cols-4 gap-2">
           <SmallField label="kcal" value={kcal} onChange={setKcal} />
-          <SmallField label="B" value={p} onChange={setP} />
-          <SmallField label="W" value={c} onChange={setC} />
-          <SmallField label="T" value={f} onChange={setF} />
+          <SmallField label={t("macro.short.protein")} value={p} onChange={setP} />
+          <SmallField label={t("macro.short.carbs")} value={c} onChange={setC} />
+          <SmallField label={t("macro.short.fat")} value={f} onChange={setF} />
         </div>
       </div>
-      <Field label="Ile gramów">
+      <Field label={t("scan.fieldGramsShort")}>
         <input
           className={inputCls}
           inputMode="decimal"
@@ -907,7 +910,7 @@ function ManualFallback({
           onChange={(e) => setSaveToLib(e.target.checked)}
           className="h-4 w-4 accent-primary"
         />
-        <span>Zapisz do moich produktów</span>
+        <span>{t("scan.saveToLib")}</span>
       </label>
       <div className="flex gap-2">
         <button
@@ -915,14 +918,14 @@ function ManualFallback({
           onClick={onCancel}
           className="flex-1 rounded-2xl bg-foreground/10 py-3 text-sm font-semibold"
         >
-          Skanuj ponownie
+          {t("scan.scanAgain")}
         </button>
         <button
           type="submit"
           disabled={!valid}
           className="flex-1 rounded-2xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-40"
         >
-          Dodaj
+          {t("scan.add")}
         </button>
       </div>
     </form>
@@ -930,6 +933,7 @@ function ManualFallback({
 }
 
 function MealPicker({ meal, setMeal }: { meal: Meal; setMeal: (m: Meal) => void }) {
+  const { t } = useTranslation();
   return (
     <div className="flex gap-1 rounded-full bg-foreground/5 p-1">
       {MEALS.map((m) => (
@@ -941,7 +945,7 @@ function MealPicker({ meal, setMeal }: { meal: Meal; setMeal: (m: Meal) => void 
             meal === m ? "bg-primary text-primary-foreground" : "text-muted-foreground"
           }`}
         >
-          {MEAL_LABEL[m]}
+          {t(`meal.${m}`)}
         </button>
       ))}
     </div>

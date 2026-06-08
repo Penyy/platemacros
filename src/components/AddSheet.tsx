@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, lazy, Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Layers,
   Zap,
@@ -10,7 +11,7 @@ import {
   ArrowRight,
   X,
 } from "lucide-react";
-import { type Meal, MEAL_LABEL, type Product, usePlate, ymd, defaultPlusMenuVisibility, type PlusMenuItemId } from "@/lib/store";
+import { type Meal, type Product, usePlate, ymd, defaultPlusMenuVisibility, type PlusMenuItemId } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { CompoundMealFlow } from "./CompoundMealFlow";
@@ -32,6 +33,7 @@ interface Props {
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
 export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<Mode>("menu");
   useScrollLock(open);
   const [meal, setMeal] = useState<Meal>(defaultMeal ?? "breakfast");
@@ -81,26 +83,26 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                   style={{ fontFamily: "Manrope, sans-serif", fontWeight: mode === "menu" ? 800 : 700, letterSpacing: "-0.03em", color: "var(--ink)" }}
                 >
                   {mode === "menu"
-                    ? "Dodaj pozycję"
+                    ? t("add.title.menu")
                     : mode === "quick"
-                    ? "Szybkie dodawanie"
+                    ? t("add.title.quick")
                     : mode === "manual"
-                    ? "Wpisz ręcznie"
+                    ? t("add.title.manual")
                     : mode === "search"
-                    ? "Szukaj produktu"
+                    ? t("add.title.search")
                     : mode === "compound"
-                    ? "Złożony posiłek"
+                    ? t("add.title.compound")
                     : mode === "barcode"
-                    ? "Skanuj kod kreskowy"
+                    ? t("add.title.barcode")
                     : mode === "assistant"
-                    ? "PlateAI"
-                    : "Skanuj etykietę"}
+                    ? t("add.title.assistant")
+                    : t("add.title.scan")}
                 </h2>
                 <button
                   onClick={mode === "menu" ? close : () => setMode("menu")}
                   className="grid h-10 w-10 place-items-center rounded-full"
                   style={{ background: "var(--card)", border: "1px solid var(--hairline)", color: "var(--muted-foreground)" }}
-                  aria-label="Zamknij"
+                  aria-label={t("add.close")}
                 >
                   <X size={16} strokeWidth={1.9} />
                 </button>
@@ -160,7 +162,7 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                 />
               )}
               {mode === "barcode" && (
-                <Suspense fallback={<div className="py-12 text-center text-sm text-muted-foreground">Ładowanie skanera…</div>}>
+                <Suspense fallback={<div className="py-12 text-center text-sm text-muted-foreground">{t("add.barcodeLoading")}</div>}>
                   <BarcodeScanFlow
                     meal={meal}
                     setMeal={setMeal}
@@ -194,6 +196,7 @@ function guessMeal(): Meal {
 type PickMode = "quick" | "manual" | "search" | "compound" | "barcode" | "assistant";
 
 function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
+  const { t } = useTranslation();
   const visibility = usePlate(
     (s) => s.profile.plus_menu_visibility ?? defaultPlusMenuVisibility,
   );
@@ -201,11 +204,11 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
   const heroVisible = visibility["assistant" as PlusMenuItemId] !== false;
 
   const gridAll: { id: PickMode; label: string; subtitle: string; icon: typeof ScanLine }[] = [
-    { id: "barcode", label: "Skanuj kod kreskowy", subtitle: "Kod kreskowy EAN", icon: ScanLine },
-    { id: "search", label: "Szukaj produktu", subtitle: "Baza Open Food Facts", icon: Search },
-    { id: "quick", label: "Szybkie dodawanie", subtitle: "Tylko kcal i makra", icon: Zap },
-    { id: "compound", label: "Złożony posiłek", subtitle: "Z wielu składników", icon: Layers },
-    { id: "manual", label: "Wpisz ręcznie", subtitle: "Własna pozycja z wartościami", icon: PencilLine },
+    { id: "barcode", label: t("add.menu.barcodeLabel"), subtitle: t("add.menu.barcodeSubtitle"), icon: ScanLine },
+    { id: "search", label: t("add.menu.searchLabel"), subtitle: t("add.menu.searchSubtitle"), icon: Search },
+    { id: "quick", label: t("add.menu.quickLabel"), subtitle: t("add.menu.quickSubtitle"), icon: Zap },
+    { id: "compound", label: t("add.menu.compoundLabel"), subtitle: t("add.menu.compoundSubtitle"), icon: Layers },
+    { id: "manual", label: t("add.menu.manualLabel"), subtitle: t("add.menu.manualSubtitle"), icon: PencilLine },
   ];
   const gridItems = gridAll.filter((it) => visibility[it.id as PlusMenuItemId] !== false);
   const oddTail = gridItems.length % 2 === 1;
@@ -245,7 +248,7 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
               className="mt-1 text-[12.5px] leading-snug"
               style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
             >
-              Opisz słowami albo zrób zdjęcie posiłku lub etykiety
+              {t("add.heroSubtitle")}
             </div>
           </div>
           <ArrowRight size={20} strokeWidth={1.9} style={{ color: "var(--accent-yellow)" }} />
@@ -307,6 +310,7 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
 }
 
 function MealPicker({ meal, setMeal }: { meal: Meal; setMeal: (m: Meal) => void }) {
+  const { t } = useTranslation();
   return (
     <div className="flex gap-1 rounded-full bg-foreground/5 p-1">
       {MEALS.map((m) => (
@@ -320,7 +324,7 @@ function MealPicker({ meal, setMeal }: { meal: Meal; setMeal: (m: Meal) => void 
               : "text-muted-foreground"
           }`}
         >
-          {MEAL_LABEL[m]}
+          {t(`meal.${m}`)}
         </button>
       ))}
     </div>
@@ -366,6 +370,7 @@ function QuickForm({
 }: {
   onSubmit: (p: FormPayload) => void;
 }) {
+  const { t } = useTranslation();
   const [kcal, setKcal] = useState("");
   const [p, setP] = useState("");
   const [c, setC] = useState("");
@@ -397,7 +402,7 @@ function QuickForm({
         }}
       >
         <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          Kalorie
+          {t("add.quick.kcal")}
         </div>
         <div className="mt-1 flex items-baseline gap-2">
           <input
@@ -414,12 +419,12 @@ function QuickForm({
 
       {/* Optional macros — same field style as Calories above */}
       <div className="grid grid-cols-3 gap-2">
-        <MacroField color="var(--macro-protein)" label="Białko" value={p} onChange={setP} />
-        <MacroField color="var(--macro-carbs)" label="Węgl." value={c} onChange={setC} />
-        <MacroField color="var(--macro-fat)" label="Tłuszcz" value={f} onChange={setF} />
+        <MacroField color="var(--macro-protein)" label={t("add.quick.macroP")} value={p} onChange={setP} />
+        <MacroField color="var(--macro-carbs)" label={t("add.quick.macroC")} value={c} onChange={setC} />
+        <MacroField color="var(--macro-fat)" label={t("add.quick.macroF")} value={f} onChange={setF} />
       </div>
 
-      <SubmitButton disabled={!valid}>Dodaj do dziennika</SubmitButton>
+      <SubmitButton disabled={!valid}>{t("add.quick.submit")}</SubmitButton>
     </form>
   );
 }
