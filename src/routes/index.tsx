@@ -316,6 +316,21 @@ function HeroLight({
           <path
             d={trackPath}
             fill="none"
+            stroke="#F4B500"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            pathLength={1}
+            strokeDasharray={`${pct} 1`}
+            style={{
+              strokeDashoffset: 0,
+              filter: "blur(8px)",
+              opacity: 0.7,
+              transition: "stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)",
+            }}
+          />
+          <path
+            d={trackPath}
+            fill="none"
             stroke="var(--accent-yellow)"
             strokeWidth={stroke}
             strokeLinecap="round"
@@ -324,9 +339,9 @@ function HeroLight({
             style={{
               strokeDashoffset: 0,
               transition: "stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)",
-              filter: "drop-shadow(0 0 8px rgba(244,181,0,0.85)) drop-shadow(0 0 20px rgba(244,181,0,0.5))",
             }}
           />
+
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           <div
