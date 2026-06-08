@@ -2,7 +2,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Trash2, X } from "lucide-react";
 import { toast } from "sonner";
-import { type LogEntry, type Meal, MEAL_LABEL, usePlate } from "@/lib/store";
+import { useTranslation } from "react-i18next";
+import { type LogEntry, type Meal, usePlate } from "@/lib/store";
 
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function EditEntrySheet({ entry, onClose }: Props) {
+  const { t } = useTranslation();
   const updateEntry = usePlate((s) => s.updateEntry);
   const removeEntry = usePlate((s) => s.removeEntry);
   const products = usePlate((s) => s.products);
@@ -108,14 +110,14 @@ export function EditEntrySheet({ entry, onClose }: Props) {
     } else {
       addProduct({ name: finalName, ...macros });
     }
-    toast.success("Dodano do Twoich produktów");
+    toast.success(t("item.addedToProducts"));
   };
 
 
   const handleDelete = () => {
     if (!entry) return;
     removeEntry(entry.id);
-    toast.success("Usunięto pozycję");
+    toast.success(t("item.deleted"));
     onClose();
   };
 
@@ -156,11 +158,11 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                     color: "var(--ink)",
                   }}
                 >
-                  Edytuj pozycję
+                  {t("item.editTitle")}
                 </h2>
                 <button
                   onClick={onClose}
-                  aria-label="Zamknij"
+                  aria-label={t("common.close")}
                   className="grid h-9 w-9 place-items-center rounded-full"
                   style={{ background: "var(--hairline)", color: "var(--ink)" }}
                 >
@@ -170,12 +172,12 @@ export function EditEntrySheet({ entry, onClose }: Props) {
 
               <div className="space-y-4">
                 {/* Name */}
-                <CardField label="Nazwa">
+                <CardField label={t("item.name")}>
                   <input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     onFocus={onFocusScroll}
-                    placeholder="Nazwa pozycji"
+                    placeholder={t("item.namePlaceholder")}
                     className="w-full bg-transparent text-[17px] leading-tight outline-none placeholder:text-foreground/30"
                     style={{ fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.01em" }}
                   />
@@ -197,7 +199,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                           fontWeight: 600,
                         }}
                       >
-                        {MEAL_LABEL[m]}
+                        {t(`meal.${m}`)}
                       </button>
                     );
                   })}
@@ -205,28 +207,28 @@ export function EditEntrySheet({ entry, onClose }: Props) {
 
                 {/* Gramatura + kcal hero */}
                 <div className="grid grid-cols-2 gap-2">
-                  <NumCard label="Gramatura" unit="g" value={grams} onChange={setGrams} />
-                  <NumCard label="Kalorie" unit="kcal" value={kcal} onChange={setKcal} hero />
+                  <NumCard label={t("item.amount")} unit="g" value={grams} onChange={setGrams} />
+                  <NumCard label={t("item.kcal")} unit="kcal" value={kcal} onChange={setKcal} hero />
                 </div>
 
                 {/* Macros */}
                 <div className="grid grid-cols-3 gap-2">
                   <NumCard
-                    label="Białko"
+                    label={t("macro.protein")}
                     unit="g"
                     value={protein}
                     onChange={setProtein}
                     dot="var(--macro-protein)"
                   />
                   <NumCard
-                    label="Węglow."
+                    label={t("macro.carbs")}
                     unit="g"
                     value={carbs}
                     onChange={setCarbs}
                     dot="var(--macro-carbs, var(--accent-yellow))"
                   />
                   <NumCard
-                    label="Tłuszcz"
+                    label={t("macro.fat")}
                     unit="g"
                     value={fat}
                     onChange={setFat}
@@ -241,17 +243,17 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                   const complex = Math.max(0, Math.round((cb - sg) * 10) / 10);
                   return (
                     <div className="px-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                      w tym proste: {round1(sg)} g · złożone: {complex} g
+                      {t("item.carbBreakdown", { simple: round1(sg), complex })}
                     </div>
                   );
                 })()}
 
                 {/* Extras (optional) */}
                 <div className="grid grid-cols-2 gap-2">
-                  <NumCard label="Błonnik" unit="g" value={fiber} onChange={setFiber} />
-                  <NumCard label="Cukry" unit="g" value={sugars} onChange={setSugars} />
-                  <NumCard label="Tł. nasyc." unit="g" value={satFat} onChange={setSatFat} />
-                  <NumCard label="Sód" unit="mg" value={sodium} onChange={setSodium} />
+                  <NumCard label={t("item.fiber")} unit="g" value={fiber} onChange={setFiber} />
+                  <NumCard label={t("item.sugars")} unit="g" value={sugars} onChange={setSugars} />
+                  <NumCard label={t("item.satFatShort")} unit="g" value={satFat} onChange={setSatFat} />
+                  <NumCard label={t("item.sodium")} unit="mg" value={sodium} onChange={setSodium} />
                 </div>
 
 
@@ -268,7 +270,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                       fontWeight: 700,
                     }}
                   >
-                    Zapisz
+                    {t("common.save")}
                   </motion.button>
                   <div className="grid grid-cols-2 gap-2">
                     <button
@@ -280,7 +282,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                         fontWeight: 600,
                       }}
                     >
-                      Dodaj do moich produktów
+                      {t("item.addToProducts")}
                     </button>
                     <button
                       onClick={handleDelete}
@@ -292,7 +294,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                       }}
                     >
                       <Trash2 size={14} strokeWidth={1.9} />
-                      Usuń
+                      {t("common.delete")}
                     </button>
                   </div>
                 </div>
