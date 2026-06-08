@@ -136,7 +136,8 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
     }
     try {
       const rec = new SR();
-      rec.lang = "pl-PL";
+      const appLang = (typeof window !== "undefined" && window.localStorage.getItem("app_language")) || "pl";
+      rec.lang = appLang === "en" ? "en-US" : "pl-PL";
       rec.interimResults = true;
       rec.continuous = true;
       baseInputRef.current = input ? input.trimEnd() + " " : "";
