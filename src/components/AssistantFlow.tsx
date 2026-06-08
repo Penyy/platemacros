@@ -466,14 +466,12 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
         className="hidden"
         onChange={onPickImages}
       />
-      <input
-        ref={cameraRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={onPickImages}
+      <InAppCamera
+        open={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        onCapture={(file) => void addCapturedFile(file)}
       />
+
 
       {pendingImages.length > 0 && (
         <div
@@ -498,12 +496,13 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
           {pendingImages.length < MAX_IMAGES && (
             <button
               type="button"
-              onClick={() => cameraRef.current?.click()}
+              onClick={() => setCameraOpen(true)}
               disabled={!!busy}
               className="grid h-14 w-14 shrink-0 place-items-center rounded-xl"
               style={{ background: "var(--muted)", color: "var(--ink)" }}
               aria-label={t("ai.addMore")}
             >
+
               <Plus size={18} strokeWidth={2.2} />
             </button>
           )}
