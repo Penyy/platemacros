@@ -437,6 +437,7 @@ async function handleTextPath(
   ctx: z.infer<typeof DayContextSchema>,
   apiKey: string,
   settings: AssistantCallSettings,
+  lang: Lang,
 ): Promise<AssistantResult> {
   const contents: Array<{ role: string; parts: GeminiPart[] }> = [];
   for (const h of FEW_SHOT_HISTORY) {
@@ -455,7 +456,7 @@ async function handleTextPath(
       : "Odpowiadaj szczegółowo — możesz użyć 3-6 zdań z uzasadnieniem i konkretnymi przykładami.";
   const dynamicSystem = `${SYSTEM_INSTRUCTION}\n\nDODATKOWE REGUŁY SESJI:\n- ${mealHint}\n- ${lengthHint}${
     settings.allowAddEntries ? "" : "\n- NIE WOLNO Ci dodawać wpisów do dziennika — odpowiadaj tylko tekstem, nawet gdy użytkownik prosi o dodanie jedzenia (poinformuj że dodawanie przez AI jest wyłączone w ustawieniach)."
-  }`;
+  }\n\n${languageAddendum(lang)}`;
   contents.push({
     role: "user",
     parts: [{ text: `KONTEKST DNIA:\n${buildDayContextText(ctx)}\n\nPYTANIE/POLECENIE: ${message}` }],
