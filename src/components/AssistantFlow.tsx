@@ -938,6 +938,7 @@ function ItemRow({
   onChange: (patch: Partial<RecognizedItem>) => void;
   onRemove: () => void;
 }) {
+  const { t } = useTranslation();
   const num = (v: string) => {
     const n = Number(v.replace(",", "."));
     return Number.isFinite(n) ? n : 0;
@@ -953,13 +954,13 @@ function ItemRow({
           onChange={(e) => onChange({ name: e.target.value })}
           className="flex-1 bg-transparent text-[14px] outline-none"
           style={{ color: "var(--ink)", fontWeight: 700 }}
-          placeholder="Nazwa"
+          placeholder={t("preview.itemName")}
         />
         <button
           onClick={onRemove}
           className="grid h-7 w-7 place-items-center rounded-full"
           style={{ background: "var(--muted)", color: "var(--muted-foreground)" }}
-          aria-label="Usuń pozycję"
+          aria-label={t("preview.removeItem")}
         >
           <X size={12} />
         </button>
@@ -967,9 +968,9 @@ function ItemRow({
       <div className="mt-2 grid grid-cols-5 gap-1.5">
         <MiniField label="g" value={item.grams} onChange={(v) => onChange({ grams: num(v) })} />
         <MiniField label="kcal" value={item.kcal} onChange={(v) => onChange({ kcal: num(v) })} bold />
-        <MiniField label="B" value={item.protein} onChange={(v) => onChange({ protein: num(v) })} dot="var(--macro-protein)" />
-        <MiniField label="W" value={item.carbs} onChange={(v) => onChange({ carbs: num(v) })} dot="var(--macro-carbs)" />
-        <MiniField label="T" value={item.fat} onChange={(v) => onChange({ fat: num(v) })} dot="var(--macro-fat)" />
+        <MiniField label={t("macro.short.protein")} value={item.protein} onChange={(v) => onChange({ protein: num(v) })} dot="var(--macro-protein)" />
+        <MiniField label={t("macro.short.carbs")} value={item.carbs} onChange={(v) => onChange({ carbs: num(v) })} dot="var(--macro-carbs)" />
+        <MiniField label={t("macro.short.fat")} value={item.fat} onChange={(v) => onChange({ fat: num(v) })} dot="var(--macro-fat)" />
       </div>
     </div>
   );
