@@ -47,6 +47,12 @@ export function EditEntrySheet({ entry, onClose }: Props) {
 
 
 
+  const optNum = (s: string): number | null => {
+    if (s.trim() === "") return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  };
+
   const save = () => {
     if (!entry) return;
     const g = grams.trim() === "" ? undefined : numOr(grams, entry.grams ?? 0);
@@ -63,6 +69,10 @@ export function EditEntrySheet({ entry, onClose }: Props) {
       protein: finalProtein,
       carbs: finalCarbs,
       fat: finalFat,
+      fiber_g: optNum(fiber),
+      sugars_g: optNum(sugars),
+      saturated_fat_g: optNum(satFat),
+      sodium_mg: optNum(sodium),
     });
     onClose();
   };
@@ -77,11 +87,19 @@ export function EditEntrySheet({ entry, onClose }: Props) {
     const finalFat = numOr(fat, entry.fat);
     const hasGrams = g !== undefined && g > 0;
     const factor = hasGrams ? 100 / (g as number) : 1;
+    const fiberV = optNum(fiber);
+    const sugarsV = optNum(sugars);
+    const satV = optNum(satFat);
+    const sodV = optNum(sodium);
     const macros = {
       kcal: round1(finalKcal * factor),
       protein: round1(finalProtein * factor),
       carbs: round1(finalCarbs * factor),
       fat: round1(finalFat * factor),
+      fiber_g: fiberV != null ? round1(fiberV * factor) : null,
+      sugars_g: sugarsV != null ? round1(sugarsV * factor) : null,
+      saturated_fat_g: satV != null ? round1(satV * factor) : null,
+      sodium_mg: sodV != null ? Math.round(sodV * factor) : null,
     };
     const norm = finalName.trim().toLowerCase();
     const existing = products.find((p) => p.name.trim().toLowerCase() === norm);
@@ -92,6 +110,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
     }
     toast.success("Dodano do Twoich produktów");
   };
+
 
   const handleDelete = () => {
     if (!entry) return;
