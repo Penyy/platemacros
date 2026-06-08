@@ -530,8 +530,9 @@ export const askAssistant = createServerFn({ method: "POST" })
       : data.imageBase64
         ? [data.imageBase64]
         : [];
+    const lang: Lang = data.lang ?? "pl";
     if (images.length > 0) {
-      return handleImagesPath(images, apiKey, data.message, [], data.dayContext.hour);
+      return handleImagesPath(images, apiKey, data.message, [], data.dayContext.hour, lang);
     }
 
     const settings: AssistantCallSettings = {
@@ -540,5 +541,5 @@ export const askAssistant = createServerFn({ method: "POST" })
       defaultMeal: data.settings?.defaultMeal ?? "auto",
       responseLength: data.settings?.responseLength ?? "short",
     };
-    return handleTextPath(data.message, data.history ?? [], data.dayContext, apiKey, settings);
+    return handleTextPath(data.message, data.history ?? [], data.dayContext, apiKey, settings, lang);
   });
