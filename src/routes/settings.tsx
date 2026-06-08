@@ -1,6 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
-import { Download, Upload, LogOut, CloudUpload, MessageSquare, Layers, Zap, PencilLine, Search as SearchIcon, ScanLine, Sparkles } from "lucide-react";
+import { Download, Upload, LogOut, CloudUpload, MessageSquare, Layers, Zap, PencilLine, Search as SearchIcon, ScanLine, Sparkles, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Switch } from "@/components/ui/switch";
 import { FeedbackSheet } from "@/components/FeedbackSheet";
@@ -91,10 +101,45 @@ function SettingsPage() {
     (s) => s.profile.plus_menu_visibility ?? defaultPlusMenuVisibility,
   );
   const replaceAll = usePlate((s) => s.replaceAll);
+  const bootstrap = usePlate((s) => s.bootstrap);
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [legacy, setLegacy] = useState<ReturnType<typeof readLegacyLocalStorage>>(null);
   const [migrating, setMigrating] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetCountdown, setResetCountdown] = useState(5);
+  const [resetting, setResetting] = useState(false);
+
+  useEffect(() => {
+    if (!resetOpen) {
+      setResetCountdown(5);
+      return;
+    }
+    setResetCountdown(5);
+    const t = setInterval(() => {
+      setResetCountdown((n) => (n > 0 ? n - 1 : 0));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [resetOpen]);
+
+  const handleResetData = async () => {
+    if (resetCountdown > 0 || resetting) return;
+    setResetting(true);
+    try {
+      const { error } = await supabase.rpc("reset_user_data");
+      if (error) throw error;
+      await bootstrap();
+      setResetOpen(false);
+      toast.success("Dane zostały zresetowane");
+      navigate({ to: "/" });
+    } catch (err) {
+      console.error("reset_user_data failed", err);
+      toast.error("Nie udało się zresetować danych");
+    } finally {
+      setResetting(false);
+    }
+  };
 
   useEffect(() => {
     setLegacy(readLegacyLocalStorage());
@@ -396,6 +441,57 @@ function SettingsPage() {
       </Section>
 
       <FeedbackSheet open={feedbackOpen} onOpenChange={setFeedbackOpen} />
+
+      <Section title="Strefa zagrożenia">
+        <button
+          onClick={() => setResetOpen(true)}
+          className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
+        >
+          <Trash2 size={18} style={{ color: "#D64545" }} />
+          <div className="flex-1">
+            <div className="text-[15px]" style={{ color: "#D64545", fontWeight: 600 }}>
+              Resetuj wszystkie dane
+            </div>
+            <div className="text-[11px] text-muted-foreground">
+              Usuwa wpisy, produkty i historię. Konto pozostaje.
+            </div>
+          </div>
+        </button>
+      </Section>
+
+      <AlertDialog open={resetOpen} onOpenChange={(v) => !resetting && setResetOpen(v)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Zresetować wszystkie dane?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tej operacji nie można cofnąć. Usuniesz wszystkie wpisy, produkty i historię,
+              a cele oraz ustawienia wrócą do stanu początkowego. Konto pozostaje.
+              Rozważ najpierw Eksport JSON.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={resetting}>Anuluj</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                void handleResetData();
+              }}
+              disabled={resetCountdown > 0 || resetting}
+              style={{
+                background: "#D64545",
+                color: "#FFF",
+                opacity: resetCountdown > 0 || resetting ? 0.5 : 1,
+              }}
+            >
+              {resetting
+                ? "Usuwanie…"
+                : resetCountdown > 0
+                  ? `Usuń dane (${resetCountdown})`
+                  : "Usuń dane"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <p className="px-6 pt-2 pb-6 text-center text-[11px] text-muted-foreground">
         Plate · wersja 0.1
