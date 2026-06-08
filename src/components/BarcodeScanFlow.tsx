@@ -438,7 +438,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-foreground/10">
             <AlertTriangle size={20} />
           </div>
-          <div className="text-sm font-semibold">Nie udało się uruchomić skanera</div>
+          <div className="text-sm font-semibold">{t("scan.fatalTitle")}</div>
           <p className="text-xs text-muted-foreground">{fatalError}</p>
           <ManualFallback meal={meal} setMeal={setMeal} onSubmit={onSubmit} onCancel={() => { setFatalError(null); reset(); }} />
         </div>
