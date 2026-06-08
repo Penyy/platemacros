@@ -802,7 +802,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           onChange={(e) => setSaveToLib(e.target.checked)}
           className="h-4 w-4 accent-primary"
         />
-        <span>Zapisz do moich produktów</span>
+        <span>{t("scan.saveToLib")}</span>
       </label>
 
       <motion.button
@@ -811,7 +811,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
         disabled={!valid}
         className="mt-1 w-full rounded-2xl bg-primary py-3 text-base font-semibold text-primary-foreground disabled:opacity-40"
       >
-        Dodaj do dziennika
+        {t("scan.submit")}
       </motion.button>
     </form>
   );
