@@ -746,16 +746,16 @@ function SearchForm({
           onClick={() => setSelected(null)}
           className="text-xs font-medium text-muted-foreground underline-offset-2 hover:underline"
         >
-          ← Wybierz inny produkt
+          {t("productSearch.pickAnother")}
         </button>
         <div className="rounded-2xl bg-foreground/5 p-3">
           <div className="text-sm font-semibold">{selected.name}</div>
           <div className="num-tight mt-0.5 text-[11px] text-muted-foreground">
-            {Math.round(selected.kcal)} kcal · B {Math.round(selected.protein)} ·
-            W {Math.round(selected.carbs)} · T {Math.round(selected.fat)} / 100 g
+            {Math.round(selected.kcal)} kcal · {t("macro.short.protein")} {Math.round(selected.protein)} ·
+            {" "}{t("macro.short.carbs")} {Math.round(selected.carbs)} · {t("macro.short.fat")} {Math.round(selected.fat)} / 100 g
           </div>
         </div>
-        <Field label="Ile gramów">
+        <Field label={t("productSearch.grams")}>
           <input
             autoFocus
             className={inputCls}
@@ -767,22 +767,23 @@ function SearchForm({
         {total && (
           <div className="rounded-2xl bg-foreground/5 p-3 num-tight">
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-              Razem
+              {t("productSearch.total")}
             </div>
             <div className="mt-0.5 text-sm">
               <span className="text-lg font-bold">{Math.round(total.kcal)}</span>{" "}
               kcal · {Math.round(g)} g
             </div>
             <div className="text-xs text-muted-foreground">
-              B {Math.round(total.protein)} · W {Math.round(total.carbs)} · T{" "}
+              {t("macro.short.protein")} {Math.round(total.protein)} · {t("macro.short.carbs")} {Math.round(total.carbs)} · {t("macro.short.fat")}{" "}
               {Math.round(total.fat)}
             </div>
           </div>
         )}
-        <SubmitButton disabled={!valid}>Dodaj do dziennika</SubmitButton>
+        <SubmitButton disabled={!valid}>{t("productSearch.submit")}</SubmitButton>
       </form>
     );
   }
+
 
   return (
     <div className="space-y-3">
