@@ -458,12 +458,17 @@ export const usePlate = create<State>()((set, get) => ({
         protein: e.protein,
         carbs: e.carbs,
         fat: e.fat,
+        fiber_g: e.fiber_g ?? null,
+        sugars_g: e.sugars_g ?? null,
+        saturated_fat_g: e.saturated_fat_g ?? null,
+        sodium_mg: e.sodium_mg ?? null,
         sub_items: (e.sub_items ?? null) as Json,
-      })
+      } as never)
       .then(({ error }) => {
         if (error) netToast(error);
       });
   },
+
 
   updateEntry: (id, patch) => {
     set((s) => ({
