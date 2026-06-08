@@ -435,16 +435,18 @@ export const usePlate = create<State>()((set, get) => ({
         assistant: { ...defaultAssistantSettings, ...(s.profile.assistant ?? {}), ...patch },
       },
     }));
-    const uid = get().userId;
-    if (!uid) return;
-    const next = get().profile.assistant ?? defaultAssistantSettings;
-    void supabase
-      .from("profiles")
-      .update({ assistant_settings: next as unknown as Json } as never)
-      .eq("id", uid)
-      .then(({ error }) => {
-        if (error) netToast(error);
-      });
+    persistAssistantBlob(get);
+  },
+
+  setPlusMenuItem: (id, visible) => {
+    set((s) => {
+      const cur = { ...defaultPlusMenuVisibility, ...(s.profile.plus_menu_visibility ?? {}) };
+      const next = { ...cur, [id]: visible };
+      // safeguard: never allow all off
+      if (!Object.values(next).some(Boolean)) next[id] = true;
+      return { profile: { ...s.profile, plus_menu_visibility: next } };
+    });
+    persistAssistantBlob(get);
   },
 
 
