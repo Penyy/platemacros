@@ -256,6 +256,11 @@ export const usePlate = create<State>()((set, get) => ({
               ...defaultAssistantSettings,
               ...((prof.assistant_settings as Partial<AssistantSettings> | null) ?? {}),
             },
+            plus_menu_visibility: {
+              ...defaultPlusMenuVisibility,
+              ...(((prof.assistant_settings as { plus_menu_visibility?: PlusMenuVisibility } | null)
+                ?.plus_menu_visibility) ?? {}),
+            },
           }
         : defaultProfile;
 
