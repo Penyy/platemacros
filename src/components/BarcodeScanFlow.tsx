@@ -601,16 +601,61 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
   if (!product) return null;
   const g = Math.max(0, Number(grams.replace(",", ".")) || 0);
   const factor = g / 100;
-  const totals = {
-    kcal: round1(product.kcal * factor),
-    protein: round1(product.protein * factor),
-    carbs: round1(product.carbs * factor),
-    fat: round1(product.fat * factor),
+  const hasServing = product.servingGrams != null && product.servingGrams > 0;
+  const sg = product.servingGrams ?? 0;
+  // When the user has the "Porcja" toggle on AND the grams equal the serving grams,
+  // prefer OFF's _serving values for each field where present.
+  const usingServingValues =
+    usePortion &&
+    hasServing &&
+    Math.abs(g - sg) < 0.001 &&
+    product.servingValues != null;
+  const sv = product.servingValues;
+  const pickPer100 = (per100: number | null, servingVal: number | null) => {
+    if (usingServingValues && servingVal != null) return servingVal;
+    return per100 != null ? per100 * factor : 0;
   };
+  const totals = {
+    kcal: round1(pickPer100(product.kcal, sv?.kcal ?? null)),
+    protein: round1(pickPer100(product.protein, sv?.protein ?? null)),
+    carbs: round1(pickPer100(product.carbs, sv?.carbs ?? null)),
+    fat: round1(pickPer100(product.fat, sv?.fat ?? null)),
+  };
+  const extras = {
+    fiber_g:
+      product.fiber_g == null
+        ? null
+        : round1(pickPer100(product.fiber_g, sv?.fiber_g ?? null)),
+    sugars_g:
+      product.sugars_g == null
+        ? null
+        : round1(pickPer100(product.sugars_g, sv?.sugars_g ?? null)),
+    saturated_fat_g:
+      product.saturated_fat_g == null
+        ? null
+        : round1(pickPer100(product.saturated_fat_g, sv?.saturated_fat_g ?? null)),
+    sodium_mg:
+      product.sodium_mg == null
+        ? null
+        : Math.round(pickPer100(product.sodium_mg, sv?.sodium_mg ?? null)),
+  };
+  const complex =
+    extras.sugars_g != null
+      ? Math.max(0, round1(totals.carbs - extras.sugars_g))
+      : null;
   const valid = product.name.trim().length > 0 && g > 0;
-  const updatePer100 = (key: keyof Omit<OFFProduct, "name">, value: string) => {
-    const n = Number(value.replace(",", ".")) || 0;
-    setProduct({ ...product, [key]: n });
+  const updatePer100 = (
+    key: "kcal" | "protein" | "carbs" | "fat" | "fiber_g" | "sugars_g" | "saturated_fat_g" | "sodium_mg",
+    value: string,
+  ) => {
+    const n = value.trim() === "" ? null : Number(value.replace(",", "."));
+    const v = n == null || !Number.isFinite(n) ? null : n;
+    setProduct({ ...product, [key]: v as number | null });
+  };
+  const togglePortion = (on: boolean) => {
+    setUsePortion(on);
+    if (on && hasServing) setGrams(String(Math.round(sg * 10) / 10));
+    else setGrams("100");
   };
 
   return (
@@ -626,6 +671,10 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
             protein: product.protein,
             carbs: product.carbs,
             fat: product.fat,
+            fiber_g: product.fiber_g ?? null,
+            sugars_g: product.sugars_g ?? null,
+            saturated_fat_g: product.saturated_fat_g ?? null,
+            sodium_mg: product.sodium_mg ?? null,
           });
         }
         onSubmit({
@@ -635,6 +684,10 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           protein: totals.protein,
           carbs: totals.carbs,
           fat: totals.fat,
+          fiber_g: extras.fiber_g,
+          sugars_g: extras.sugars_g,
+          saturated_fat_g: extras.saturated_fat_g,
+          sodium_mg: extras.sodium_mg,
         });
       }}
     >
@@ -661,6 +714,30 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
         />
       </Field>
 
+      {hasServing && (
+        <div className="flex items-center justify-between gap-2 rounded-2xl bg-foreground/5 px-3 py-2">
+          <span className="text-[11px] font-semibold text-muted-foreground">
+            Porcja: {sg} g <span className="opacity-60">(z bazy)</span>
+          </span>
+          <div className="flex gap-1 rounded-full bg-background/60 p-0.5 text-[11px] font-semibold">
+            <button
+              type="button"
+              onClick={() => togglePortion(true)}
+              className={`rounded-full px-2.5 py-1 ${usePortion ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+            >
+              Porcja ({sg} g)
+            </button>
+            <button
+              type="button"
+              onClick={() => togglePortion(false)}
+              className={`rounded-full px-2.5 py-1 ${!usePortion ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+            >
+              100 g
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="rounded-2xl bg-foreground/5 p-3">
         <div className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           Wartości na 100 g
@@ -671,6 +748,12 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           <SmallField label="W" value={String(product.carbs)} onChange={(v) => updatePer100("carbs", v)} />
           <SmallField label="T" value={String(product.fat)} onChange={(v) => updatePer100("fat", v)} />
         </div>
+        <div className="mt-2 grid grid-cols-4 gap-2">
+          <SmallField label="Błonnik" value={product.fiber_g == null ? "" : String(product.fiber_g)} onChange={(v) => updatePer100("fiber_g", v)} />
+          <SmallField label="Cukry" value={product.sugars_g == null ? "" : String(product.sugars_g)} onChange={(v) => updatePer100("sugars_g", v)} />
+          <SmallField label="Nasyc." value={product.saturated_fat_g == null ? "" : String(product.saturated_fat_g)} onChange={(v) => updatePer100("saturated_fat_g", v)} />
+          <SmallField label="Sód mg" value={product.sodium_mg == null ? "" : String(product.sodium_mg)} onChange={(v) => updatePer100("sodium_mg", v)} />
+        </div>
       </div>
 
       <Field label="Ile gramów zjadłeś/aś?">
@@ -678,7 +761,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           className={inputCls}
           inputMode="decimal"
           value={grams}
-          onChange={(e) => setGrams(e.target.value.replace(",", "."))}
+          onChange={(e) => { setGrams(e.target.value.replace(",", ".")); setUsePortion(false); }}
         />
       </Field>
 
@@ -691,6 +774,18 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           <div className="text-xs text-muted-foreground">
             B {totals.protein} · W {totals.carbs} · T {totals.fat}
           </div>
+          {complex != null && (
+            <div className="text-[11px] text-muted-foreground">
+              w tym proste: {extras.sugars_g} g · złożone: {complex} g
+            </div>
+          )}
+          {(extras.fiber_g != null || extras.saturated_fat_g != null || extras.sodium_mg != null) && (
+            <div className="text-[11px] text-muted-foreground">
+              {extras.fiber_g != null && <>Błonnik {extras.fiber_g} g · </>}
+              {extras.saturated_fat_g != null && <>Nasyc. {extras.saturated_fat_g} g · </>}
+              {extras.sodium_mg != null && <>Sód {extras.sodium_mg} mg</>}
+            </div>
+          )}
         </div>
       )}
 
@@ -716,6 +811,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
       </motion.button>
     </form>
   );
+
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     if (!fatalError) {
