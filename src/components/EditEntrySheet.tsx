@@ -234,6 +234,28 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                   />
                 </div>
 
+                {(() => {
+                  const sg = Number(sugars);
+                  const cb = Number(carbs);
+                  if (sugars.trim() === "" || !Number.isFinite(sg) || !Number.isFinite(cb)) return null;
+                  const complex = Math.max(0, Math.round((cb - sg) * 10) / 10);
+                  return (
+                    <div className="px-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                      w tym proste: {round1(sg)} g · złożone: {complex} g
+                    </div>
+                  );
+                })()}
+
+                {/* Extras (optional) */}
+                <div className="grid grid-cols-2 gap-2">
+                  <NumCard label="Błonnik" unit="g" value={fiber} onChange={setFiber} />
+                  <NumCard label="Cukry" unit="g" value={sugars} onChange={setSugars} />
+                  <NumCard label="Tł. nasyc." unit="g" value={satFat} onChange={setSatFat} />
+                  <NumCard label="Sód" unit="mg" value={sodium} onChange={setSodium} />
+                </div>
+
+
+
                 {/* Actions */}
                 <div className="pt-2 space-y-2">
                   <motion.button
