@@ -286,6 +286,7 @@ function HeroLight({
   const totalArc = 270;
   const trackPath = describeArc(cx, cy, r, startAngle, startAngle + totalArc);
 
+  const { t } = useTranslation();
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -331,7 +332,7 @@ function HeroLight({
             {consumed}
           </div>
           <div className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-            z {goal} kcal
+            {t("today.ofKcal", { goal })}
           </div>
           <div
             className="mt-3 rounded-full px-3 py-1 text-[11px] font-semibold"
@@ -340,7 +341,7 @@ function HeroLight({
               color: "var(--ink)",
             }}
           >
-            Pozostało {remaining}
+            {t("today.remaining", { n: remaining })}
           </div>
         </div>
       </div>
@@ -353,21 +354,22 @@ function HeroLight({
           color: "var(--muted-foreground)",
           background: "color-mix(in oklab, var(--ink) 5%, transparent)",
         }}
-        aria-label="Edytuj spalone kalorie"
+        aria-label={t("today.editBurned")}
       >
         <Flame size={12} strokeWidth={1.8} />
-        <span className="num-tight font-semibold">Spalone {burned}</span>
+        <span className="num-tight font-semibold">{t("today.burned", { n: burned })}</span>
       </button>
 
       {/* Macros — three slim bars */}
       <div className="mt-4 space-y-3">
-        <LightMacroRow label="Białko" cur={protein.cur} goal={protein.goal} color="var(--macro-protein)" />
-        <LightMacroRow label="Węglowodany" cur={carbs.cur} goal={carbs.goal} color="var(--macro-carbs)" />
-        <LightMacroRow label="Tłuszcz" cur={fat.cur} goal={fat.goal} color="var(--macro-fat)" />
+        <LightMacroRow label={t("today.protein")} cur={protein.cur} goal={protein.goal} color="var(--macro-protein)" />
+        <LightMacroRow label={t("today.carbs")} cur={carbs.cur} goal={carbs.goal} color="var(--macro-carbs)" />
+        <LightMacroRow label={t("today.fat")} cur={fat.cur} goal={fat.goal} color="var(--macro-fat)" />
       </div>
     </motion.div>
   );
 }
+
 
 function LightMacroRow({
   label,
