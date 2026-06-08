@@ -521,6 +521,24 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
             <Send size={14} strokeWidth={2} />
           </button>
         </div>
+        {sttSupported && (
+          <button
+            type="button"
+            onClick={toggleMic}
+            disabled={!!busy}
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-[18px] disabled:opacity-40"
+            style={{
+              background: listening ? "#FF3B30" : "var(--card)",
+              color: listening ? "#fff" : "var(--ink)",
+              border: "1px solid var(--hairline)",
+              boxShadow: "var(--shadow-card)",
+              animation: listening ? "pulse 1.2s ease-in-out infinite" : undefined,
+            }}
+            aria-label={listening ? "Zatrzymaj nasłuch" : "Dyktuj głosem"}
+          >
+            <Mic size={18} strokeWidth={1.9} />
+          </button>
+        )}
         <button
           type="button"
           onClick={() => {
