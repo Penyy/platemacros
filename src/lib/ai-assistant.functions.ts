@@ -82,7 +82,17 @@ const AskInputSchema = z.object({
   // new: up to 5 images at once
   images: z.array(z.string().min(100).max(8_000_000)).max(5).optional(),
   settings: SettingsSchema.optional(),
+  lang: z.enum(["pl", "en"]).optional().default("pl"),
 });
+
+type Lang = "pl" | "en";
+
+function languageAddendum(lang: Lang): string {
+  return lang === "en"
+    ? "IMPORTANT: Respond in English. All user-facing text (replies, notes, item names) must be in English. EXCEPTION: the `meal` field MUST stay as the Polish enum (Śniadanie / Obiad / Kolacja / Przekąska) — it is a database value, not display text."
+    : "WAŻNE: Odpowiadaj po polsku.";
+}
+
 
 // Output kinds
 const MacrosSchema = z.object({
