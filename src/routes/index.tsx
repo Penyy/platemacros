@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Bell, User, Flame, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { MealCard } from "@/components/MealCard";
 import { NotificationsSheet, startNotificationScheduler } from "@/components/NotificationsSheet";
 import { BurnedEditSheet } from "@/components/BurnedEditSheet";
@@ -32,27 +33,20 @@ export const Route = createFileRoute("/")({
 
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
-const WEEKDAY_LABEL = [
-  "Poniedziałek",
-  "Wtorek",
-  "Środa",
-  "Czwartek",
-  "Piątek",
-  "Sobota",
-  "Niedziela",
-];
-
-function polishDate(d: Date) {
-  const wd = WEEKDAY_LABEL[(d.getDay() + 6) % 7];
-  const day = d.getDate();
-  const months = [
-    "stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca",
-    "lipca", "sierpnia", "września", "października", "listopada", "grudnia",
-  ];
-  return `${wd}, ${day} ${months[d.getMonth()]}`;
+function useLocalizedDate() {
+  const { t } = useTranslation();
+  return (d: Date) => {
+    const wd = t(`weekday.${(d.getDay() + 6) % 7}`);
+    const day = d.getDate();
+    const month = t(`month.${d.getMonth()}`);
+    return `${wd}, ${day} ${month}`;
+  };
 }
 
+
 function TodayPage() {
+  const { t } = useTranslation();
+  const formatDate = useLocalizedDate();
   const today = useMemo(() => ymd(new Date()), []);
   const [selected, setSelected] = useState<string>(today);
   const [calOpen, setCalOpen] = useState(false);
@@ -96,7 +90,7 @@ function TodayPage() {
   );
   const remaining = Math.max(0, Math.round(adjustedGoal - sum.kcal));
 
-  const dateLabel = polishDate(new Date(selected + "T00:00:00"));
+  const dateLabel = formatDate(new Date(selected + "T00:00:00"));
   const isToday = selected === today;
 
   return (
@@ -105,11 +99,12 @@ function TodayPage() {
       <header className="flex items-center justify-between px-[18px] pt-[max(env(safe-area-inset-top),1rem)]">
         <Logo />
         <div className="flex items-center gap-2">
-          <IconCircle aria-label="Powiadomienia" onClick={() => setNotifOpen(true)}>
+          <IconCircle aria-label={t("today.notifications")} onClick={() => setNotifOpen(true)}>
             <Bell size={18} strokeWidth={1.8} />
           </IconCircle>
-          <LinkCircle to="/profile" aria-label="Profil"><User size={18} strokeWidth={1.8} /></LinkCircle>
+          <LinkCircle to="/profile" aria-label={t("today.profile")}><User size={18} strokeWidth={1.8} /></LinkCircle>
         </div>
+
 
       </header>
 
@@ -117,7 +112,7 @@ function TodayPage() {
       <section className="flex items-center justify-between gap-2 px-[18px]">
         <button
           onClick={() => shiftDay(-1)}
-          aria-label="Poprzedni dzień"
+          aria-label={t("today.prevDay")}
           className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground active:scale-95"
         >
           <ChevronLeft size={18} />
@@ -149,12 +144,12 @@ function TodayPage() {
               onClick={() => setSelected(today)}
               className="rounded-full bg-foreground/5 px-2.5 py-1 text-[11px] font-semibold text-foreground active:scale-95"
             >
-              Dziś
+              {t("common.today")}
             </button>
           )}
           <button
             onClick={() => shiftDay(1)}
-            aria-label="Następny dzień"
+            aria-label={t("today.nextDay")}
             disabled={isToday}
             className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground active:scale-95 disabled:opacity-30"
           >
@@ -291,6 +286,7 @@ function HeroLight({
   const totalArc = 270;
   const trackPath = describeArc(cx, cy, r, startAngle, startAngle + totalArc);
 
+  const { t } = useTranslation();
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -336,7 +332,7 @@ function HeroLight({
             {consumed}
           </div>
           <div className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-            z {goal} kcal
+            {t("today.ofKcal", { goal })}
           </div>
           <div
             className="mt-3 rounded-full px-3 py-1 text-[11px] font-semibold"
@@ -345,7 +341,7 @@ function HeroLight({
               color: "var(--ink)",
             }}
           >
-            Pozostało {remaining}
+            {t("today.remaining", { n: remaining })}
           </div>
         </div>
       </div>
@@ -358,21 +354,22 @@ function HeroLight({
           color: "var(--muted-foreground)",
           background: "color-mix(in oklab, var(--ink) 5%, transparent)",
         }}
-        aria-label="Edytuj spalone kalorie"
+        aria-label={t("today.editBurned")}
       >
         <Flame size={12} strokeWidth={1.8} />
-        <span className="num-tight font-semibold">Spalone {burned}</span>
+        <span className="num-tight font-semibold">{t("today.burned", { n: burned })}</span>
       </button>
 
       {/* Macros — three slim bars */}
       <div className="mt-4 space-y-3">
-        <LightMacroRow label="Białko" cur={protein.cur} goal={protein.goal} color="var(--macro-protein)" />
-        <LightMacroRow label="Węglowodany" cur={carbs.cur} goal={carbs.goal} color="var(--macro-carbs)" />
-        <LightMacroRow label="Tłuszcz" cur={fat.cur} goal={fat.goal} color="var(--macro-fat)" />
+        <LightMacroRow label={t("today.protein")} cur={protein.cur} goal={protein.goal} color="var(--macro-protein)" />
+        <LightMacroRow label={t("today.carbs")} cur={carbs.cur} goal={carbs.goal} color="var(--macro-carbs)" />
+        <LightMacroRow label={t("today.fat")} cur={fat.cur} goal={fat.goal} color="var(--macro-fat)" />
       </div>
     </motion.div>
   );
 }
+
 
 function LightMacroRow({
   label,

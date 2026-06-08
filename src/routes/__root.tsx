@@ -7,6 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { I18nextProvider } from "react-i18next";
 
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/AppShell";
@@ -14,6 +15,8 @@ import { ThemeManager } from "@/components/ThemeManager";
 import { KeyboardScrollManager } from "@/components/KeyboardScrollManager";
 import { KeyboardInsetManager } from "@/components/KeyboardInsetManager";
 import { Toaster } from "@/components/ui/sonner";
+import i18n from "@/lib/i18n";
+
 
 function NotFoundComponent() {
   return (
@@ -132,14 +135,17 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeManager />
-      <KeyboardScrollManager />
-      <KeyboardInsetManager />
-      <AppShell>
-        <Outlet />
-      </AppShell>
-      <Toaster position="bottom-center" offset={96} richColors closeButton={false} />
-    </QueryClientProvider>
+    <I18nextProvider i18n={i18n}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeManager />
+        <KeyboardScrollManager />
+        <KeyboardInsetManager />
+        <AppShell>
+          <Outlet />
+        </AppShell>
+        <Toaster position="bottom-center" offset={96} richColors closeButton={false} />
+      </QueryClientProvider>
+    </I18nextProvider>
   );
 }
+

@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Download, Upload, LogOut, CloudUpload, MessageSquare, Layers, Zap, PencilLine, Search as SearchIcon, ScanLine, Sparkles, Trash2 } from "lucide-react";
+import { setAppLanguage, type AppLang } from "@/lib/i18n";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +27,7 @@ import {
   defaultAssistantSettings,
   defaultPlusMenuVisibility,
   PLUS_MENU_ITEMS,
-  PLUS_MENU_LABELS,
+  
   usePlate,
   readLegacyLocalStorage,
   clearLegacyLocalStorage,
@@ -86,6 +88,7 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
+  const { t } = useTranslation();
   const profile = usePlate((s) => s.profile);
   const entries = usePlate((s) => s.entries);
   const burned = usePlate((s) => s.burned);
@@ -131,11 +134,11 @@ function SettingsPage() {
       if (error) throw error;
       await bootstrap();
       setResetOpen(false);
-      toast.success("Dane zostały zresetowane");
+      toast.success(t("settings.danger.resetSuccess"));
       navigate({ to: "/" });
     } catch (err) {
       console.error("reset_user_data failed", err);
-      toast.error("Nie udało się zresetować danych");
+      toast.error(t("settings.danger.resetError"));
     } finally {
       setResetting(false);
     }
@@ -156,9 +159,9 @@ function SettingsPage() {
       await replaceAll(legacy);
       clearLegacyLocalStorage();
       setLegacy(null);
-      toast.success("Dane zostały przeniesione do chmury.");
+      toast.success(t("settings.toast.migrateOk"));
     } catch {
-      toast.error("Nie udało się przenieść danych.");
+      toast.error(t("settings.toast.migrateErr"));
     } finally {
       setMigrating(false);
     }
@@ -246,50 +249,56 @@ function SettingsPage() {
 
   return (
     <div>
-      <ScreenHeader title="Ustawienia" />
+      <ScreenHeader title={t("settings.title")} />
 
-      <Section title="Wygląd">
-        <Row label="Motyw">
-          <ThemeSelect value={profile.theme} onChange={(t) => setTheme(t)} />
+      <Section title={t("settings.sec.appearance")}>
+        <Row label={t("settings.theme.label")}>
+          <ThemeSelect value={profile.theme} onChange={(th) => setTheme(th)} />
         </Row>
       </Section>
 
-      <Section title="Cele dzienne">
+      <Section title={t("settings.sec.language")}>
+        <Row label={t("settings.language.label")}>
+          <LanguageSelect />
+        </Row>
+      </Section>
+
+      <Section title={t("settings.sec.goals")}>
         <NumberRow
-          label="Kalorie"
-          unit="kcal"
+          label={t("settings.goals.kcal")}
+          unit={t("settings.goals.unitKcal")}
           value={profile.goal_kcal}
           onChange={(v) => setGoals({ goal_kcal: v })}
         />
         <NumberRow
-          label="Białko"
-          unit="g"
+          label={t("settings.goals.protein")}
+          unit={t("settings.goals.unitG")}
           value={profile.goal_protein}
           onChange={(v) => setGoals({ goal_protein: v })}
         />
         <NumberRow
-          label="Węglowodany"
-          unit="g"
+          label={t("settings.goals.carbs")}
+          unit={t("settings.goals.unitG")}
           value={profile.goal_carbs}
           onChange={(v) => setGoals({ goal_carbs: v })}
         />
         <NumberRow
-          label="Tłuszcz"
-          unit="g"
+          label={t("settings.goals.fat")}
+          unit={t("settings.goals.unitG")}
           value={profile.goal_fat}
           onChange={(v) => setGoals({ goal_fat: v })}
         />
       </Section>
 
-      <Section title="Cele tygodniowe">
-        <Row label="Inne cele na każdy dzień tygodnia">
+      <Section title={t("settings.sec.weekly")}>
+        <Row label={t("settings.weekly.switch")}>
           <Switch
             checked={!!profile.weekly_targets_enabled}
             onCheckedChange={(v) => setWeeklyEnabled(v)}
           />
         </Row>
         <p className="px-4 pb-2 pt-1 text-[11px] text-muted-foreground">
-          Dla cyklizacji węglowodanów — kcal liczone z B×4 + W×4 + T×9.
+          {t("settings.weekly.note")}
         </p>
         {profile.weekly_targets_enabled && (
           <WeeklyEditor
@@ -299,44 +308,44 @@ function SettingsPage() {
         )}
       </Section>
 
-      <Section title="Aktywność">
-        <Row label="Uwzględniaj spalone kcal">
+      <Section title={t("settings.sec.activity")}>
+        <Row label={t("settings.activity.includeBurned")}>
           <Switch
             checked={!!profile.include_burned}
             onCheckedChange={(v) => setIncludeBurned(v)}
           />
         </Row>
         <p className="px-4 pb-3 pt-1 text-[11px] text-muted-foreground">
-          Gdy włączone, spalone kalorie powiększają dzienny cel (cel + spalone − zjedzone).
+          {t("settings.activity.note")}
         </p>
       </Section>
 
-      <Section title="Asystent AI">
-        <Row label="Auto-dodaj ze zdjęcia z opisem">
+      <Section title={t("settings.sec.assistant")}>
+        <Row label={t("settings.assistant.autoAddPhoto")}>
           <Switch
             checked={(profile.assistant ?? defaultAssistantSettings).autoAddPhoto}
             onCheckedChange={(v) => setAssistant({ autoAddPhoto: v })}
           />
         </Row>
         <p className="px-4 pb-2 pt-1 text-[11px] text-muted-foreground">
-          Gdy włączone, zdjęcie posiłku z opisem dodaje się bez dodatkowego potwierdzenia.
+          {t("settings.assistant.autoAddPhotoNote")}
         </p>
-        <Row label="Asystent może dodawać wpisy">
+        <Row label={t("settings.assistant.allowAddEntries")}>
           <Switch
             checked={(profile.assistant ?? defaultAssistantSettings).allowAddEntries}
             onCheckedChange={(v) => setAssistant({ allowAddEntries: v })}
           />
         </Row>
         <p className="px-4 pb-2 pt-1 text-[11px] text-muted-foreground">
-          Gdy wyłączone, AI tylko odpowiada — nie zapisuje nic do dziennika.
+          {t("settings.assistant.allowAddEntriesNote")}
         </p>
-        <Row label="Domyślny posiłek">
+        <Row label={t("settings.assistant.defaultMeal")}>
           <DefaultMealSelect
             value={(profile.assistant ?? defaultAssistantSettings).defaultMeal}
             onChange={(v) => setAssistant({ defaultMeal: v })}
           />
         </Row>
-        <Row label="Długość odpowiedzi">
+        <Row label={t("settings.assistant.responseLength")}>
           <ResponseLengthSelect
             value={(profile.assistant ?? defaultAssistantSettings).responseLength}
             onChange={(v) => setAssistant({ responseLength: v })}
@@ -345,8 +354,8 @@ function SettingsPage() {
       </Section>
 
       <Section
-        title="Menu dodawania"
-        subtitle="Wybierz, co widać po dotknięciu +"
+        title={t("settings.sec.plusMenu")}
+        subtitle={t("settings.sec.plusMenuSubtitle")}
       >
         <PlusMenuVisibilityList
           visibility={plusVisibility}
@@ -355,16 +364,16 @@ function SettingsPage() {
       </Section>
 
 
-      <Section title="Dane">
+      <Section title={t("settings.sec.data")}>
         <button
           onClick={handleExport}
           className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
         >
           <Download size={18} className="text-muted-foreground" />
           <div className="flex-1">
-            <div className="text-[15px]">Eksportuj dane</div>
+            <div className="text-[15px]">{t("settings.data.export")}</div>
             <div className="text-[11px] text-muted-foreground">
-              Pobierz plik JSON z całą historią
+              {t("settings.data.exportNote")}
             </div>
           </div>
         </button>
@@ -374,9 +383,9 @@ function SettingsPage() {
         >
           <Upload size={18} className="text-muted-foreground" />
           <div className="flex-1">
-            <div className="text-[15px]">Importuj dane</div>
+            <div className="text-[15px]">{t("settings.data.import")}</div>
             <div className="text-[11px] text-muted-foreground">
-              Wczytaj kopię zapasową (nadpisze obecne)
+              {t("settings.data.importNote")}
             </div>
           </div>
         </button>
@@ -394,7 +403,7 @@ function SettingsPage() {
       </Section>
 
       {legacy && (
-        <Section title="Migracja">
+        <Section title={t("settings.sec.migration")}>
           <button
             onClick={handleMigrate}
             disabled={migrating}
@@ -403,38 +412,38 @@ function SettingsPage() {
             <CloudUpload size={18} className="text-muted-foreground" />
             <div className="flex-1">
               <div className="text-[15px]">
-                {migrating ? "Przenoszę…" : "Przenieś moje dane do chmury"}
+                {migrating ? t("settings.migration.movingLabel") : t("settings.migration.moveLabel")}
               </div>
               <div className="text-[11px] text-muted-foreground">
-                Znaleziono {legacy.entries.length} wpisów i {legacy.products.length} produktów lokalnie.
+                {t("settings.migration.found", { entries: legacy.entries.length, products: legacy.products.length })}
               </div>
             </div>
           </button>
         </Section>
       )}
 
-      <Section title="Konto">
+      <Section title={t("settings.sec.account")}>
         <button
           onClick={handleLogout}
           className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
         >
           <LogOut size={18} className="text-muted-foreground" />
           <div className="flex-1">
-            <div className="text-[15px]">Wyloguj się</div>
+            <div className="text-[15px]">{t("settings.account.logout")}</div>
           </div>
         </button>
       </Section>
 
-      <Section title="Opinie">
+      <Section title={t("settings.sec.feedback")}>
         <button
           onClick={() => setFeedbackOpen(true)}
           className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
         >
           <MessageSquare size={18} className="text-muted-foreground" />
           <div className="flex-1">
-            <div className="text-[15px]">Prześlij opinię</div>
+            <div className="text-[15px]">{t("settings.feedback.send")}</div>
             <div className="text-[11px] text-muted-foreground">
-              Powiedz nam co poprawić lub co Ci się podoba
+              {t("settings.feedback.note")}
             </div>
           </div>
         </button>
@@ -442,7 +451,7 @@ function SettingsPage() {
 
       <FeedbackSheet open={feedbackOpen} onOpenChange={setFeedbackOpen} />
 
-      <Section title="Strefa zagrożenia">
+      <Section title={t("settings.sec.danger")}>
         <button
           onClick={() => setResetOpen(true)}
           className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
@@ -450,10 +459,10 @@ function SettingsPage() {
           <Trash2 size={18} style={{ color: "#D64545" }} />
           <div className="flex-1">
             <div className="text-[15px]" style={{ color: "#D64545", fontWeight: 600 }}>
-              Resetuj wszystkie dane
+              {t("settings.danger.reset")}
             </div>
             <div className="text-[11px] text-muted-foreground">
-              Usuwa wpisy, produkty i historię. Konto pozostaje.
+              {t("settings.danger.resetNote")}
             </div>
           </div>
         </button>
@@ -462,15 +471,13 @@ function SettingsPage() {
       <AlertDialog open={resetOpen} onOpenChange={(v) => !resetting && setResetOpen(v)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Zresetować wszystkie dane?</AlertDialogTitle>
+            <AlertDialogTitle>{t("settings.danger.dialogTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Tej operacji nie można cofnąć. Usuniesz wszystkie wpisy, produkty i historię,
-              a cele oraz ustawienia wrócą do stanu początkowego. Konto pozostaje.
-              Rozważ najpierw Eksport JSON.
+              {t("settings.danger.dialogDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={resetting}>Anuluj</AlertDialogCancel>
+            <AlertDialogCancel disabled={resetting}>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
@@ -484,17 +491,18 @@ function SettingsPage() {
               }}
             >
               {resetting
-                ? "Usuwanie…"
+                ? t("settings.danger.deleting")
                 : resetCountdown > 0
-                  ? `Usuń dane (${resetCountdown})`
-                  : "Usuń dane"}
+                  ? t("settings.danger.deleteCountdown", { n: resetCountdown })
+                  : t("settings.danger.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       <p className="px-6 pt-2 pb-6 text-center text-[11px] text-muted-foreground">
-        Plate · wersja 0.1
+        {t("settings.version")}
+
       </p>
     </div>
   );
@@ -589,10 +597,11 @@ function ThemeSelect({
   value: Theme;
   onChange: (t: Theme) => void;
 }) {
+  const { t } = useTranslation();
   const opts: { v: Theme; l: string }[] = [
-    { v: "light", l: "Jasny" },
-    { v: "dark", l: "Ciemny" },
-    { v: "system", l: "System" },
+    { v: "light", l: t("settings.theme.light") },
+    { v: "dark", l: t("settings.theme.dark") },
+    { v: "system", l: t("settings.theme.system") },
   ];
   return (
     <div className="flex gap-0.5 rounded-full p-0.5" style={{ background: "var(--hairline)" }}>
@@ -617,7 +626,38 @@ function ThemeSelect({
   );
 }
 
-const DAY_LABELS = ["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Niedz"];
+const DAY_LABEL_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+
+function LanguageSelect() {
+  const { t, i18n } = useTranslation();
+  const cur: AppLang = (i18n.language?.startsWith("en") ? "en" : "pl") as AppLang;
+  const opts: { v: AppLang; l: string }[] = [
+    { v: "pl", l: t("settings.language.pl") },
+    { v: "en", l: t("settings.language.en") },
+  ];
+  return (
+    <div className="flex gap-0.5 rounded-full p-0.5" style={{ background: "var(--hairline)" }}>
+      {opts.map((o) => {
+        const active = cur === o.v;
+        return (
+          <button
+            key={o.v}
+            onClick={() => setAppLanguage(o.v)}
+            className="rounded-full px-3 py-1 text-xs transition"
+            style={{
+              background: active ? "#1B1B19" : "transparent",
+              color: active ? "#FBF4E2" : "var(--muted-foreground)",
+              fontWeight: active ? 700 : 600,
+            }}
+          >
+            {o.l}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 
 function WeeklyEditor({
   value,
@@ -626,6 +666,7 @@ function WeeklyEditor({
   value: Record<string, DayMacro>;
   onChange: (dayIdx: number, m: Partial<DayMacro>) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="px-3 pb-3">
       <div className="grid grid-cols-[36px_1fr_1fr_1fr_auto] items-center gap-1 px-1 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -636,12 +677,13 @@ function WeeklyEditor({
         <span className="pl-2 text-right">kcal</span>
       </div>
       <div className="space-y-1">
-        {DAY_LABELS.map((label, i) => {
+        {DAY_LABEL_KEYS.map((key, i) => {
+          const label = t(`settings.weekday.${key}`);
           const d = value[String(i)] ?? { protein: 0, carbs: 0, fat: 0 };
           const kcal = Math.round(d.protein * 4 + d.carbs * 4 + d.fat * 9);
           return (
             <div
-              key={i}
+              key={key}
               className="grid grid-cols-[36px_1fr_1fr_1fr_auto] items-center gap-1 rounded-xl bg-foreground/5 px-2 py-1.5"
             >
               <span className="text-[11px] font-semibold text-muted-foreground">{label}</span>
@@ -680,16 +722,17 @@ function DefaultMealSelect({
   value: AssistantDefaultMeal;
   onChange: (v: AssistantDefaultMeal) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value as AssistantDefaultMeal)}
       className="rounded-lg border border-border/60 bg-card px-2 py-1 text-[13px]"
     >
-      <option value="auto">Wnioskuj z pory</option>
+      <option value="auto">{t("settings.assistant.defaultMealAuto")}</option>
       {(Object.keys(MEAL_LABEL) as Meal[]).map((m) => (
         <option key={m} value={m}>
-          {MEAL_LABEL[m]}
+          {t(`meal.${m}`)}
         </option>
       ))}
     </select>
@@ -703,10 +746,12 @@ function ResponseLengthSelect({
   value: AssistantResponseLength;
   onChange: (v: AssistantResponseLength) => void;
 }) {
+  const { t } = useTranslation();
   const opts: { v: AssistantResponseLength; l: string }[] = [
-    { v: "short", l: "Krótkie" },
-    { v: "detailed", l: "Szczegółowe" },
+    { v: "short", l: t("settings.assistant.lenShort") },
+    { v: "detailed", l: t("settings.assistant.lenLong") },
   ];
+
   return (
     <div className="flex gap-0.5 rounded-full p-0.5" style={{ background: "var(--hairline)" }}>
       {opts.map((o) => {
@@ -746,6 +791,7 @@ function PlusMenuVisibilityList({
   visibility: Record<string, boolean>;
   onToggle: (id: PlusMenuItemId, v: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const enabledCount = PLUS_MENU_ITEMS.filter((id) => visibility[id] !== false).length;
   return (
     <>
@@ -765,7 +811,7 @@ function PlusMenuVisibilityList({
               className="flex-1 text-[15px]"
               style={{ fontFamily: "Manrope, sans-serif", fontWeight: 500, color: "var(--ink)" }}
             >
-              {PLUS_MENU_LABELS[id]}
+              {t(`settings.plusMenu.${id}`)}
             </span>
             <div className={lastOne ? "opacity-50 pointer-events-none" : ""}>
               <Switch
