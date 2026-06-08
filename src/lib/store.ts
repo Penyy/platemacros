@@ -83,7 +83,12 @@ export interface Product {
   protein: number;
   carbs: number;
   fat: number;
+  fiber_g?: number | null;
+  sugars_g?: number | null;
+  saturated_fat_g?: number | null;
+  sodium_mg?: number | null;
   created_at: number;
+
 }
 
 interface State {
