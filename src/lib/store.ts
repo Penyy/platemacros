@@ -485,7 +485,12 @@ export const usePlate = create<State>()((set, get) => ({
     if (patch.protein !== undefined) dbPatch.protein = patch.protein;
     if (patch.carbs !== undefined) dbPatch.carbs = patch.carbs;
     if (patch.fat !== undefined) dbPatch.fat = patch.fat;
+    if (patch.fiber_g !== undefined) dbPatch.fiber_g = patch.fiber_g ?? null;
+    if (patch.sugars_g !== undefined) dbPatch.sugars_g = patch.sugars_g ?? null;
+    if (patch.saturated_fat_g !== undefined) dbPatch.saturated_fat_g = patch.saturated_fat_g ?? null;
+    if (patch.sodium_mg !== undefined) dbPatch.sodium_mg = patch.sodium_mg ?? null;
     if (patch.sub_items !== undefined) dbPatch.sub_items = (patch.sub_items ?? null) as Json;
+
     void supabase
       .from("food_entries")
       .update(dbPatch as never)
