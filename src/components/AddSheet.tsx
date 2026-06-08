@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, lazy, Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Layers,
   Zap,
