@@ -1,13 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronRight } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import {
   type Activity,
   type GoalKind,
   type Sex,
-  ACTIVITY_LABEL,
-  GOAL_LABEL,
   computeGoals,
   usePlate,
 } from "@/lib/store";
@@ -33,7 +32,24 @@ const DEFAULT_BODY = {
 
 const CARD: React.CSSProperties = { boxShadow: "var(--shadow-card)" };
 
+const ACTIVITY_ORDER: Activity[] = ["sedentary", "light", "moderate", "high", "very_high"];
+const ACTIVITY_KEY: Record<Activity, string> = {
+  sedentary: "calc.activitySedentary",
+  light: "calc.activityLight",
+  moderate: "calc.activityModerate",
+  high: "calc.activityActive",
+  very_high: "calc.activityVeryActive",
+};
+
+const GOAL_ORDER: GoalKind[] = ["cut", "maintain", "bulk"];
+const GOAL_KEY: Record<GoalKind, string> = {
+  cut: "calc.goalCut",
+  maintain: "calc.goalMaintain",
+  bulk: "calc.goalBulk",
+};
+
 function ProfilePage() {
+  const { t } = useTranslation();
   const p = usePlate((s) => s.profile);
   const setBody = usePlate((s) => s.setBody);
   const setGoals = usePlate((s) => s.setGoals);
@@ -63,16 +79,16 @@ function ProfilePage() {
 
   return (
     <div className="pb-4">
-      <ScreenHeader title="Profil" />
+      <ScreenHeader title={t("profile.title")} />
 
       <div className="px-[18px] space-y-3">
         <Link to="/settings" className="flex items-center gap-3 rounded-[24px] bg-card p-4" style={CARD}>
           <div className="flex-1">
             <div className="text-[11px] font-semibold" style={{ color: "var(--muted-foreground)" }}>
-              Cele dzienne
+              {t("profile.dailyGoals")}
             </div>
             <div className="num-tight mt-1 text-[17px]" style={{ fontWeight: 800, color: "var(--ink)" }}>
-              {Math.round(p.goal_kcal)} kcal · B {p.goal_protein} · W {p.goal_carbs} · T {p.goal_fat}
+              {Math.round(p.goal_kcal)} kcal · {t("macro.short.protein")} {p.goal_protein} · {t("macro.short.carbs")} {p.goal_carbs} · {t("macro.short.fat")} {p.goal_fat}
             </div>
           </div>
           <ChevronRight size={20} style={{ color: "var(--muted-foreground)" }} />
@@ -81,16 +97,16 @@ function ProfilePage() {
         <Link to="/products" className="flex items-center gap-3 rounded-[24px] bg-card p-4" style={CARD}>
           <div className="flex-1">
             <div className="text-[11px] font-semibold" style={{ color: "var(--muted-foreground)" }}>
-              Biblioteka
+              {t("profile.library")}
             </div>
-            <div className="mt-1 text-[17px]" style={{ fontWeight: 800, color: "var(--ink)" }}>Moje produkty</div>
+            <div className="mt-1 text-[17px]" style={{ fontWeight: 800, color: "var(--ink)" }}>{t("profile.myProducts")}</div>
           </div>
           <ChevronRight size={20} style={{ color: "var(--muted-foreground)" }} />
         </Link>
 
         <div className="rounded-[24px] bg-card p-4" style={CARD}>
           <div className="text-[11px] font-semibold" style={{ color: "var(--muted-foreground)" }}>
-            Rozkład makro
+            {t("profile.macroSplit")}
           </div>
           <div className="mt-3 flex h-2.5 w-full overflow-hidden rounded-full" style={{ background: "var(--hairline)" }}>
             <div style={{ width: `${pct(pK)}%`, background: "var(--macro-protein)" }} />
@@ -98,63 +114,63 @@ function ProfilePage() {
             <div style={{ width: `${pct(fK)}%`, background: "var(--macro-fat)" }} />
           </div>
           <ul className="mt-3 grid grid-cols-3 gap-2 text-center">
-            <MacroCell label="Białko" g={p.goal_protein} color="var(--macro-protein)" />
-            <MacroCell label="Węglowodany" g={p.goal_carbs} color="var(--macro-carbs)" />
-            <MacroCell label="Tłuszcz" g={p.goal_fat} color="var(--macro-fat)" />
+            <MacroCell label={t("macro.protein")} g={p.goal_protein} color="var(--macro-protein)" />
+            <MacroCell label={t("macro.carbs")} g={p.goal_carbs} color="var(--macro-carbs)" />
+            <MacroCell label={t("macro.fat")} g={p.goal_fat} color="var(--macro-fat)" />
           </ul>
         </div>
 
         <section className="space-y-3 rounded-[24px] bg-card p-4" style={CARD}>
           <h2 className="text-[11px] font-semibold" style={{ color: "var(--muted-foreground)" }}>
-            Profil ciała
+            {t("profile.bodyProfile")}
           </h2>
 
-          <Seg label="Płeć" value={body.sex} onChange={(v) => setBody({ sex: v })}
-            options={[{ v: "female", l: "Kobieta" }, { v: "male", l: "Mężczyzna" }]} />
+          <Seg label={t("calc.sex")} value={body.sex} onChange={(v) => setBody({ sex: v })}
+            options={[{ v: "female", l: t("calc.sexFemale") }, { v: "male", l: t("calc.sexMale") }]} />
 
           <div className="grid grid-cols-3 gap-2">
-            <NumField label="Wiek" unit="lat" value={body.age} onChange={(v) => setBody({ age: v })} />
-            <NumField label="Wzrost" unit="cm" value={body.height} onChange={(v) => setBody({ height: v })} />
-            <NumField label="Waga" unit="kg" value={body.weight} onChange={(v) => setBody({ weight: v })} />
+            <NumField label={t("calc.age")} unit={t("calc.ageUnit")} value={body.age} onChange={(v) => setBody({ age: v })} />
+            <NumField label={t("calc.height")} unit="cm" value={body.height} onChange={(v) => setBody({ height: v })} />
+            <NumField label={t("calc.weight")} unit="kg" value={body.weight} onChange={(v) => setBody({ weight: v })} />
           </div>
 
           <Seg
-            label="Aktywność"
+            label={t("calc.activity")}
             value={body.activity}
             onChange={(v) => setBody({ activity: v })}
-            options={(Object.keys(ACTIVITY_LABEL) as Activity[]).map((k) => ({ v: k, l: ACTIVITY_LABEL[k] }))}
+            options={ACTIVITY_ORDER.map((k) => ({ v: k, l: t(ACTIVITY_KEY[k]) }))}
             small
           />
 
           <Seg
-            label="Cel"
+            label={t("calc.goal")}
             value={body.goal}
             onChange={(v) => setBody({ goal: v })}
-            options={(Object.keys(GOAL_LABEL) as GoalKind[]).map((k) => ({ v: k, l: GOAL_LABEL[k] }))}
+            options={GOAL_ORDER.map((k) => ({ v: k, l: t(GOAL_KEY[k]) }))}
           />
         </section>
 
         <section className="space-y-3 rounded-[24px] bg-card p-4" style={CARD}>
           <h2 className="text-[11px] font-semibold" style={{ color: "var(--muted-foreground)" }}>
-            Kalkulator celów
+            {t("calc.title")}
           </h2>
 
           {!computed ? (
             <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-              Uzupełnij wiek, wzrost i wagę, aby obliczyć sugerowane cele.
+              {t("profile.needMore")}
             </p>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-2">
-                <Stat label="BMR" value={`${computed.bmr} kcal`} />
-                <Stat label="TDEE" value={`${computed.tdee} kcal`} />
+                <Stat label={t("calc.bmr")} value={`${computed.bmr} kcal`} />
+                <Stat label={t("calc.tdee")} value={`${computed.tdee} kcal`} />
               </div>
               <div className="rounded-2xl p-3" style={{ background: "var(--hairline)" }}>
                 <div className="num-tight text-[22px]" style={{ fontWeight: 800, color: "var(--ink)" }}>
                   {computed.kcal} kcal
                 </div>
                 <div className="num-tight mt-1 text-[13px]" style={{ color: "var(--muted-foreground)", fontWeight: 500 }}>
-                  B {computed.protein} g · W {computed.carbs} g · T {computed.fat} g
+                  {t("macro.short.protein")} {computed.protein} g · {t("macro.short.carbs")} {computed.carbs} g · {t("macro.short.fat")} {computed.fat} g
                 </div>
               </div>
               <button
@@ -162,10 +178,10 @@ function ProfilePage() {
                 className="w-full rounded-full px-4 py-3.5 text-[14px] active:scale-[0.99]"
                 style={{ background: "#1B1B19", color: "#FBF4E2", fontWeight: 700 }}
               >
-                Ustaw jako moje cele
+                {t("calc.useAsGoal")}
               </button>
               <p className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                Możesz je później ręcznie edytować w Ustawieniach.
+                {t("profile.editLater")}
               </p>
             </>
           )}
