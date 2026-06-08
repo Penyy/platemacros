@@ -25,11 +25,26 @@ export function EditEntrySheet({ entry, onClose }: Props) {
   const [protein, setProtein] = useState("");
   const [carbs, setCarbs] = useState("");
   const [fat, setFat] = useState("");
+  const [fiber, setFiber] = useState("");
+  const [sugars, setSugars] = useState("");
+  const [satFat, setSatFat] = useState("");
+  const [sodium, setSodium] = useState("");
 
   useEffect(() => {
     if (!entry) return;
     setName(entry.name);
     setMeal(entry.meal);
+    setGrams(entry.grams != null ? String(Math.round(entry.grams)) : "");
+    setKcal(String(Math.round(entry.kcal)));
+    setProtein(String(round1(entry.protein)));
+    setCarbs(String(round1(entry.carbs)));
+    setFat(String(round1(entry.fat)));
+    setFiber(entry.fiber_g != null ? String(round1(entry.fiber_g)) : "");
+    setSugars(entry.sugars_g != null ? String(round1(entry.sugars_g)) : "");
+    setSatFat(entry.saturated_fat_g != null ? String(round1(entry.saturated_fat_g)) : "");
+    setSodium(entry.sodium_mg != null ? String(Math.round(entry.sodium_mg)) : "");
+  }, [entry]);
+
     setGrams(entry.grams != null ? String(Math.round(entry.grams)) : "");
     setKcal(String(Math.round(entry.kcal)));
     setProtein(String(round1(entry.protein)));
