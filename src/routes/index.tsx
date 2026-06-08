@@ -314,7 +314,7 @@ function HeroLight({
             strokeLinecap="round"
           />
           <path
-            d={fillPath}
+            d={trackPath}
             fill="none"
             stroke="var(--accent-yellow)"
             strokeWidth={stroke}
