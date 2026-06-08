@@ -96,8 +96,24 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
   }>(null);
 
   const fileRef = useRef<HTMLInputElement>(null);
-  const cameraRef = useRef<HTMLInputElement>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const ask = useServerFn(askAssistant);
+
+  const addCapturedFile = async (file: File) => {
+    if (busy) return;
+    if (pendingImages.length >= MAX_IMAGES) {
+      toast.message(t("ai.maxImages", { n: MAX_IMAGES }));
+      return;
+    }
+    try {
+      const dataUrl = await shrinkImage(file);
+      setPendingImages((p) => [...p, { dataUrl, base64: dataUrl.split(",")[1] ?? "" }]);
+    } catch {
+      toast.error(t("ai.toast.loadImage"));
+    }
+  };
+
 
   const getLang = (): "pl" | "en" => {
     if (typeof window === "undefined") return "pl";
