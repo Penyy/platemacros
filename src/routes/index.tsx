@@ -306,6 +306,11 @@ function HeroLight({
     >
       <div className="relative grid place-items-center">
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} overflow="visible">
+          <defs>
+            <filter id="kcalGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation={6} />
+            </filter>
+          </defs>
           <path
             d={trackPath}
             fill="none"
@@ -317,31 +322,12 @@ function HeroLight({
             d={trackPath}
             fill="none"
             stroke="var(--accent-yellow)"
-            strokeWidth={stroke + 18}
+            strokeWidth={stroke}
             strokeLinecap="round"
             pathLength={1}
             strokeDasharray={`${pct} 1`}
-            style={{ opacity: 0.08, transition: "stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)" }}
-          />
-          <path
-            d={trackPath}
-            fill="none"
-            stroke="var(--accent-yellow)"
-            strokeWidth={stroke + 11}
-            strokeLinecap="round"
-            pathLength={1}
-            strokeDasharray={`${pct} 1`}
-            style={{ opacity: 0.12, transition: "stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)" }}
-          />
-          <path
-            d={trackPath}
-            fill="none"
-            stroke="var(--accent-yellow)"
-            strokeWidth={stroke + 5}
-            strokeLinecap="round"
-            pathLength={1}
-            strokeDasharray={`${pct} 1`}
-            style={{ opacity: 0.18, transition: "stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)" }}
+            filter="url(#kcalGlow)"
+            style={{ transition: "stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)" }}
           />
           <path
             d={trackPath}
@@ -356,6 +342,7 @@ function HeroLight({
               transition: "stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)",
             }}
           />
+
 
 
         </svg>
