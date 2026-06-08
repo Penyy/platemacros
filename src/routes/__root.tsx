@@ -7,6 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { I18nextProvider } from "react-i18next";
 
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/AppShell";
@@ -14,6 +15,8 @@ import { ThemeManager } from "@/components/ThemeManager";
 import { KeyboardScrollManager } from "@/components/KeyboardScrollManager";
 import { KeyboardInsetManager } from "@/components/KeyboardInsetManager";
 import { Toaster } from "@/components/ui/sonner";
+import i18n from "@/lib/i18n";
+
 
 function NotFoundComponent() {
   return (
