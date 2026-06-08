@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Trash2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { EditEntrySheet } from "./EditEntrySheet";
-import { type LogEntry, type Meal, MEAL_LABEL, sumEntries, usePlate } from "@/lib/store";
+import { type LogEntry, type Meal, sumEntries, usePlate } from "@/lib/store";
 
 interface Props {
   meal: Meal;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Props) {
+  const { t } = useTranslation();
   const sum = sumEntries(entries);
   const remove = usePlate((s) => s.removeEntry);
   const addEntry = usePlate((s) => s.addEntry);
@@ -59,7 +61,7 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
     >
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
-        <div className="text-[17px] font-bold tracking-tight">{MEAL_LABEL[meal]}</div>
+        <div className="text-[17px] font-bold tracking-tight">{t(`meal.${meal}`)}</div>
         <div className="flex items-center gap-2">
           {!isEmpty && (
             <div className="num-tight text-right">
@@ -71,8 +73,8 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
             onClick={() => onAdd(meal)}
             className="grid h-8 w-8 place-items-center rounded-full text-foreground"
             style={{ background: "var(--muted)" }}
-            aria-label="Dodaj pozycję"
-            title="Dodaj pozycję"
+            aria-label={t("a11y.addItem")}
+            title={t("a11y.addItem")}
           >
             <Plus size={15} strokeWidth={2.2} />
           </button>
@@ -81,8 +83,8 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
               onClick={handleRepeat}
               className="grid h-8 w-8 place-items-center rounded-full text-foreground"
               style={{ background: "var(--muted)" }}
-              aria-label="Powtórz z wczoraj"
-              title="Powtórz z wczoraj"
+              aria-label={t("a11y.repeatYesterday")}
+              title={t("a11y.repeatYesterday")}
             >
               <RotateCcw size={15} strokeWidth={1.8} />
             </button>
@@ -110,9 +112,9 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
           </ul>
           {/* Meal macro summary pills */}
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            <MacroPill color="var(--macro-protein)" label="B" value={Math.round(sum.protein)} />
-            <MacroPill color="var(--macro-carbs)" label="W" value={Math.round(sum.carbs)} />
-            <MacroPill color="var(--macro-fat)" label="T" value={Math.round(sum.fat)} />
+            <MacroPill color="var(--macro-protein)" label={t("macro.short.protein")} value={Math.round(sum.protein)} />
+            <MacroPill color="var(--macro-carbs)" label={t("macro.short.carbs")} value={Math.round(sum.carbs)} />
+            <MacroPill color="var(--macro-fat)" label={t("macro.short.fat")} value={Math.round(sum.fat)} />
           </div>
         </>
       ) : (
@@ -121,7 +123,7 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
           className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-2xl py-3 text-[13px] font-semibold text-muted-foreground"
           style={{ background: "var(--muted)" }}
         >
-          <Plus size={16} strokeWidth={2} /> Dodaj posiłek
+          <Plus size={16} strokeWidth={2} /> {t("card.addMeal")}
         </button>
       )}
 
@@ -149,6 +151,7 @@ function MacroPill({ color, label, value }: { color: string; label: string; valu
 const AXIS_LOCK_PX = 8;
 
 function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: () => void; onTap?: () => void }) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLLIElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
   const [dx, setDx] = useState(0);
@@ -334,7 +337,7 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
         aria-hidden
       >
         <div className="flex items-center gap-2">
-          {armed && <span className="text-sm font-semibold">Puść aby usunąć</span>}
+          {armed && <span className="text-sm font-semibold">{t("a11y.releaseToDelete")}</span>}
           <span className="inline-flex" style={{ transform: `scale(${0.7 + progress * 0.4})` }}>
             <Trash2 size={20} />
           </span>
@@ -365,7 +368,7 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
             ) : null}
           </div>
           <div className="num-tight mt-1 text-[12px] font-medium text-muted-foreground">
-            B {Math.round(e.protein)} · W {Math.round(e.carbs)} · T {Math.round(e.fat)} g
+            {t("macro.short.protein")} {Math.round(e.protein)} · {t("macro.short.carbs")} {Math.round(e.carbs)} · {t("macro.short.fat")} {Math.round(e.fat)} g
           </div>
         </div>
         <div className="num-tight text-right">

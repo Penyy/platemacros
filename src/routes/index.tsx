@@ -34,12 +34,15 @@ export const Route = createFileRoute("/")({
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
 function useLocalizedDate() {
-  const { t } = useTranslation();
+  const { i18n } = useTranslation();
   return (d: Date) => {
-    const wd = t(`weekday.${(d.getDay() + 6) % 7}`);
-    const day = d.getDate();
-    const month = t(`month.${d.getMonth()}`);
-    return `${wd}, ${day} ${month}`;
+    const locale = i18n.language?.startsWith("en") ? "en-US" : "pl-PL";
+    const s = new Intl.DateTimeFormat(locale, {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    }).format(d);
+    return s.charAt(0).toLocaleUpperCase(locale) + s.slice(1);
   };
 }
 
@@ -99,10 +102,10 @@ function TodayPage() {
       <header className="flex items-center justify-between px-[18px] pt-[max(env(safe-area-inset-top),1rem)]">
         <Logo />
         <div className="flex items-center gap-2">
-          <IconCircle aria-label={t("today.notifications")} onClick={() => setNotifOpen(true)}>
+          <IconCircle aria-label={t("a11y.notifications")} onClick={() => setNotifOpen(true)}>
             <Bell size={18} strokeWidth={1.8} />
           </IconCircle>
-          <LinkCircle to="/profile" aria-label={t("today.profile")}><User size={18} strokeWidth={1.8} /></LinkCircle>
+          <LinkCircle to="/profile" aria-label={t("a11y.profile")}><User size={18} strokeWidth={1.8} /></LinkCircle>
         </div>
 
 
@@ -341,7 +344,9 @@ function HeroLight({
               color: "var(--ink)",
             }}
           >
-            {t("today.remaining", { n: remaining })}
+            {consumed > goal
+              ? t("today.over", { n: Math.round(consumed - goal) })
+              : t("today.left", { n: remaining })}
           </div>
         </div>
       </div>
@@ -362,9 +367,9 @@ function HeroLight({
 
       {/* Macros — three slim bars */}
       <div className="mt-4 space-y-3">
-        <LightMacroRow label={t("today.protein")} cur={protein.cur} goal={protein.goal} color="var(--macro-protein)" />
-        <LightMacroRow label={t("today.carbs")} cur={carbs.cur} goal={carbs.goal} color="var(--macro-carbs)" />
-        <LightMacroRow label={t("today.fat")} cur={fat.cur} goal={fat.goal} color="var(--macro-fat)" />
+        <LightMacroRow label={t("macro.protein")} cur={protein.cur} goal={protein.goal} color="var(--macro-protein)" />
+        <LightMacroRow label={t("macro.carbs")} cur={carbs.cur} goal={carbs.goal} color="var(--macro-carbs)" />
+        <LightMacroRow label={t("macro.fat")} cur={fat.cur} goal={fat.goal} color="var(--macro-fat)" />
       </div>
     </motion.div>
   );

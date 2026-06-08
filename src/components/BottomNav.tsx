@@ -1,19 +1,21 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Home, BarChart3, BookOpen, Settings as Cog } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   onAdd: () => void;
 }
 
 const TABS = [
-  { to: "/", label: "Dziś", icon: Home },
-  { to: "/stats", label: "Statystyki", icon: BarChart3 },
-  { to: "/products", label: "Produkty", icon: BookOpen },
-  { to: "/settings", label: "Ustawienia", icon: Cog },
+  { to: "/", key: "today", icon: Home },
+  { to: "/stats", key: "stats", icon: BarChart3 },
+  { to: "/products", key: "products", icon: BookOpen },
+  { to: "/settings", key: "settings", icon: Cog },
 ] as const;
 
 export function BottomNav({ onAdd }: Props) {
+  const { t } = useTranslation();
   const loc = useLocation();
   const path = loc.pathname;
 
@@ -26,8 +28,8 @@ export function BottomNav({ onAdd }: Props) {
         className="pointer-events-auto grid flex-1 grid-cols-4 items-center rounded-[28px] bg-card px-2 py-1.5"
         style={{ boxShadow: "var(--shadow-card)" }}
       >
-        {TABS.map((t) => (
-          <NavItem key={t.to} {...t} active={path === t.to} />
+        {TABS.map((tab) => (
+          <NavItem key={tab.to} to={tab.to} label={t(`nav.${tab.key}`)} icon={tab.icon} active={path === tab.to} />
         ))}
       </nav>
 
