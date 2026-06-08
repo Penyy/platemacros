@@ -372,7 +372,7 @@ async function handleImagesPath(
   };
 
   const body = {
-    system_instruction: { parts: [{ text: `${SYSTEM_INSTRUCTION}\n\n${ItemsSystemAddendum}` }] },
+    system_instruction: { parts: [{ text: `${SYSTEM_INSTRUCTION}\n\n${ItemsSystemAddendum}\n\n${languageAddendum(lang)}` }] },
     contents: [
       {
         role: "user",
