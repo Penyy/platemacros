@@ -666,6 +666,7 @@ function WeeklyEditor({
   value: Record<string, DayMacro>;
   onChange: (dayIdx: number, m: Partial<DayMacro>) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="px-3 pb-3">
       <div className="grid grid-cols-[36px_1fr_1fr_1fr_auto] items-center gap-1 px-1 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -676,12 +677,13 @@ function WeeklyEditor({
         <span className="pl-2 text-right">kcal</span>
       </div>
       <div className="space-y-1">
-        {DAY_LABELS.map((label, i) => {
+        {DAY_LABEL_KEYS.map((key, i) => {
+          const label = t(`settings.weekday.${key}`);
           const d = value[String(i)] ?? { protein: 0, carbs: 0, fat: 0 };
           const kcal = Math.round(d.protein * 4 + d.carbs * 4 + d.fat * 9);
           return (
             <div
-              key={i}
+              key={key}
               className="grid grid-cols-[36px_1fr_1fr_1fr_auto] items-center gap-1 rounded-xl bg-foreground/5 px-2 py-1.5"
             >
               <span className="text-[11px] font-semibold text-muted-foreground">{label}</span>
