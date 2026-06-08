@@ -15,6 +15,7 @@ interface Props {
 }
 
 export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Props) {
+  const { t } = useTranslation();
   const sum = sumEntries(entries);
   const remove = usePlate((s) => s.removeEntry);
   const addEntry = usePlate((s) => s.addEntry);
