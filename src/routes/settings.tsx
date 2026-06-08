@@ -134,11 +134,11 @@ function SettingsPage() {
       if (error) throw error;
       await bootstrap();
       setResetOpen(false);
-      toast.success("Dane zostały zresetowane");
+      toast.success(t("settings.danger.resetSuccess"));
       navigate({ to: "/" });
     } catch (err) {
       console.error("reset_user_data failed", err);
-      toast.error("Nie udało się zresetować danych");
+      toast.error(t("settings.danger.resetError"));
     } finally {
       setResetting(false);
     }
@@ -159,9 +159,9 @@ function SettingsPage() {
       await replaceAll(legacy);
       clearLegacyLocalStorage();
       setLegacy(null);
-      toast.success("Dane zostały przeniesione do chmury.");
+      toast.success(t("settings.toast.migrateOk"));
     } catch {
-      toast.error("Nie udało się przenieść danych.");
+      toast.error(t("settings.toast.migrateErr"));
     } finally {
       setMigrating(false);
     }
