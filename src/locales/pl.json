@@ -356,5 +356,58 @@
       "migrateOk": "Dane zostały przeniesione do chmury.",
       "migrateErr": "Nie udało się przenieść danych."
     }
+  },
+
+  "profile": {
+    "title": "Profil",
+    "metaTitle": "Plate — Profil",
+    "metaDescription": "Twoje cele i rozkład makroskładników.",
+    "dailyGoals": "Cele dzienne",
+    "library": "Biblioteka",
+    "myProducts": "Moje produkty",
+    "macroSplit": "Rozkład makro",
+    "bodyProfile": "Profil ciała",
+    "needMore": "Uzupełnij wiek, wzrost i wagę, aby obliczyć sugerowane cele.",
+    "editLater": "Możesz je później ręcznie edytować w Ustawieniach."
+  },
+  "goals": {
+    "title": "Cele",
+    "calories": "Cel kalorii",
+    "dailyToggle": "Cele dzienne (carb cycling)",
+    "dailyHint": "Ustaw inne makro dla każdego dnia tygodnia."
+  },
+  "calc": {
+    "title": "Kalkulator BMR/TDEE",
+    "sex": "Płeć",
+    "sexMale": "Mężczyzna",
+    "sexFemale": "Kobieta",
+    "age": "Wiek",
+    "ageUnit": "lat",
+    "height": "Wzrost",
+    "weight": "Waga",
+    "activity": "Poziom aktywności",
+    "activitySedentary": "Siedzący tryb",
+    "activityLight": "Lekka aktywność",
+    "activityModerate": "Umiarkowana aktywność",
+    "activityActive": "Wysoka aktywność",
+    "activityVeryActive": "Bardzo wysoka aktywność",
+    "goal": "Cel",
+    "goalCut": "Redukcja",
+    "goalMaintain": "Utrzymanie",
+    "goalBulk": "Budowa masy",
+    "bmr": "BMR",
+    "tdee": "TDEE",
+    "calculate": "Oblicz",
+    "useAsGoal": "Ustaw jako cel"
+  },
+  "days": {
+    "mon": "Pon",
+    "tue": "Wt",
+    "wed": "Śr",
+    "thu": "Czw",
+    "fri": "Pt",
+    "sat": "Sob",
+    "sun": "Niedz"
   }
 }
+

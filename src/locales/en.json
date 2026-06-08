@@ -356,5 +356,58 @@
       "migrateOk": "Data has been moved to the cloud.",
       "migrateErr": "Failed to move data."
     }
+  },
+
+  "profile": {
+    "title": "Profile",
+    "metaTitle": "Plate — Profile",
+    "metaDescription": "Your goals and macro split.",
+    "dailyGoals": "Daily goals",
+    "library": "Library",
+    "myProducts": "My products",
+    "macroSplit": "Macro split",
+    "bodyProfile": "Body profile",
+    "needMore": "Fill in age, height and weight to compute suggested goals.",
+    "editLater": "You can edit them later in Settings."
+  },
+  "goals": {
+    "title": "Goals",
+    "calories": "Calorie goal",
+    "dailyToggle": "Daily goals (carb cycling)",
+    "dailyHint": "Set different macros for each day of the week."
+  },
+  "calc": {
+    "title": "BMR/TDEE Calculator",
+    "sex": "Sex",
+    "sexMale": "Male",
+    "sexFemale": "Female",
+    "age": "Age",
+    "ageUnit": "yrs",
+    "height": "Height",
+    "weight": "Weight",
+    "activity": "Activity level",
+    "activitySedentary": "Sedentary",
+    "activityLight": "Lightly active",
+    "activityModerate": "Moderately active",
+    "activityActive": "Very active",
+    "activityVeryActive": "Extra active",
+    "goal": "Goal",
+    "goalCut": "Cut",
+    "goalMaintain": "Maintain",
+    "goalBulk": "Bulk",
+    "bmr": "BMR",
+    "tdee": "TDEE",
+    "calculate": "Calculate",
+    "useAsGoal": "Set as goal"
+  },
+  "days": {
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun"
   }
 }
+
