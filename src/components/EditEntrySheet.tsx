@@ -45,12 +45,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
     setSodium(entry.sodium_mg != null ? String(Math.round(entry.sodium_mg)) : "");
   }, [entry]);
 
-    setGrams(entry.grams != null ? String(Math.round(entry.grams)) : "");
-    setKcal(String(Math.round(entry.kcal)));
-    setProtein(String(round1(entry.protein)));
-    setCarbs(String(round1(entry.carbs)));
-    setFat(String(round1(entry.fat)));
-  }, [entry]);
+
 
   const save = () => {
     if (!entry) return;
