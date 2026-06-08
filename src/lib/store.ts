@@ -63,6 +63,40 @@ export const defaultAssistantSettings: AssistantSettings = {
   responseLength: "short",
 };
 
+export type PlusMenuItemId =
+  | "assistant"
+  | "barcode"
+  | "compound"
+  | "search"
+  | "quick"
+  | "manual";
+
+export const PLUS_MENU_ITEMS: PlusMenuItemId[] = [
+  "assistant",
+  "barcode",
+  "compound",
+  "search",
+  "quick",
+  "manual",
+];
+
+export const PLUS_MENU_LABELS: Record<PlusMenuItemId, string> = {
+  assistant: "PlateAI",
+  barcode: "Skanuj kod kreskowy",
+  compound: "Złożony posiłek",
+  search: "Szukaj produktu",
+  quick: "Szybkie dodawanie",
+  manual: "Wpisz ręcznie",
+};
+
+export type PlusMenuVisibility = Record<string, boolean>;
+
+export const defaultPlusMenuVisibility: PlusMenuVisibility =
+  PLUS_MENU_ITEMS.reduce((acc, id) => {
+    acc[id] = true;
+    return acc;
+  }, {} as PlusMenuVisibility);
+
 export interface Profile {
   theme: Theme;
   goal_kcal: number;
@@ -74,6 +108,7 @@ export interface Profile {
   weekly_targets_enabled?: boolean;
   weekly_macro_targets?: WeeklyMacroTargets;
   assistant?: AssistantSettings;
+  plus_menu_visibility?: PlusMenuVisibility;
 }
 
 export interface Product {
@@ -120,6 +155,7 @@ interface State {
   setWeeklyEnabled: (v: boolean) => void;
   setWeeklyDay: (dayIdx: number, m: Partial<DayMacro>) => void;
   setAssistant: (patch: Partial<AssistantSettings>) => void;
+  setPlusMenuItem: (id: PlusMenuItemId, visible: boolean) => void;
   setBurned: (date: string, kcal: number) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
   updateEntry: (id: string, patch: Partial<Omit<LogEntry, "id" | "created_at">>) => void;
@@ -153,6 +189,26 @@ function netToast(err: unknown) {
   } else {
     toast.error("Błąd zapisu: " + msg);
   }
+}
+
+function persistAssistantBlob(get: () => State) {
+  const uid = get().userId;
+  if (!uid) return;
+  const prof = get().profile;
+  const blob = {
+    ...(prof.assistant ?? defaultAssistantSettings),
+    plus_menu_visibility: {
+      ...defaultPlusMenuVisibility,
+      ...(prof.plus_menu_visibility ?? {}),
+    },
+  };
+  void supabase
+    .from("profiles")
+    .update({ assistant_settings: blob as unknown as Json } as never)
+    .eq("id", uid)
+    .then(({ error }) => {
+      if (error) netToast(error);
+    });
 }
 
 export const usePlate = create<State>()((set, get) => ({
@@ -219,6 +275,11 @@ export const usePlate = create<State>()((set, get) => ({
             assistant: {
               ...defaultAssistantSettings,
               ...((prof.assistant_settings as Partial<AssistantSettings> | null) ?? {}),
+            },
+            plus_menu_visibility: {
+              ...defaultPlusMenuVisibility,
+              ...(((prof.assistant_settings as { plus_menu_visibility?: PlusMenuVisibility } | null)
+                ?.plus_menu_visibility) ?? {}),
             },
           }
         : defaultProfile;
@@ -394,16 +455,18 @@ export const usePlate = create<State>()((set, get) => ({
         assistant: { ...defaultAssistantSettings, ...(s.profile.assistant ?? {}), ...patch },
       },
     }));
-    const uid = get().userId;
-    if (!uid) return;
-    const next = get().profile.assistant ?? defaultAssistantSettings;
-    void supabase
-      .from("profiles")
-      .update({ assistant_settings: next as unknown as Json } as never)
-      .eq("id", uid)
-      .then(({ error }) => {
-        if (error) netToast(error);
-      });
+    persistAssistantBlob(get);
+  },
+
+  setPlusMenuItem: (id, visible) => {
+    set((s) => {
+      const cur = { ...defaultPlusMenuVisibility, ...(s.profile.plus_menu_visibility ?? {}) };
+      const next = { ...cur, [id]: visible };
+      // safeguard: never allow all off
+      if (!Object.values(next).some(Boolean)) next[id] = true;
+      return { profile: { ...s.profile, plus_menu_visibility: next } };
+    });
+    persistAssistantBlob(get);
   },
 
 

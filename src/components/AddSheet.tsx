@@ -9,7 +9,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { type Meal, MEAL_LABEL, type Product, usePlate, ymd } from "@/lib/store";
+import { type Meal, MEAL_LABEL, type Product, usePlate, ymd, defaultPlusMenuVisibility, type PlusMenuItemId } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 import { CompoundMealFlow } from "./CompoundMealFlow";
 
@@ -191,7 +191,10 @@ function guessMeal(): Meal {
 type PickMode = "quick" | "manual" | "search" | "compound" | "barcode" | "assistant";
 
 function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
-  const items: { id: PickMode; label: string; icon: typeof ScanLine; soon: boolean }[] = [
+  const visibility = usePlate(
+    (s) => s.profile.plus_menu_visibility ?? defaultPlusMenuVisibility,
+  );
+  const all: { id: PickMode; label: string; icon: typeof ScanLine; soon: boolean }[] = [
     { id: "assistant", label: "PlateAI", icon: Sparkles, soon: false },
     { id: "barcode", label: "Skanuj kod kreskowy", icon: ScanLine, soon: false },
     { id: "compound", label: "Złożony posiłek", icon: Layers, soon: false },
@@ -199,6 +202,7 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
     { id: "quick", label: "Szybkie dodawanie", icon: Zap, soon: false },
     { id: "manual", label: "Wpisz ręcznie", icon: PencilLine, soon: false },
   ];
+  const items = all.filter((it) => visibility[it.id as PlusMenuItemId] !== false);
   return (
     <div className="grid grid-cols-2 gap-3">
       {items.map((it) => {

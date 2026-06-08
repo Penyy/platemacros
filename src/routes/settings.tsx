@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
-import { Download, Upload, LogOut, CloudUpload, MessageSquare } from "lucide-react";
+import { Download, Upload, LogOut, CloudUpload, MessageSquare, Layers, Zap, PencilLine, Search as SearchIcon, ScanLine, Sparkles } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Switch } from "@/components/ui/switch";
 import { FeedbackSheet } from "@/components/FeedbackSheet";
@@ -11,7 +11,11 @@ import {
   type DayMacro,
   type AssistantDefaultMeal,
   type AssistantResponseLength,
+  type PlusMenuItemId,
   defaultAssistantSettings,
+  defaultPlusMenuVisibility,
+  PLUS_MENU_ITEMS,
+  PLUS_MENU_LABELS,
   usePlate,
   readLegacyLocalStorage,
   clearLegacyLocalStorage,
@@ -82,6 +86,10 @@ function SettingsPage() {
   const setWeeklyEnabled = usePlate((s) => s.setWeeklyEnabled);
   const setWeeklyDay = usePlate((s) => s.setWeeklyDay);
   const setAssistant = usePlate((s) => s.setAssistant);
+  const setPlusMenuItem = usePlate((s) => s.setPlusMenuItem);
+  const plusVisibility = usePlate(
+    (s) => s.profile.plus_menu_visibility ?? defaultPlusMenuVisibility,
+  );
   const replaceAll = usePlate((s) => s.replaceAll);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [legacy, setLegacy] = useState<ReturnType<typeof readLegacyLocalStorage>>(null);
@@ -291,7 +299,15 @@ function SettingsPage() {
         </Row>
       </Section>
 
-
+      <Section
+        title="Menu dodawania"
+        subtitle="Wybierz, co widać po dotknięciu +"
+      >
+        <PlusMenuVisibilityList
+          visibility={plusVisibility}
+          onToggle={(id, v) => setPlusMenuItem(id, v)}
+        />
+      </Section>
 
 
       <Section title="Dane">
@@ -390,19 +406,31 @@ function SettingsPage() {
 
 function Section({
   title,
+  subtitle,
   children,
 }: {
   title: string;
+  subtitle?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="mt-4">
-      <h2
-        className="px-[26px] pb-2 text-[11px] font-semibold"
-        style={{ color: "var(--muted-foreground)" }}
-      >
-        {title}
-      </h2>
+      <div className="px-[26px] pb-2">
+        <h2
+          className="text-[13px]"
+          style={{ fontFamily: "Manrope, sans-serif", fontWeight: 700, color: "var(--ink)" }}
+        >
+          {title}
+        </h2>
+        {subtitle && (
+          <p
+            className="mt-0.5 text-[11px]"
+            style={{ fontFamily: "Manrope, sans-serif", fontWeight: 600, color: "#9E988C" }}
+          >
+            {subtitle}
+          </p>
+        )}
+      </div>
       <div
         className="mx-[18px] divide-y overflow-hidden rounded-[24px] bg-card"
         style={{ boxShadow: "var(--shadow-card)", borderColor: "var(--hairline)" }}
@@ -603,5 +631,56 @@ function ResponseLengthSelect({
         );
       })}
     </div>
+  );
+}
+
+const PLUS_MENU_ICONS: Record<PlusMenuItemId, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
+  assistant: Sparkles,
+  barcode: ScanLine,
+  compound: Layers,
+  search: SearchIcon,
+  quick: Zap,
+  manual: PencilLine,
+};
+
+function PlusMenuVisibilityList({
+  visibility,
+  onToggle,
+}: {
+  visibility: Record<string, boolean>;
+  onToggle: (id: PlusMenuItemId, v: boolean) => void;
+}) {
+  const enabledCount = PLUS_MENU_ITEMS.filter((id) => visibility[id] !== false).length;
+  return (
+    <>
+      {PLUS_MENU_ITEMS.map((id) => {
+        const Icon = PLUS_MENU_ICONS[id];
+        const on = visibility[id] !== false;
+        const lastOne = on && enabledCount <= 1;
+        return (
+          <div key={id} className="flex items-center gap-3 px-4 py-3.5">
+            <span
+              className="grid h-9 w-9 place-items-center rounded-xl"
+              style={{ background: "var(--hairline)", color: "var(--ink)" }}
+            >
+              <Icon size={18} strokeWidth={1.9} />
+            </span>
+            <span
+              className="flex-1 text-[15px]"
+              style={{ fontFamily: "Manrope, sans-serif", fontWeight: 500, color: "#1A1A18" }}
+            >
+              {PLUS_MENU_LABELS[id]}
+            </span>
+            <div className={lastOne ? "opacity-50 pointer-events-none" : ""}>
+              <Switch
+                checked={on}
+                disabled={lastOne}
+                onCheckedChange={(v) => onToggle(id, v)}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </>
   );
 }
