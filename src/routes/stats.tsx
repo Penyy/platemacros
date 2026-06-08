@@ -253,7 +253,7 @@ function CombinedChart({
             className="num-tight mt-0.5 text-[20px]"
             style={{ fontWeight: 800, color: "var(--ink)" }}
           >
-            śr. {avgKcal} kcal / dzień
+            śr. {avgKcal} kcal / dzień · cel {goalKcal}
           </div>
         </div>
         <div className="flex items-center gap-2.5">
