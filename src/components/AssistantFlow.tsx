@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Camera, Loader2, MessageCircle, Mic, Send, Sparkles, X, Plus } from "lucide-react";
+import { Camera, Image as ImageIcon, Loader2, MessageCircle, Mic, Send, Sparkles, X, Plus } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -18,6 +18,8 @@ import {
   usePlate,
   ymd,
 } from "@/lib/store";
+import { InAppCamera } from "./InAppCamera";
+
 
 interface Props {
   defaultMeal?: Meal;
