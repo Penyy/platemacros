@@ -599,6 +599,11 @@ export const usePlate = create<State>()((set, get) => ({
     if (p.protein !== undefined) dbPatch.protein_100 = p.protein;
     if (p.carbs !== undefined) dbPatch.carbs_100 = p.carbs;
     if (p.fat !== undefined) dbPatch.fat_100 = p.fat;
+    if (p.fiber_g !== undefined) dbPatch.fiber_g = p.fiber_g ?? null;
+    if (p.sugars_g !== undefined) dbPatch.sugars_g = p.sugars_g ?? null;
+    if (p.saturated_fat_g !== undefined) dbPatch.saturated_fat_g = p.saturated_fat_g ?? null;
+    if (p.sodium_mg !== undefined) dbPatch.sodium_mg = p.sodium_mg ?? null;
+
     void supabase
       .from("foods")
       .update(dbPatch as never)
