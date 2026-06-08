@@ -568,10 +568,10 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
         <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-foreground/10">
           <ScanLine size={20} />
         </div>
-        <div className="text-sm font-semibold">Produktu nie ma w bazie</div>
+        <div className="text-sm font-semibold">{t("scan.notFoundTitle")}</div>
         <p className="text-xs text-muted-foreground">
-          Możesz wpisać dane ręcznie.
-          {barcode ? <> Kod: <span className="num-tight">{barcode}</span></> : null}
+          {t("scan.notFoundHint")}
+          {barcode ? <> {t("scan.code", { code: barcode })}</> : null}
         </p>
         <ManualFallback
           meal={meal}
