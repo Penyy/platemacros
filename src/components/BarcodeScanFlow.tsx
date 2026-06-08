@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Loader2, RotateCcw, ScanLine, Image as ImageIcon, Flashlight, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { type Meal, MEAL_LABEL, usePlate } from "@/lib/store";
 
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
