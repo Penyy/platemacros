@@ -3,8 +3,9 @@ import { useRef, useState } from "react";
 import { Camera, Loader2, RotateCcw } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { scanNutritionLabel, type NutritionLabel } from "@/lib/nutrition.functions";
-import { type Meal, MEAL_LABEL, usePlate } from "@/lib/store";
+import { type Meal, usePlate } from "@/lib/store";
 
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
