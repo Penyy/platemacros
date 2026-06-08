@@ -45,6 +45,8 @@ function useLocalizedDate() {
 
 
 function TodayPage() {
+  const { t } = useTranslation();
+  const formatDate = useLocalizedDate();
   const today = useMemo(() => ymd(new Date()), []);
   const [selected, setSelected] = useState<string>(today);
   const [calOpen, setCalOpen] = useState(false);
@@ -88,7 +90,7 @@ function TodayPage() {
   );
   const remaining = Math.max(0, Math.round(adjustedGoal - sum.kcal));
 
-  const dateLabel = polishDate(new Date(selected + "T00:00:00"));
+  const dateLabel = formatDate(new Date(selected + "T00:00:00"));
   const isToday = selected === today;
 
   return (
@@ -97,11 +99,12 @@ function TodayPage() {
       <header className="flex items-center justify-between px-[18px] pt-[max(env(safe-area-inset-top),1rem)]">
         <Logo />
         <div className="flex items-center gap-2">
-          <IconCircle aria-label="Powiadomienia" onClick={() => setNotifOpen(true)}>
+          <IconCircle aria-label={t("today.notifications")} onClick={() => setNotifOpen(true)}>
             <Bell size={18} strokeWidth={1.8} />
           </IconCircle>
-          <LinkCircle to="/profile" aria-label="Profil"><User size={18} strokeWidth={1.8} /></LinkCircle>
+          <LinkCircle to="/profile" aria-label={t("today.profile")}><User size={18} strokeWidth={1.8} /></LinkCircle>
         </div>
+
 
       </header>
 
@@ -109,7 +112,7 @@ function TodayPage() {
       <section className="flex items-center justify-between gap-2 px-[18px]">
         <button
           onClick={() => shiftDay(-1)}
-          aria-label="Poprzedni dzień"
+          aria-label={t("today.prevDay")}
           className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground active:scale-95"
         >
           <ChevronLeft size={18} />
@@ -141,12 +144,12 @@ function TodayPage() {
               onClick={() => setSelected(today)}
               className="rounded-full bg-foreground/5 px-2.5 py-1 text-[11px] font-semibold text-foreground active:scale-95"
             >
-              Dziś
+              {t("common.today")}
             </button>
           )}
           <button
             onClick={() => shiftDay(1)}
-            aria-label="Następny dzień"
+            aria-label={t("today.nextDay")}
             disabled={isToday}
             className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground active:scale-95 disabled:opacity-30"
           >
