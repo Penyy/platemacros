@@ -536,7 +536,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border/60 bg-card py-3 text-sm font-semibold active:bg-accent"
         >
           <ImageIcon size={16} />
-          Zrób zdjęcie kodu zamiast skanowania
+          {t("scan.fileFallback")}
         </button>
 
         {scannerError && (
