@@ -135,14 +135,17 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeManager />
-      <KeyboardScrollManager />
-      <KeyboardInsetManager />
-      <AppShell>
-        <Outlet />
-      </AppShell>
-      <Toaster position="bottom-center" offset={96} richColors closeButton={false} />
-    </QueryClientProvider>
+    <I18nextProvider i18n={i18n}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeManager />
+        <KeyboardScrollManager />
+        <KeyboardInsetManager />
+        <AppShell>
+          <Outlet />
+        </AppShell>
+        <Toaster position="bottom-center" offset={96} richColors closeButton={false} />
+      </QueryClientProvider>
+    </I18nextProvider>
   );
 }
+
