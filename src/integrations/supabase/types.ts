@@ -74,13 +74,17 @@ export type Database = {
           created_at: string
           date: string
           fat: number
+          fiber_g: number | null
           grams: number | null
           id: string
           kcal: number
           meal: string
           name: string
           protein: number
+          saturated_fat_g: number | null
+          sodium_mg: number | null
           sub_items: Json | null
+          sugars_g: number | null
           user_id: string
         }
         Insert: {
@@ -88,13 +92,17 @@ export type Database = {
           created_at?: string
           date: string
           fat?: number
+          fiber_g?: number | null
           grams?: number | null
           id?: string
           kcal?: number
           meal: string
           name: string
           protein?: number
+          saturated_fat_g?: number | null
+          sodium_mg?: number | null
           sub_items?: Json | null
+          sugars_g?: number | null
           user_id: string
         }
         Update: {
@@ -102,13 +110,17 @@ export type Database = {
           created_at?: string
           date?: string
           fat?: number
+          fiber_g?: number | null
           grams?: number | null
           id?: string
           kcal?: number
           meal?: string
           name?: string
           protein?: number
+          saturated_fat_g?: number | null
+          sodium_mg?: number | null
           sub_items?: Json | null
+          sugars_g?: number | null
           user_id?: string
         }
         Relationships: []
@@ -118,30 +130,42 @@ export type Database = {
           carbs_100: number
           created_at: string
           fat_100: number
+          fiber_g: number | null
           id: string
           kcal_100: number
           name: string
           protein_100: number
+          saturated_fat_g: number | null
+          sodium_mg: number | null
+          sugars_g: number | null
           user_id: string
         }
         Insert: {
           carbs_100?: number
           created_at?: string
           fat_100?: number
+          fiber_g?: number | null
           id?: string
           kcal_100?: number
           name: string
           protein_100?: number
+          saturated_fat_g?: number | null
+          sodium_mg?: number | null
+          sugars_g?: number | null
           user_id: string
         }
         Update: {
           carbs_100?: number
           created_at?: string
           fat_100?: number
+          fiber_g?: number | null
           id?: string
           kcal_100?: number
           name?: string
           protein_100?: number
+          saturated_fat_g?: number | null
+          sodium_mg?: number | null
+          sugars_g?: number | null
           user_id?: string
         }
         Relationships: []
