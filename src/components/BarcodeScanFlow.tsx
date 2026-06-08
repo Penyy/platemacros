@@ -16,15 +16,36 @@ interface Props {
     protein: number;
     carbs: number;
     fat: number;
+    fiber_g?: number | null;
+    sugars_g?: number | null;
+    saturated_fat_g?: number | null;
+    sodium_mg?: number | null;
   }) => void;
 }
 
 interface OFFProduct {
   name: string;
+  // per 100 g
   kcal: number;
   protein: number;
   carbs: number;
   fat: number;
+  fiber_g: number | null;
+  sugars_g: number | null;
+  saturated_fat_g: number | null;
+  sodium_mg: number | null;
+  // serving
+  servingGrams: number | null;
+  servingValues: {
+    kcal: number | null;
+    protein: number | null;
+    carbs: number | null;
+    fat: number | null;
+    fiber_g: number | null;
+    sugars_g: number | null;
+    saturated_fat_g: number | null;
+    sodium_mg: number | null;
+  } | null;
 }
 
 type Phase = "scan" | "loading" | "review" | "notfound" | "neterror" | "fatal";
@@ -33,36 +54,112 @@ function round1(x: number) {
   return Math.round(x * 10) / 10;
 }
 
+function numOrNull(v: unknown): number | null {
+  if (v == null || v === "") return null;
+  const n = typeof v === "string" ? Number(v.replace(",", ".")) : Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function parseLeadingNumber(s: unknown): number | null {
+  if (typeof s !== "string") return null;
+  const m = s.match(/([\d]+(?:[.,]\d+)?)/);
+  if (!m) return null;
+  const n = Number(m[1].replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
 async function fetchOpenFoodFacts(barcode: string): Promise<OFFProduct | null> {
+  const fields = [
+    "product_name",
+    "generic_name",
+    "brands",
+    "serving_size",
+    "serving_quantity",
+    "nutriments",
+  ].join(",");
   const res = await fetch(
     `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(
       barcode,
-    )}.json?fields=product_name,generic_name,brands,nutriments`,
+    )}.json?fields=${fields}`,
   );
   if (!res.ok) throw new Error("HTTP " + res.status);
   const json = await res.json();
   if (json.status === 0 || !json.product) return null;
   const p = json.product;
-  const n = p.nutriments ?? {};
-  let kcal = Number(n["energy-kcal_100g"]);
-  if (!Number.isFinite(kcal) || kcal <= 0) {
-    const kj = Number(n["energy_100g"]);
-    if (Number.isFinite(kj) && kj > 0) kcal = kj / 4.184;
+  const n = (p.nutriments ?? {}) as Record<string, unknown>;
+
+  // kcal per 100 g (with kJ fallback)
+  let kcal = numOrNull(n["energy-kcal_100g"]);
+  if (kcal == null || kcal <= 0) {
+    const kj = numOrNull(n["energy-kj_100g"]) ?? numOrNull(n["energy_100g"]);
+    if (kj != null && kj > 0) kcal = kj / 4.184;
   }
+  const protein = numOrNull(n["proteins_100g"]);
+  const carbs = numOrNull(n["carbohydrates_100g"]);
+  const fat = numOrNull(n["fat_100g"]);
+  const fiber = numOrNull(n["fiber_100g"]);
+  const sugars = numOrNull(n["sugars_100g"]);
+  const satFat = numOrNull(n["saturated-fat_100g"]);
+
+  // Sodium: OFF gives grams. Fallback via salt = sodium * 2.5
+  let sodiumG = numOrNull(n["sodium_100g"]);
+  if (sodiumG == null) {
+    const saltG = numOrNull(n["salt_100g"]);
+    if (saltG != null) sodiumG = saltG / 2.5;
+  }
+  const sodiumMg = sodiumG != null ? sodiumG * 1000 : null;
+
+  // serving grams
+  let servingGrams = numOrNull(p.serving_quantity);
+  if (servingGrams == null) servingGrams = parseLeadingNumber(p.serving_size);
+
+  // serving values (already absolute per serving)
+  let servingKcal = numOrNull(n["energy-kcal_serving"]);
+  if (servingKcal == null) {
+    const kj = numOrNull(n["energy-kj_serving"]) ?? numOrNull(n["energy_serving"]);
+    if (kj != null) servingKcal = kj / 4.184;
+  }
+  let sodiumServingG = numOrNull(n["sodium_serving"]);
+  if (sodiumServingG == null) {
+    const saltS = numOrNull(n["salt_serving"]);
+    if (saltS != null) sodiumServingG = saltS / 2.5;
+  }
+  const servingValues =
+    servingGrams != null && servingGrams > 0
+      ? {
+          kcal: servingKcal,
+          protein: numOrNull(n["proteins_serving"]),
+          carbs: numOrNull(n["carbohydrates_serving"]),
+          fat: numOrNull(n["fat_serving"]),
+          fiber_g: numOrNull(n["fiber_serving"]),
+          sugars_g: numOrNull(n["sugars_serving"]),
+          saturated_fat_g: numOrNull(n["saturated-fat_serving"]),
+          sodium_mg: sodiumServingG != null ? sodiumServingG * 1000 : null,
+        }
+      : null;
+
   const baseName = (p.product_name || p.generic_name || "Produkt").toString().trim();
   const brand = (p.brands || "").toString().split(",")[0]?.trim();
   const name = (brand && !baseName.toLowerCase().includes(brand.toLowerCase())
     ? `${brand} ${baseName}`
     : baseName
   ).slice(0, 80);
+
   return {
     name,
-    kcal: round1(Number.isFinite(kcal) ? kcal : 0),
-    protein: round1(Number(n["proteins_100g"]) || 0),
-    carbs: round1(Number(n["carbohydrates_100g"]) || 0),
-    fat: round1(Number(n["fat_100g"]) || 0),
+    kcal: round1(kcal ?? 0),
+    protein: round1(protein ?? 0),
+    carbs: round1(carbs ?? 0),
+    fat: round1(fat ?? 0),
+    fiber_g: fiber != null ? round1(fiber) : null,
+    sugars_g: sugars != null ? round1(sugars) : null,
+    saturated_fat_g: satFat != null ? round1(satFat) : null,
+    sodium_mg: sodiumMg != null ? Math.round(sodiumMg) : null,
+    servingGrams: servingGrams != null && servingGrams > 0 ? servingGrams : null,
+    servingValues,
   };
 }
+
 
 // Loaded lazily so SSR / unsupported environments never touch the lib at import time.
 type ZxingMod = typeof import("@zxing/browser");
