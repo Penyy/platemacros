@@ -417,14 +417,16 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
       {
         id: nid(),
         kind: "text",
-        text: `Dodano ${oneEntry ? "1 wpis" : `${items.length} pozycji`}: ${dishName || "Posiłek"}.`,
+        text: oneEntry
+          ? t("ai.history.addedOne", { name: dishName || t("ai.fallbackDish") })
+          : t("ai.history.addedMany", { n: items.length, name: dishName || t("ai.fallbackDish") }),
       },
     ]);
 
-    toast(`Dodano · ${MEAL_LABEL[meal]}`, {
+    toast(t("ai.toast.added", { meal: mealLabel(meal) }), {
       duration: 5000,
       action: {
-        label: "Cofnij",
+        label: t("ai.toast.undo"),
         onClick: () => {
           const rm = usePlate.getState().removeEntry;
           for (const id of undoIds) rm(id);
