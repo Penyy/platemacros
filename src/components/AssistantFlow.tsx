@@ -60,6 +60,9 @@ function guessMeal(): Meal {
 }
 
 export function AssistantFlow({ defaultMeal, date }: Props) {
+  const { t } = useTranslation();
+  const mealLabel = (m: Meal) => t(`meal.${m}`);
+  const CHIPS = [t("ai.chip1"), t("ai.chip2"), t("ai.chip3")];
   const targetDate = date ?? ymd(new Date());
   const profile = usePlate((s) => s.profile);
   const entries = usePlate((s) => s.entries);
