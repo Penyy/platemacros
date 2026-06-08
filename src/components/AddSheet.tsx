@@ -369,6 +369,7 @@ function QuickForm({
 }: {
   onSubmit: (p: FormPayload) => void;
 }) {
+  const { t } = useTranslation();
   const [kcal, setKcal] = useState("");
   const [p, setP] = useState("");
   const [c, setC] = useState("");
@@ -400,7 +401,7 @@ function QuickForm({
         }}
       >
         <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          Kalorie
+          {t("add.quick.kcal")}
         </div>
         <div className="mt-1 flex items-baseline gap-2">
           <input
@@ -417,12 +418,12 @@ function QuickForm({
 
       {/* Optional macros — same field style as Calories above */}
       <div className="grid grid-cols-3 gap-2">
-        <MacroField color="var(--macro-protein)" label="Białko" value={p} onChange={setP} />
-        <MacroField color="var(--macro-carbs)" label="Węgl." value={c} onChange={setC} />
-        <MacroField color="var(--macro-fat)" label="Tłuszcz" value={f} onChange={setF} />
+        <MacroField color="var(--macro-protein)" label={t("add.quick.macroP")} value={p} onChange={setP} />
+        <MacroField color="var(--macro-carbs)" label={t("add.quick.macroC")} value={c} onChange={setC} />
+        <MacroField color="var(--macro-fat)" label={t("add.quick.macroF")} value={f} onChange={setF} />
       </div>
 
-      <SubmitButton disabled={!valid}>Dodaj do dziennika</SubmitButton>
+      <SubmitButton disabled={!valid}>{t("add.quick.submit")}</SubmitButton>
     </form>
   );
 }
