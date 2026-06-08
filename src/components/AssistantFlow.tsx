@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Camera, Loader2, MessageCircle, Send, Sparkles, X, Plus } from "lucide-react";
+import { Camera, Loader2, MessageCircle, Mic, Send, Sparkles, X, Plus } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
@@ -94,6 +94,85 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const ask = useServerFn(askAssistant);
+
+  // ── Speech recognition (Web Speech API) ──
+  const [listening, setListening] = useState(false);
+  const [sttSupported, setSttSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const baseInputRef = useRef<string>("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SR) setSttSupported(true);
+    return () => {
+      try {
+        recognitionRef.current?.stop?.();
+      } catch {
+        /* noop */
+      }
+    };
+  }, []);
+
+  const toggleMic = () => {
+    if (typeof window === "undefined") return;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    if (listening) {
+      try {
+        recognitionRef.current?.stop?.();
+      } catch {
+        /* noop */
+      }
+      return;
+    }
+    try {
+      const rec = new SR();
+      rec.lang = "pl-PL";
+      rec.interimResults = true;
+      rec.continuous = true;
+      baseInputRef.current = input ? input.trimEnd() + " " : "";
+      rec.onresult = (event: any) => {
+        let interim = "";
+        let finalText = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const res = event.results[i];
+          if (res.isFinal) finalText += res[0].transcript;
+          else interim += res[0].transcript;
+        }
+        const combined = baseInputRef.current + finalText + interim;
+        setInput(combined);
+        if (finalText) {
+          baseInputRef.current = baseInputRef.current + finalText;
+        }
+      };
+      rec.onerror = (e: any) => {
+        setListening(false);
+        const err = e?.error;
+        if (err === "not-allowed" || err === "service-not-allowed") {
+          toast.error("Brak dostępu do mikrofonu — sprawdź uprawnienia.");
+        } else if (err === "no-speech") {
+          toast.message("Nie wykryto mowy. Spróbuj ponownie.");
+        } else if (err === "network") {
+          toast.error("Problem z rozpoznawaniem mowy. Spróbuj ponownie.");
+        } else if (err && err !== "aborted") {
+          toast.error("Rozpoznawanie mowy nie powiodło się.");
+        }
+      };
+      rec.onend = () => {
+        setListening(false);
+        setTimeout(() => textareaRef.current?.focus(), 0);
+      };
+      recognitionRef.current = rec;
+      rec.start();
+      setListening(true);
+    } catch {
+      setListening(false);
+      toast.error("Nie udało się uruchomić mikrofonu.");
+    }
+  };
+
+
 
   const dayContext = useMemo(() => {
     const day = entries.filter((e) => e.date === targetDate);
@@ -442,6 +521,24 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
             <Send size={14} strokeWidth={2} />
           </button>
         </div>
+        {sttSupported && (
+          <button
+            type="button"
+            onClick={toggleMic}
+            disabled={!!busy}
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-[18px] disabled:opacity-40"
+            style={{
+              background: listening ? "#FF3B30" : "var(--card)",
+              color: listening ? "#fff" : "var(--ink)",
+              border: "1px solid var(--hairline)",
+              boxShadow: "var(--shadow-card)",
+              animation: listening ? "pulse 1.2s ease-in-out infinite" : undefined,
+            }}
+            aria-label={listening ? "Zatrzymaj nasłuch" : "Dyktuj głosem"}
+          >
+            <Mic size={18} strokeWidth={1.9} />
+          </button>
+        )}
         <button
           type="button"
           onClick={() => {
