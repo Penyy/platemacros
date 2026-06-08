@@ -191,6 +191,26 @@ function netToast(err: unknown) {
   }
 }
 
+function persistAssistantBlob(get: () => State) {
+  const uid = get().userId;
+  if (!uid) return;
+  const prof = get().profile;
+  const blob = {
+    ...(prof.assistant ?? defaultAssistantSettings),
+    plus_menu_visibility: {
+      ...defaultPlusMenuVisibility,
+      ...(prof.plus_menu_visibility ?? {}),
+    },
+  };
+  void supabase
+    .from("profiles")
+    .update({ assistant_settings: blob as unknown as Json } as never)
+    .eq("id", uid)
+    .then(({ error }) => {
+      if (error) netToast(error);
+    });
+}
+
 export const usePlate = create<State>()((set, get) => ({
   userId: null,
   authReady: false,
