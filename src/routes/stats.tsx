@@ -273,17 +273,6 @@ function CombinedChart({
             opacity: 0.5,
           }}
         />
-        <div
-          className="absolute right-0 num-tight text-[9px] px-1"
-          style={{
-            top: `calc(${goalTop}% - 12px)`,
-            color: "var(--accent-yellow)",
-            opacity: 0.8,
-            fontWeight: 700,
-          }}
-        >
-          cel {goalKcal}
-        </div>
 
         <div className="flex h-full items-end gap-[3px]">
           {days.map((d, i) => {
