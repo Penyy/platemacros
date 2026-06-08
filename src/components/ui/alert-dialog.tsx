@@ -3,6 +3,7 @@ import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 
 const AlertDialog = AlertDialogPrimitive.Root;
 
