@@ -223,29 +223,47 @@ export const usePlate = create<State>()((set, get) => ({
           }
         : defaultProfile;
 
-      const entries: LogEntry[] = (entRes.data ?? []).map((r) => ({
-        id: r.id,
-        date: r.date,
-        meal: r.meal as Meal,
-        name: r.name,
-        grams: r.grams != null ? Number(r.grams) : undefined,
-        kcal: Number(r.kcal),
-        protein: Number(r.protein),
-        carbs: Number(r.carbs),
-        fat: Number(r.fat),
-        created_at: r.created_at ? new Date(r.created_at).getTime() : Date.now(),
-        sub_items: r.sub_items ?? undefined,
-      }));
+      const numOrNull = (v: unknown) =>
+        v == null || v === "" || Number.isNaN(Number(v)) ? null : Number(v);
 
-      const products: Product[] = (foodRes.data ?? []).map((r) => ({
-        id: r.id,
-        name: r.name,
-        kcal: Number(r.kcal_100),
-        protein: Number(r.protein_100),
-        carbs: Number(r.carbs_100),
-        fat: Number(r.fat_100),
-        created_at: r.created_at ? new Date(r.created_at).getTime() : Date.now(),
-      }));
+      const entries: LogEntry[] = (entRes.data ?? []).map((row) => {
+        const r = row as Record<string, unknown>;
+        return {
+          id: r.id as string,
+          date: r.date as string,
+          meal: r.meal as Meal,
+          name: r.name as string,
+          grams: r.grams != null ? Number(r.grams) : undefined,
+          kcal: Number(r.kcal),
+          protein: Number(r.protein),
+          carbs: Number(r.carbs),
+          fat: Number(r.fat),
+          fiber_g: numOrNull(r.fiber_g),
+          sugars_g: numOrNull(r.sugars_g),
+          saturated_fat_g: numOrNull(r.saturated_fat_g),
+          sodium_mg: numOrNull(r.sodium_mg),
+          created_at: r.created_at ? new Date(r.created_at as string).getTime() : Date.now(),
+          sub_items: r.sub_items ?? undefined,
+        };
+      });
+
+      const products: Product[] = (foodRes.data ?? []).map((row) => {
+        const r = row as Record<string, unknown>;
+        return {
+          id: r.id as string,
+          name: r.name as string,
+          kcal: Number(r.kcal_100),
+          protein: Number(r.protein_100),
+          carbs: Number(r.carbs_100),
+          fat: Number(r.fat_100),
+          fiber_g: numOrNull(r.fiber_g),
+          sugars_g: numOrNull(r.sugars_g),
+          saturated_fat_g: numOrNull(r.saturated_fat_g),
+          sodium_mg: numOrNull(r.sodium_mg),
+          created_at: r.created_at ? new Date(r.created_at as string).getTime() : Date.now(),
+        };
+      });
+
 
       const burned: Record<string, number> = {};
       for (const r of burnRes.data ?? []) {
