@@ -88,6 +88,7 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
+  const { t } = useTranslation();
   const profile = usePlate((s) => s.profile);
   const entries = usePlate((s) => s.entries);
   const burned = usePlate((s) => s.burned);
