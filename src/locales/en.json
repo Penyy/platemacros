@@ -418,6 +418,46 @@
     "grams": "Grams",
     "total": "Total",
     "submit": "Add to diary"
+  },
+  "data": {
+    "title": "Export / Import",
+    "export": "Export data (JSON)",
+    "import": "Import data (JSON)",
+    "importMacroflow": "Import from MacroFlow",
+    "exportHint": "Download a copy of all your data.",
+    "importHint": "Load data from a JSON file.",
+    "exportDone": "Data exported",
+    "importDone": "Data imported",
+    "importError": "Invalid file",
+    "macroflowEmpty": "No entries found in the MacroFlow file.",
+    "macroflowConfirm": "Found {{n}} MacroFlow entries — import?",
+    "macroflowDone": "Imported {{n}} entries from MacroFlow.",
+    "importConfirm": "Import {{n}} entries? Current data will be overwritten."
+  },
+  "feedback": {
+    "title": "Send feedback",
+    "placeholder": "Tell us what we can improve…",
+    "send": "Send feedback",
+    "sending": "Sending…",
+    "wait": "Wait {{n}}s",
+    "sent": "Thanks for your feedback!",
+    "error": "Couldn't send. Try again.",
+    "tooMany": "Too many submissions. Try again later.",
+    "cooldown": "Please wait a moment before submitting again.",
+    "duplicate": "You already sent this feedback.",
+    "tooShort": "Message must be at least 5 characters.",
+    "tooLong": "Message can have at most 2000 characters.",
+    "needLogin": "You must be signed in.",
+    "minChars": "min. 5 chars",
+    "typeLabel": "Type (optional)",
+    "ratingLabel": "Rating (optional)",
+    "starsAria": "{{n}} stars",
+    "type": {
+      "bug": "Bug",
+      "suggestion": "Suggestion",
+      "other": "Other"
+    }
   }
 }
+
 

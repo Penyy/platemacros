@@ -194,14 +194,16 @@ function SettingsPage() {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+    toast.success(t("data.exportDone"));
   }
+
 
   async function handleImport(file: File) {
     try {
       const text = await file.text();
       const data = JSON.parse(text);
       if (!data || typeof data !== "object") {
-        alert("Nieprawidłowy plik.");
+        alert(t("data.importError"));
         return;
       }
 
@@ -209,12 +211,10 @@ function SettingsPage() {
       if (Array.isArray((data as any).myFoods)) {
         const converted = convertMacroFlow((data as any).myFoods);
         if (converted.length === 0) {
-          alert("Nie znaleziono wpisów w pliku MacroFlow.");
+          alert(t("data.macroflowEmpty"));
           return;
         }
-        const ok = confirm(
-          `Znaleziono ${converted.length} wpisów z MacroFlow — importować?`
-        );
+        const ok = confirm(t("data.macroflowConfirm", { n: converted.length }));
         if (!ok) return;
         await replaceAll({
           profile,
@@ -222,18 +222,16 @@ function SettingsPage() {
           burned,
           products,
         });
-        alert(`Zaimportowano ${converted.length} wpisów z MacroFlow.`);
+        toast.success(t("data.macroflowDone", { n: converted.length }));
         return;
       }
 
       // Plate native format
       if (!data.profile || !Array.isArray(data.entries)) {
-        alert("Nieprawidłowy plik kopii zapasowej.");
+        alert(t("data.importError"));
         return;
       }
-      const ok = confirm(
-        `Importować ${data.entries.length} wpisów? Obecne dane zostaną nadpisane.`
-      );
+      const ok = confirm(t("data.importConfirm", { n: data.entries.length }));
       if (!ok) return;
       await replaceAll({
         profile: data.profile,
@@ -241,11 +239,12 @@ function SettingsPage() {
         burned: data.burned && typeof data.burned === "object" ? data.burned : {},
         products: Array.isArray(data.products) ? data.products : [],
       });
-      alert("Dane zostały przywrócone.");
+      toast.success(t("data.importDone"));
     } catch {
-      alert("Nie udało się odczytać pliku.");
+      alert(t("data.importError"));
     }
   }
+
 
   return (
     <div>
@@ -364,16 +363,16 @@ function SettingsPage() {
       </Section>
 
 
-      <Section title={t("settings.sec.data")}>
+      <Section title={t("data.title")}>
         <button
           onClick={handleExport}
           className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
         >
           <Download size={18} className="text-muted-foreground" />
           <div className="flex-1">
-            <div className="text-[15px]">{t("settings.data.export")}</div>
+            <div className="text-[15px]">{t("data.export")}</div>
             <div className="text-[11px] text-muted-foreground">
-              {t("settings.data.exportNote")}
+              {t("data.exportHint")}
             </div>
           </div>
         </button>
@@ -383,12 +382,13 @@ function SettingsPage() {
         >
           <Upload size={18} className="text-muted-foreground" />
           <div className="flex-1">
-            <div className="text-[15px]">{t("settings.data.import")}</div>
+            <div className="text-[15px]">{t("data.import")}</div>
             <div className="text-[11px] text-muted-foreground">
-              {t("settings.data.importNote")}
+              {t("data.importHint")}
             </div>
           </div>
         </button>
+
         <input
           ref={fileRef}
           type="file"
@@ -434,17 +434,18 @@ function SettingsPage() {
         </button>
       </Section>
 
-      <Section title={t("settings.sec.feedback")}>
+      <Section title={t("feedback.title")}>
         <button
           onClick={() => setFeedbackOpen(true)}
           className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
         >
           <MessageSquare size={18} className="text-muted-foreground" />
           <div className="flex-1">
-            <div className="text-[15px]">{t("settings.feedback.send")}</div>
+            <div className="text-[15px]">{t("feedback.send")}</div>
             <div className="text-[11px] text-muted-foreground">
               {t("settings.feedback.note")}
             </div>
+
           </div>
         </button>
       </Section>
