@@ -83,26 +83,26 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                   style={{ fontFamily: "Manrope, sans-serif", fontWeight: mode === "menu" ? 800 : 700, letterSpacing: "-0.03em", color: "var(--ink)" }}
                 >
                   {mode === "menu"
-                    ? "Dodaj pozycję"
+                    ? t("add.title.menu")
                     : mode === "quick"
-                    ? "Szybkie dodawanie"
+                    ? t("add.title.quick")
                     : mode === "manual"
-                    ? "Wpisz ręcznie"
+                    ? t("add.title.manual")
                     : mode === "search"
-                    ? "Szukaj produktu"
+                    ? t("add.title.search")
                     : mode === "compound"
-                    ? "Złożony posiłek"
+                    ? t("add.title.compound")
                     : mode === "barcode"
-                    ? "Skanuj kod kreskowy"
+                    ? t("add.title.barcode")
                     : mode === "assistant"
-                    ? "PlateAI"
-                    : "Skanuj etykietę"}
+                    ? t("add.title.assistant")
+                    : t("add.title.scan")}
                 </h2>
                 <button
                   onClick={mode === "menu" ? close : () => setMode("menu")}
                   className="grid h-10 w-10 place-items-center rounded-full"
                   style={{ background: "var(--card)", border: "1px solid var(--hairline)", color: "var(--muted-foreground)" }}
-                  aria-label="Zamknij"
+                  aria-label={t("add.close")}
                 >
                   <X size={16} strokeWidth={1.9} />
                 </button>
