@@ -240,7 +240,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
       });
       setTorchOn((v) => !v);
     } catch {
-      toast.error("Latarka niedostępna na tym urządzeniu.");
+      toast.error(t("scan.torchUnavail"));
     }
   };
 
