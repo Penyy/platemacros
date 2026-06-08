@@ -323,7 +323,7 @@ function HeroLight({
             strokeDasharray={`${pct} 1`}
             style={{
               strokeDashoffset: 0,
-              transition: "stroke-dashoffset 0.65s cubic-bezier(0.22,1,0.36,1)",
+              transition: "stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)",
             }}
           />
         </svg>
