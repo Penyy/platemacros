@@ -324,7 +324,7 @@ function HeroLight({
             style={{
               strokeDashoffset: 0,
               transition: "stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)",
-              filter: "drop-shadow(0 0 8px color-mix(in oklab, var(--accent-yellow) 85%, transparent)) drop-shadow(0 0 20px color-mix(in oklab, var(--accent-yellow) 50%, transparent))",
+              filter: "drop-shadow(0 0 8px rgba(244,181,0,0.85)) drop-shadow(0 0 20px rgba(244,181,0,0.5))",
             }}
           />
         </svg>
