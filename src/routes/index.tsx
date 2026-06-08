@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Bell, User, Flame, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { MealCard } from "@/components/MealCard";
 import { NotificationsSheet, startNotificationScheduler } from "@/components/NotificationsSheet";
 import { BurnedEditSheet } from "@/components/BurnedEditSheet";
@@ -32,25 +33,16 @@ export const Route = createFileRoute("/")({
 
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
-const WEEKDAY_LABEL = [
-  "Poniedziałek",
-  "Wtorek",
-  "Środa",
-  "Czwartek",
-  "Piątek",
-  "Sobota",
-  "Niedziela",
-];
-
-function polishDate(d: Date) {
-  const wd = WEEKDAY_LABEL[(d.getDay() + 6) % 7];
-  const day = d.getDate();
-  const months = [
-    "stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca",
-    "lipca", "sierpnia", "września", "października", "listopada", "grudnia",
-  ];
-  return `${wd}, ${day} ${months[d.getMonth()]}`;
+function useLocalizedDate() {
+  const { t } = useTranslation();
+  return (d: Date) => {
+    const wd = t(`weekday.${(d.getDay() + 6) % 7}`);
+    const day = d.getDate();
+    const month = t(`month.${d.getMonth()}`);
+    return `${wd}, ${day} ${month}`;
+  };
 }
+
 
 function TodayPage() {
   const today = useMemo(() => ymd(new Date()), []);
