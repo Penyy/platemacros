@@ -100,6 +100,7 @@ function TodayPage() {
 
   const dateLabel = formatDate(new Date(selected + "T00:00:00"));
   const isToday = selected === today;
+  const isMaxDay = selected === tomorrow;
 
   return (
     <div className="space-y-3.5 pb-4">
