@@ -333,7 +333,9 @@ async function handleImagesPath(
   userNote: string,
   previews: string[],
   hourFallback: number,
+  lang: Lang,
 ): Promise<AssistantResult> {
+
   const imageParts: GeminiPart[] = images.map((b64) => {
     const data = b64.startsWith("data:") ? b64.split(",")[1] ?? "" : b64;
     return { inline_data: { mime_type: "image/jpeg", data } };
