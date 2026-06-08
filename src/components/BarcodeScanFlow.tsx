@@ -410,11 +410,11 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
         await lookup(code);
       } catch {
         URL.revokeObjectURL(url);
-        toast.error("Nie wykryto kodu na zdjęciu, spróbuj ponownie.");
+        toast.error(t("scan.noCodeOnPhoto"));
         setPhase("scan");
       }
     } catch {
-      toast.error("Nie udało się odczytać zdjęcia.");
+      toast.error(t("scan.photoFail"));
       setPhase("scan");
     }
   };
