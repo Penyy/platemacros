@@ -824,7 +824,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     }
     return (
       <div className="space-y-3 py-6 text-center">
-        <div className="text-sm font-semibold">Nie udało się uruchomić skanera</div>
+        <div className="text-sm font-semibold">{t("scan.fatalTitle")}</div>
         <p className="text-xs text-muted-foreground">{msg}</p>
         <ManualFallback meal={meal} setMeal={setMeal} onSubmit={onSubmit} onCancel={reset} />
       </div>
