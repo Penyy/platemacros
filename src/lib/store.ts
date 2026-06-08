@@ -545,8 +545,13 @@ export const usePlate = create<State>()((set, get) => ({
             protein: c.protein,
             carbs: c.carbs,
             fat: c.fat,
+            fiber_g: c.fiber_g ?? null,
+            sugars_g: c.sugars_g ?? null,
+            saturated_fat_g: c.saturated_fat_g ?? null,
+            sodium_mg: c.sodium_mg ?? null,
             sub_items: (c.sub_items ?? null) as Json,
-          }))
+          })) as never
+
         )
         .then(({ error }) => {
           if (error) netToast(error);
