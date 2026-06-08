@@ -273,7 +273,12 @@ interface FormPayload {
   carbs: number;
   fat: number;
   grams?: number;
+  fiber_g?: number | null;
+  sugars_g?: number | null;
+  saturated_fat_g?: number | null;
+  sodium_mg?: number | null;
 }
+
 
 function Field({
   label,
