@@ -83,8 +83,8 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
               onClick={handleRepeat}
               className="grid h-8 w-8 place-items-center rounded-full text-foreground"
               style={{ background: "var(--muted)" }}
-              aria-label="Powtórz z wczoraj"
-              title="Powtórz z wczoraj"
+              aria-label={t("a11y.repeatYesterday")}
+              title={t("a11y.repeatYesterday")}
             >
               <RotateCcw size={15} strokeWidth={1.8} />
             </button>
