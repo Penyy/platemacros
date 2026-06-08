@@ -95,6 +95,12 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
   const cameraRef = useRef<HTMLInputElement>(null);
   const ask = useServerFn(askAssistant);
 
+  const getLang = (): "pl" | "en" => {
+    if (typeof window === "undefined") return "pl";
+    const v = window.localStorage.getItem("app_language");
+    return v === "en" ? "en" : "pl";
+  };
+
   // ── Speech recognition (Web Speech API) ──
   const [listening, setListening] = useState(false);
   const [sttSupported, setSttSupported] = useState(false);
@@ -231,6 +237,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
           dayContext,
           images: imgs.map((i) => i.base64),
           settings: assistantSettings,
+          lang: getLang(),
         },
       })) as AssistantResult;
       if (result.kind === "items") {
@@ -277,6 +284,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
           history: sessionHistory,
           dayContext,
           settings: assistantSettings,
+          lang: getLang(),
         },
       })) as AssistantResult;
 
