@@ -27,7 +27,7 @@ import {
   defaultAssistantSettings,
   defaultPlusMenuVisibility,
   PLUS_MENU_ITEMS,
-  PLUS_MENU_LABELS,
+  
   usePlate,
   readLegacyLocalStorage,
   clearLegacyLocalStorage,
