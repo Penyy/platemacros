@@ -29,14 +29,18 @@ export function BottomNav({ onAdd }: Props) {
 
   const navRef = useRef<HTMLElement | null>(null);
   const tabRefs = useRef<Array<HTMLAnchorElement | null>>([]);
-  const [targetX, setTargetX] = useState(0);
+  const [target, setTarget] = useState({ x: 0, y: 0 });
   const [ready, setReady] = useState(false);
 
   const recompute = () => {
     const el = tabRefs.current[activeIndex];
     if (!el) return;
+    const iconEl = el.querySelector<HTMLElement>("[data-nav-icon]");
     const x = el.offsetLeft + (el.offsetWidth - INDICATOR_SIZE) / 2;
-    setTargetX(x);
+    const y = iconEl
+      ? el.offsetTop + iconEl.offsetTop + (iconEl.offsetHeight - INDICATOR_SIZE) / 2
+      : el.offsetTop;
+    setTarget({ x, y });
     setReady(true);
   };
 
