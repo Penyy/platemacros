@@ -81,14 +81,15 @@ function NavItem({
       className="flex flex-col items-center justify-center gap-0.5 py-1"
       style={{ color: active ? "var(--ink)" : "var(--muted-foreground)" }}
     >
-      <span
-        className="grid h-8 w-8 place-items-center rounded-full transition-colors"
-        style={{
-          background: active
-            ? "color-mix(in oklab, var(--ink) 8%, transparent)"
-            : "transparent",
-        }}
-      >
+      <span className="relative grid h-8 w-8 place-items-center rounded-full">
+        {active && (
+          <motion.span
+            layoutId="navActive"
+            className="absolute inset-0 rounded-full"
+            style={{ background: "color-mix(in oklab, var(--ink) 8%, transparent)" }}
+            transition={{ type: "spring", stiffness: 380, damping: 32 }}
+          />
+        )}
         <Icon size={19} strokeWidth={active ? 2.3 : 1.8} />
       </span>
       <span
