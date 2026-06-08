@@ -470,7 +470,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
                 disabled={!!busy}
                 className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full"
                 style={{ background: "var(--ink)", color: "var(--card)" }}
-                aria-label="Usuń zdjęcie"
+                aria-label={t("ai.removeImage")}
               >
                 <X size={11} strokeWidth={2.4} />
               </button>
