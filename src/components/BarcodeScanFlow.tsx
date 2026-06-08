@@ -496,7 +496,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
             <button
               type="button"
               onClick={toggleTorch}
-              aria-label="Latarka"
+              aria-label={t("scan.torch")}
               className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full backdrop-blur"
               style={{
                 background: torchOn ? "var(--accent-yellow)" : "rgba(0,0,0,0.45)",
