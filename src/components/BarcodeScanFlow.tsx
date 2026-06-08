@@ -16,15 +16,36 @@ interface Props {
     protein: number;
     carbs: number;
     fat: number;
+    fiber_g?: number | null;
+    sugars_g?: number | null;
+    saturated_fat_g?: number | null;
+    sodium_mg?: number | null;
   }) => void;
 }
 
 interface OFFProduct {
   name: string;
+  // per 100 g
   kcal: number;
   protein: number;
   carbs: number;
   fat: number;
+  fiber_g: number | null;
+  sugars_g: number | null;
+  saturated_fat_g: number | null;
+  sodium_mg: number | null;
+  // serving
+  servingGrams: number | null;
+  servingValues: {
+    kcal: number | null;
+    protein: number | null;
+    carbs: number | null;
+    fat: number | null;
+    fiber_g: number | null;
+    sugars_g: number | null;
+    saturated_fat_g: number | null;
+    sodium_mg: number | null;
+  } | null;
 }
 
 type Phase = "scan" | "loading" | "review" | "notfound" | "neterror" | "fatal";
@@ -33,36 +54,112 @@ function round1(x: number) {
   return Math.round(x * 10) / 10;
 }
 
+function numOrNull(v: unknown): number | null {
+  if (v == null || v === "") return null;
+  const n = typeof v === "string" ? Number(v.replace(",", ".")) : Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function parseLeadingNumber(s: unknown): number | null {
+  if (typeof s !== "string") return null;
+  const m = s.match(/([\d]+(?:[.,]\d+)?)/);
+  if (!m) return null;
+  const n = Number(m[1].replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
 async function fetchOpenFoodFacts(barcode: string): Promise<OFFProduct | null> {
+  const fields = [
+    "product_name",
+    "generic_name",
+    "brands",
+    "serving_size",
+    "serving_quantity",
+    "nutriments",
+  ].join(",");
   const res = await fetch(
     `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(
       barcode,
-    )}.json?fields=product_name,generic_name,brands,nutriments`,
+    )}.json?fields=${fields}`,
   );
   if (!res.ok) throw new Error("HTTP " + res.status);
   const json = await res.json();
   if (json.status === 0 || !json.product) return null;
   const p = json.product;
-  const n = p.nutriments ?? {};
-  let kcal = Number(n["energy-kcal_100g"]);
-  if (!Number.isFinite(kcal) || kcal <= 0) {
-    const kj = Number(n["energy_100g"]);
-    if (Number.isFinite(kj) && kj > 0) kcal = kj / 4.184;
+  const n = (p.nutriments ?? {}) as Record<string, unknown>;
+
+  // kcal per 100 g (with kJ fallback)
+  let kcal = numOrNull(n["energy-kcal_100g"]);
+  if (kcal == null || kcal <= 0) {
+    const kj = numOrNull(n["energy-kj_100g"]) ?? numOrNull(n["energy_100g"]);
+    if (kj != null && kj > 0) kcal = kj / 4.184;
   }
+  const protein = numOrNull(n["proteins_100g"]);
+  const carbs = numOrNull(n["carbohydrates_100g"]);
+  const fat = numOrNull(n["fat_100g"]);
+  const fiber = numOrNull(n["fiber_100g"]);
+  const sugars = numOrNull(n["sugars_100g"]);
+  const satFat = numOrNull(n["saturated-fat_100g"]);
+
+  // Sodium: OFF gives grams. Fallback via salt = sodium * 2.5
+  let sodiumG = numOrNull(n["sodium_100g"]);
+  if (sodiumG == null) {
+    const saltG = numOrNull(n["salt_100g"]);
+    if (saltG != null) sodiumG = saltG / 2.5;
+  }
+  const sodiumMg = sodiumG != null ? sodiumG * 1000 : null;
+
+  // serving grams
+  let servingGrams = numOrNull(p.serving_quantity);
+  if (servingGrams == null) servingGrams = parseLeadingNumber(p.serving_size);
+
+  // serving values (already absolute per serving)
+  let servingKcal = numOrNull(n["energy-kcal_serving"]);
+  if (servingKcal == null) {
+    const kj = numOrNull(n["energy-kj_serving"]) ?? numOrNull(n["energy_serving"]);
+    if (kj != null) servingKcal = kj / 4.184;
+  }
+  let sodiumServingG = numOrNull(n["sodium_serving"]);
+  if (sodiumServingG == null) {
+    const saltS = numOrNull(n["salt_serving"]);
+    if (saltS != null) sodiumServingG = saltS / 2.5;
+  }
+  const servingValues =
+    servingGrams != null && servingGrams > 0
+      ? {
+          kcal: servingKcal,
+          protein: numOrNull(n["proteins_serving"]),
+          carbs: numOrNull(n["carbohydrates_serving"]),
+          fat: numOrNull(n["fat_serving"]),
+          fiber_g: numOrNull(n["fiber_serving"]),
+          sugars_g: numOrNull(n["sugars_serving"]),
+          saturated_fat_g: numOrNull(n["saturated-fat_serving"]),
+          sodium_mg: sodiumServingG != null ? sodiumServingG * 1000 : null,
+        }
+      : null;
+
   const baseName = (p.product_name || p.generic_name || "Produkt").toString().trim();
   const brand = (p.brands || "").toString().split(",")[0]?.trim();
   const name = (brand && !baseName.toLowerCase().includes(brand.toLowerCase())
     ? `${brand} ${baseName}`
     : baseName
   ).slice(0, 80);
+
   return {
     name,
-    kcal: round1(Number.isFinite(kcal) ? kcal : 0),
-    protein: round1(Number(n["proteins_100g"]) || 0),
-    carbs: round1(Number(n["carbohydrates_100g"]) || 0),
-    fat: round1(Number(n["fat_100g"]) || 0),
+    kcal: round1(kcal ?? 0),
+    protein: round1(protein ?? 0),
+    carbs: round1(carbs ?? 0),
+    fat: round1(fat ?? 0),
+    fiber_g: fiber != null ? round1(fiber) : null,
+    sugars_g: sugars != null ? round1(sugars) : null,
+    saturated_fat_g: satFat != null ? round1(satFat) : null,
+    sodium_mg: sodiumMg != null ? Math.round(sodiumMg) : null,
+    servingGrams: servingGrams != null && servingGrams > 0 ? servingGrams : null,
+    servingValues,
   };
 }
+
 
 // Loaded lazily so SSR / unsupported environments never touch the lib at import time.
 type ZxingMod = typeof import("@zxing/browser");
@@ -102,7 +199,9 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
   const [barcode, setBarcode] = useState<string | null>(null);
   const [product, setProduct] = useState<OFFProduct | null>(null);
   const [grams, setGrams] = useState("100");
+  const [usePortion, setUsePortion] = useState(true);
   const [saveToLib, setSaveToLib] = useState(false);
+
   const [status, setStatus] = useState("Nakieruj na kod kreskowy");
   const [flashHit, setFlashHit] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
@@ -154,7 +253,15 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
         return;
       }
       setProduct(p);
+      if (p.servingGrams != null && p.servingGrams > 0) {
+        setUsePortion(true);
+        setGrams(String(Math.round(p.servingGrams * 10) / 10));
+      } else {
+        setUsePortion(false);
+        setGrams("100");
+      }
       setPhase("review");
+
     } catch {
       setPhase("neterror");
     }
@@ -315,6 +422,8 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
     setProduct(null);
     setBarcode(null);
     setGrams("100");
+    setUsePortion(true);
+
     setScannerError(null);
     setPhase("scan");
   };
@@ -494,16 +603,61 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
   if (!product) return null;
   const g = Math.max(0, Number(grams.replace(",", ".")) || 0);
   const factor = g / 100;
-  const totals = {
-    kcal: round1(product.kcal * factor),
-    protein: round1(product.protein * factor),
-    carbs: round1(product.carbs * factor),
-    fat: round1(product.fat * factor),
+  const hasServing = product.servingGrams != null && product.servingGrams > 0;
+  const sg = product.servingGrams ?? 0;
+  // When the user has the "Porcja" toggle on AND the grams equal the serving grams,
+  // prefer OFF's _serving values for each field where present.
+  const usingServingValues =
+    usePortion &&
+    hasServing &&
+    Math.abs(g - sg) < 0.001 &&
+    product.servingValues != null;
+  const sv = product.servingValues;
+  const pickPer100 = (per100: number | null, servingVal: number | null) => {
+    if (usingServingValues && servingVal != null) return servingVal;
+    return per100 != null ? per100 * factor : 0;
   };
+  const totals = {
+    kcal: round1(pickPer100(product.kcal, sv?.kcal ?? null)),
+    protein: round1(pickPer100(product.protein, sv?.protein ?? null)),
+    carbs: round1(pickPer100(product.carbs, sv?.carbs ?? null)),
+    fat: round1(pickPer100(product.fat, sv?.fat ?? null)),
+  };
+  const extras = {
+    fiber_g:
+      product.fiber_g == null
+        ? null
+        : round1(pickPer100(product.fiber_g, sv?.fiber_g ?? null)),
+    sugars_g:
+      product.sugars_g == null
+        ? null
+        : round1(pickPer100(product.sugars_g, sv?.sugars_g ?? null)),
+    saturated_fat_g:
+      product.saturated_fat_g == null
+        ? null
+        : round1(pickPer100(product.saturated_fat_g, sv?.saturated_fat_g ?? null)),
+    sodium_mg:
+      product.sodium_mg == null
+        ? null
+        : Math.round(pickPer100(product.sodium_mg, sv?.sodium_mg ?? null)),
+  };
+  const complex =
+    extras.sugars_g != null
+      ? Math.max(0, round1(totals.carbs - extras.sugars_g))
+      : null;
   const valid = product.name.trim().length > 0 && g > 0;
-  const updatePer100 = (key: keyof Omit<OFFProduct, "name">, value: string) => {
-    const n = Number(value.replace(",", ".")) || 0;
-    setProduct({ ...product, [key]: n });
+  const updatePer100 = (
+    key: "kcal" | "protein" | "carbs" | "fat" | "fiber_g" | "sugars_g" | "saturated_fat_g" | "sodium_mg",
+    value: string,
+  ) => {
+    const n = value.trim() === "" ? null : Number(value.replace(",", "."));
+    const v = n == null || !Number.isFinite(n) ? null : n;
+    setProduct({ ...product, [key]: v as number | null });
+  };
+  const togglePortion = (on: boolean) => {
+    setUsePortion(on);
+    if (on && hasServing) setGrams(String(Math.round(sg * 10) / 10));
+    else setGrams("100");
   };
 
   return (
@@ -519,6 +673,10 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
             protein: product.protein,
             carbs: product.carbs,
             fat: product.fat,
+            fiber_g: product.fiber_g ?? null,
+            sugars_g: product.sugars_g ?? null,
+            saturated_fat_g: product.saturated_fat_g ?? null,
+            sodium_mg: product.sodium_mg ?? null,
           });
         }
         onSubmit({
@@ -528,6 +686,10 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           protein: totals.protein,
           carbs: totals.carbs,
           fat: totals.fat,
+          fiber_g: extras.fiber_g,
+          sugars_g: extras.sugars_g,
+          saturated_fat_g: extras.saturated_fat_g,
+          sodium_mg: extras.sodium_mg,
         });
       }}
     >
@@ -554,6 +716,30 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
         />
       </Field>
 
+      {hasServing && (
+        <div className="flex items-center justify-between gap-2 rounded-2xl bg-foreground/5 px-3 py-2">
+          <span className="text-[11px] font-semibold text-muted-foreground">
+            Porcja: {sg} g <span className="opacity-60">(z bazy)</span>
+          </span>
+          <div className="flex gap-1 rounded-full bg-background/60 p-0.5 text-[11px] font-semibold">
+            <button
+              type="button"
+              onClick={() => togglePortion(true)}
+              className={`rounded-full px-2.5 py-1 ${usePortion ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+            >
+              Porcja ({sg} g)
+            </button>
+            <button
+              type="button"
+              onClick={() => togglePortion(false)}
+              className={`rounded-full px-2.5 py-1 ${!usePortion ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+            >
+              100 g
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="rounded-2xl bg-foreground/5 p-3">
         <div className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           Wartości na 100 g
@@ -564,6 +750,12 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           <SmallField label="W" value={String(product.carbs)} onChange={(v) => updatePer100("carbs", v)} />
           <SmallField label="T" value={String(product.fat)} onChange={(v) => updatePer100("fat", v)} />
         </div>
+        <div className="mt-2 grid grid-cols-4 gap-2">
+          <SmallField label="Błonnik" value={product.fiber_g == null ? "" : String(product.fiber_g)} onChange={(v) => updatePer100("fiber_g", v)} />
+          <SmallField label="Cukry" value={product.sugars_g == null ? "" : String(product.sugars_g)} onChange={(v) => updatePer100("sugars_g", v)} />
+          <SmallField label="Nasyc." value={product.saturated_fat_g == null ? "" : String(product.saturated_fat_g)} onChange={(v) => updatePer100("saturated_fat_g", v)} />
+          <SmallField label="Sód mg" value={product.sodium_mg == null ? "" : String(product.sodium_mg)} onChange={(v) => updatePer100("sodium_mg", v)} />
+        </div>
       </div>
 
       <Field label="Ile gramów zjadłeś/aś?">
@@ -571,7 +763,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           className={inputCls}
           inputMode="decimal"
           value={grams}
-          onChange={(e) => setGrams(e.target.value.replace(",", "."))}
+          onChange={(e) => { setGrams(e.target.value.replace(",", ".")); setUsePortion(false); }}
         />
       </Field>
 
@@ -584,6 +776,18 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           <div className="text-xs text-muted-foreground">
             B {totals.protein} · W {totals.carbs} · T {totals.fat}
           </div>
+          {complex != null && (
+            <div className="text-[11px] text-muted-foreground">
+              w tym proste: {extras.sugars_g} g · złożone: {complex} g
+            </div>
+          )}
+          {(extras.fiber_g != null || extras.saturated_fat_g != null || extras.sodium_mg != null) && (
+            <div className="text-[11px] text-muted-foreground">
+              {extras.fiber_g != null && <>Błonnik {extras.fiber_g} g · </>}
+              {extras.saturated_fat_g != null && <>Nasyc. {extras.saturated_fat_g} g · </>}
+              {extras.sodium_mg != null && <>Sód {extras.sodium_mg} mg</>}
+            </div>
+          )}
         </div>
       )}
 
@@ -609,6 +813,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
       </motion.button>
     </form>
   );
+
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     if (!fatalError) {

@@ -16,9 +16,14 @@ export interface LogEntry {
   protein: number;
   carbs: number;
   fat: number;
+  fiber_g?: number | null;
+  sugars_g?: number | null;
+  saturated_fat_g?: number | null;
+  sodium_mg?: number | null;
   created_at: number;
   sub_items?: unknown;
 }
+
 
 export type Sex = "female" | "male";
 export type Activity = "sedentary" | "light" | "moderate" | "high" | "very_high";
@@ -78,7 +83,12 @@ export interface Product {
   protein: number;
   carbs: number;
   fat: number;
+  fiber_g?: number | null;
+  sugars_g?: number | null;
+  saturated_fat_g?: number | null;
+  sodium_mg?: number | null;
   created_at: number;
+
 }
 
 interface State {
@@ -213,29 +223,47 @@ export const usePlate = create<State>()((set, get) => ({
           }
         : defaultProfile;
 
-      const entries: LogEntry[] = (entRes.data ?? []).map((r) => ({
-        id: r.id,
-        date: r.date,
-        meal: r.meal as Meal,
-        name: r.name,
-        grams: r.grams != null ? Number(r.grams) : undefined,
-        kcal: Number(r.kcal),
-        protein: Number(r.protein),
-        carbs: Number(r.carbs),
-        fat: Number(r.fat),
-        created_at: r.created_at ? new Date(r.created_at).getTime() : Date.now(),
-        sub_items: r.sub_items ?? undefined,
-      }));
+      const numOrNull = (v: unknown) =>
+        v == null || v === "" || Number.isNaN(Number(v)) ? null : Number(v);
 
-      const products: Product[] = (foodRes.data ?? []).map((r) => ({
-        id: r.id,
-        name: r.name,
-        kcal: Number(r.kcal_100),
-        protein: Number(r.protein_100),
-        carbs: Number(r.carbs_100),
-        fat: Number(r.fat_100),
-        created_at: r.created_at ? new Date(r.created_at).getTime() : Date.now(),
-      }));
+      const entries: LogEntry[] = (entRes.data ?? []).map((row) => {
+        const r = row as Record<string, unknown>;
+        return {
+          id: r.id as string,
+          date: r.date as string,
+          meal: r.meal as Meal,
+          name: r.name as string,
+          grams: r.grams != null ? Number(r.grams) : undefined,
+          kcal: Number(r.kcal),
+          protein: Number(r.protein),
+          carbs: Number(r.carbs),
+          fat: Number(r.fat),
+          fiber_g: numOrNull(r.fiber_g),
+          sugars_g: numOrNull(r.sugars_g),
+          saturated_fat_g: numOrNull(r.saturated_fat_g),
+          sodium_mg: numOrNull(r.sodium_mg),
+          created_at: r.created_at ? new Date(r.created_at as string).getTime() : Date.now(),
+          sub_items: r.sub_items ?? undefined,
+        };
+      });
+
+      const products: Product[] = (foodRes.data ?? []).map((row) => {
+        const r = row as Record<string, unknown>;
+        return {
+          id: r.id as string,
+          name: r.name as string,
+          kcal: Number(r.kcal_100),
+          protein: Number(r.protein_100),
+          carbs: Number(r.carbs_100),
+          fat: Number(r.fat_100),
+          fiber_g: numOrNull(r.fiber_g),
+          sugars_g: numOrNull(r.sugars_g),
+          saturated_fat_g: numOrNull(r.saturated_fat_g),
+          sodium_mg: numOrNull(r.sodium_mg),
+          created_at: r.created_at ? new Date(r.created_at as string).getTime() : Date.now(),
+        };
+      });
+
 
       const burned: Record<string, number> = {};
       for (const r of burnRes.data ?? []) {
@@ -430,12 +458,17 @@ export const usePlate = create<State>()((set, get) => ({
         protein: e.protein,
         carbs: e.carbs,
         fat: e.fat,
+        fiber_g: e.fiber_g ?? null,
+        sugars_g: e.sugars_g ?? null,
+        saturated_fat_g: e.saturated_fat_g ?? null,
+        sodium_mg: e.sodium_mg ?? null,
         sub_items: (e.sub_items ?? null) as Json,
-      })
+      } as never)
       .then(({ error }) => {
         if (error) netToast(error);
       });
   },
+
 
   updateEntry: (id, patch) => {
     set((s) => ({
@@ -452,7 +485,12 @@ export const usePlate = create<State>()((set, get) => ({
     if (patch.protein !== undefined) dbPatch.protein = patch.protein;
     if (patch.carbs !== undefined) dbPatch.carbs = patch.carbs;
     if (patch.fat !== undefined) dbPatch.fat = patch.fat;
+    if (patch.fiber_g !== undefined) dbPatch.fiber_g = patch.fiber_g ?? null;
+    if (patch.sugars_g !== undefined) dbPatch.sugars_g = patch.sugars_g ?? null;
+    if (patch.saturated_fat_g !== undefined) dbPatch.saturated_fat_g = patch.saturated_fat_g ?? null;
+    if (patch.sodium_mg !== undefined) dbPatch.sodium_mg = patch.sodium_mg ?? null;
     if (patch.sub_items !== undefined) dbPatch.sub_items = (patch.sub_items ?? null) as Json;
+
     void supabase
       .from("food_entries")
       .update(dbPatch as never)
@@ -507,8 +545,13 @@ export const usePlate = create<State>()((set, get) => ({
             protein: c.protein,
             carbs: c.carbs,
             fat: c.fat,
+            fiber_g: c.fiber_g ?? null,
+            sugars_g: c.sugars_g ?? null,
+            saturated_fat_g: c.saturated_fat_g ?? null,
+            sodium_mg: c.sodium_mg ?? null,
             sub_items: (c.sub_items ?? null) as Json,
-          }))
+          })) as never
+
         )
         .then(({ error }) => {
           if (error) netToast(error);
@@ -533,11 +576,16 @@ export const usePlate = create<State>()((set, get) => ({
         protein_100: p.protein,
         carbs_100: p.carbs,
         fat_100: p.fat,
-      })
+        fiber_g: p.fiber_g ?? null,
+        sugars_g: p.sugars_g ?? null,
+        saturated_fat_g: p.saturated_fat_g ?? null,
+        sodium_mg: p.sodium_mg ?? null,
+      } as never)
       .then(({ error }) => {
         if (error) netToast(error);
       });
   },
+
 
   updateProduct: (id, p) => {
     set((s) => ({
@@ -551,6 +599,11 @@ export const usePlate = create<State>()((set, get) => ({
     if (p.protein !== undefined) dbPatch.protein_100 = p.protein;
     if (p.carbs !== undefined) dbPatch.carbs_100 = p.carbs;
     if (p.fat !== undefined) dbPatch.fat_100 = p.fat;
+    if (p.fiber_g !== undefined) dbPatch.fiber_g = p.fiber_g ?? null;
+    if (p.sugars_g !== undefined) dbPatch.sugars_g = p.sugars_g ?? null;
+    if (p.saturated_fat_g !== undefined) dbPatch.saturated_fat_g = p.saturated_fat_g ?? null;
+    if (p.sodium_mg !== undefined) dbPatch.sodium_mg = p.sodium_mg ?? null;
+
     void supabase
       .from("foods")
       .update(dbPatch as never)

@@ -25,6 +25,10 @@ export function EditEntrySheet({ entry, onClose }: Props) {
   const [protein, setProtein] = useState("");
   const [carbs, setCarbs] = useState("");
   const [fat, setFat] = useState("");
+  const [fiber, setFiber] = useState("");
+  const [sugars, setSugars] = useState("");
+  const [satFat, setSatFat] = useState("");
+  const [sodium, setSodium] = useState("");
 
   useEffect(() => {
     if (!entry) return;
@@ -35,7 +39,19 @@ export function EditEntrySheet({ entry, onClose }: Props) {
     setProtein(String(round1(entry.protein)));
     setCarbs(String(round1(entry.carbs)));
     setFat(String(round1(entry.fat)));
+    setFiber(entry.fiber_g != null ? String(round1(entry.fiber_g)) : "");
+    setSugars(entry.sugars_g != null ? String(round1(entry.sugars_g)) : "");
+    setSatFat(entry.saturated_fat_g != null ? String(round1(entry.saturated_fat_g)) : "");
+    setSodium(entry.sodium_mg != null ? String(Math.round(entry.sodium_mg)) : "");
   }, [entry]);
+
+
+
+  const optNum = (s: string): number | null => {
+    if (s.trim() === "") return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  };
 
   const save = () => {
     if (!entry) return;
@@ -53,6 +69,10 @@ export function EditEntrySheet({ entry, onClose }: Props) {
       protein: finalProtein,
       carbs: finalCarbs,
       fat: finalFat,
+      fiber_g: optNum(fiber),
+      sugars_g: optNum(sugars),
+      saturated_fat_g: optNum(satFat),
+      sodium_mg: optNum(sodium),
     });
     onClose();
   };
@@ -67,11 +87,19 @@ export function EditEntrySheet({ entry, onClose }: Props) {
     const finalFat = numOr(fat, entry.fat);
     const hasGrams = g !== undefined && g > 0;
     const factor = hasGrams ? 100 / (g as number) : 1;
+    const fiberV = optNum(fiber);
+    const sugarsV = optNum(sugars);
+    const satV = optNum(satFat);
+    const sodV = optNum(sodium);
     const macros = {
       kcal: round1(finalKcal * factor),
       protein: round1(finalProtein * factor),
       carbs: round1(finalCarbs * factor),
       fat: round1(finalFat * factor),
+      fiber_g: fiberV != null ? round1(fiberV * factor) : null,
+      sugars_g: sugarsV != null ? round1(sugarsV * factor) : null,
+      saturated_fat_g: satV != null ? round1(satV * factor) : null,
+      sodium_mg: sodV != null ? Math.round(sodV * factor) : null,
     };
     const norm = finalName.trim().toLowerCase();
     const existing = products.find((p) => p.name.trim().toLowerCase() === norm);
@@ -82,6 +110,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
     }
     toast.success("Dodano do Twoich produktów");
   };
+
 
   const handleDelete = () => {
     if (!entry) return;
@@ -204,6 +233,28 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                     dot="var(--macro-fat, #6FB4E8)"
                   />
                 </div>
+
+                {(() => {
+                  const sg = Number(sugars);
+                  const cb = Number(carbs);
+                  if (sugars.trim() === "" || !Number.isFinite(sg) || !Number.isFinite(cb)) return null;
+                  const complex = Math.max(0, Math.round((cb - sg) * 10) / 10);
+                  return (
+                    <div className="px-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                      w tym proste: {round1(sg)} g · złożone: {complex} g
+                    </div>
+                  );
+                })()}
+
+                {/* Extras (optional) */}
+                <div className="grid grid-cols-2 gap-2">
+                  <NumCard label="Błonnik" unit="g" value={fiber} onChange={setFiber} />
+                  <NumCard label="Cukry" unit="g" value={sugars} onChange={setSugars} />
+                  <NumCard label="Tł. nasyc." unit="g" value={satFat} onChange={setSatFat} />
+                  <NumCard label="Sód" unit="mg" value={sodium} onChange={setSodium} />
+                </div>
+
+
 
                 {/* Actions */}
                 <div className="pt-2 space-y-2">

@@ -273,7 +273,12 @@ interface FormPayload {
   carbs: number;
   fat: number;
   grams?: number;
+  fiber_g?: number | null;
+  sugars_g?: number | null;
+  saturated_fat_g?: number | null;
+  sodium_mg?: number | null;
 }
+
 
 function Field({
   label,
@@ -415,6 +420,16 @@ function ManualForm({
   const [p, setP] = useState("");
   const [c, setC] = useState("");
   const [f, setF] = useState("");
+  const [fiber, setFiber] = useState("");
+  const [sugars, setSugars] = useState("");
+  const [satFat, setSatFat] = useState("");
+  const [sodium, setSodium] = useState("");
+
+  const optNum = (s: string): number | null => {
+    if (s.trim() === "") return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  };
 
   const portionG = Number(portion) || 0;
   const n = Number(count) || 0;
@@ -426,6 +441,20 @@ function ManualForm({
     c: (Number(c) || 0) * factor,
     f: (Number(f) || 0) * factor,
   };
+  const fiberV = optNum(fiber);
+  const sugarsV = optNum(sugars);
+  const satV = optNum(satFat);
+  const sodV = optNum(sodium);
+  const totalExtras = {
+    fiber_g: fiberV != null ? Math.round(fiberV * factor * 10) / 10 : null,
+    sugars_g: sugarsV != null ? Math.round(sugarsV * factor * 10) / 10 : null,
+    saturated_fat_g: satV != null ? Math.round(satV * factor * 10) / 10 : null,
+    sodium_mg: sodV != null ? Math.round(sodV * factor) : null,
+  };
+  const complex =
+    sugarsV != null && Number(c) > 0
+      ? Math.max(0, Math.round((Number(c) - sugarsV) * 10) / 10)
+      : null;
 
   const valid = name.trim() && Number(kcal) > 0 && portionG > 0 && n > 0;
 
@@ -442,6 +471,10 @@ function ManualForm({
           protein: total.p,
           carbs: total.c,
           fat: total.f,
+          fiber_g: totalExtras.fiber_g,
+          sugars_g: totalExtras.sugars_g,
+          saturated_fat_g: totalExtras.saturated_fat_g,
+          sodium_mg: totalExtras.sodium_mg,
         });
       }}
     >
@@ -508,6 +541,45 @@ function ManualForm({
           />
         </Field>
       </div>
+      {complex != null && (
+        <div className="px-1 text-[11px] text-muted-foreground">
+          w tym proste: {sugarsV} g · złożone: {complex} g
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Błonnik (g)">
+          <input
+            className={inputCls}
+            inputMode="decimal"
+            value={fiber}
+            onChange={(e) => setFiber(e.target.value.replace(",", "."))}
+          />
+        </Field>
+        <Field label="Cukry (g)">
+          <input
+            className={inputCls}
+            inputMode="decimal"
+            value={sugars}
+            onChange={(e) => setSugars(e.target.value.replace(",", "."))}
+          />
+        </Field>
+        <Field label="Tł. nasyc. (g)">
+          <input
+            className={inputCls}
+            inputMode="decimal"
+            value={satFat}
+            onChange={(e) => setSatFat(e.target.value.replace(",", "."))}
+          />
+        </Field>
+        <Field label="Sód (mg)">
+          <input
+            className={inputCls}
+            inputMode="decimal"
+            value={sodium}
+            onChange={(e) => setSodium(e.target.value.replace(",", "."))}
+          />
+        </Field>
+      </div>
       {valid && (
         <div className="rounded-2xl bg-foreground/5 p-3 num-tight">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -526,6 +598,7 @@ function ManualForm({
     </form>
   );
 }
+
 
 function SubmitButton({
   children,
