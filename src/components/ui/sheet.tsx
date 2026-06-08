@@ -6,7 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { useScrollLock } from "@/hooks/use-scroll-lock";
+
 
 const Sheet = SheetPrimitive.Root;
 
@@ -59,7 +59,6 @@ const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   SheetContentProps
 >(({ side = "right", className, children, ...props }, ref) => {
-  useScrollLock(true);
   return (
   <SheetPortal>
     <SheetOverlay />

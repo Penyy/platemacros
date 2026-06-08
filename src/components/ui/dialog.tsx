@@ -5,7 +5,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { useScrollLock } from "@/hooks/use-scroll-lock";
+
 
 const Dialog = DialogPrimitive.Root;
 
@@ -34,7 +34,6 @@ const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => {
-  useScrollLock(true);
   return (
   <DialogPortal>
     <DialogOverlay />
