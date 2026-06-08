@@ -33,6 +33,7 @@ interface Props {
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
 export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<Mode>("menu");
   useScrollLock(open);
   const [meal, setMeal] = useState<Meal>(defaultMeal ?? "breakfast");
