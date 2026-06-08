@@ -310,6 +310,7 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
 }
 
 function MealPicker({ meal, setMeal }: { meal: Meal; setMeal: (m: Meal) => void }) {
+  const { t } = useTranslation();
   return (
     <div className="flex gap-1 rounded-full bg-foreground/5 p-1">
       {MEALS.map((m) => (
@@ -323,7 +324,7 @@ function MealPicker({ meal, setMeal }: { meal: Meal; setMeal: (m: Meal) => void 
               : "text-muted-foreground"
           }`}
         >
-          {MEAL_LABEL[m]}
+          {t(`meal.${m}`)}
         </button>
       ))}
     </div>
