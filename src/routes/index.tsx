@@ -34,12 +34,15 @@ export const Route = createFileRoute("/")({
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
 function useLocalizedDate() {
-  const { t } = useTranslation();
+  const { i18n } = useTranslation();
   return (d: Date) => {
-    const wd = t(`weekday.${(d.getDay() + 6) % 7}`);
-    const day = d.getDate();
-    const month = t(`month.${d.getMonth()}`);
-    return `${wd}, ${day} ${month}`;
+    const locale = i18n.language?.startsWith("en") ? "en-US" : "pl-PL";
+    const s = new Intl.DateTimeFormat(locale, {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    }).format(d);
+    return s.charAt(0).toLocaleUpperCase(locale) + s.slice(1);
   };
 }
 
