@@ -44,6 +44,7 @@ async function shrinkImage(file: File, maxDim = 1600, quality = 0.85): Promise<{
 }
 
 export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
+  const { t } = useTranslation();
   const fileRef = useRef<HTMLInputElement>(null);
   const [phase, setPhase] = useState<Phase>("capture");
   const [preview, setPreview] = useState<string | null>(null);
