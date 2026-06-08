@@ -158,13 +158,13 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
         setListening(false);
         const err = e?.error;
         if (err === "not-allowed" || err === "service-not-allowed") {
-          toast.error("Brak dostępu do mikrofonu — sprawdź uprawnienia.");
+          toast.error(t("ai.voice.notAllowed"));
         } else if (err === "no-speech") {
-          toast.message("Nie wykryto mowy. Spróbuj ponownie.");
+          toast.message(t("ai.voice.noSpeech"));
         } else if (err === "network") {
-          toast.error("Problem z rozpoznawaniem mowy. Spróbuj ponownie.");
+          toast.error(t("ai.voice.network"));
         } else if (err && err !== "aborted") {
-          toast.error("Rozpoznawanie mowy nie powiodło się.");
+          toast.error(t("ai.toast.recognitionFail"));
         }
       };
       rec.onend = () => {
@@ -176,7 +176,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
       setListening(true);
     } catch {
       setListening(false);
-      toast.error("Nie udało się uruchomić mikrofonu.");
+      toast.error(t("ai.toast.micFail"));
     }
   };
 
