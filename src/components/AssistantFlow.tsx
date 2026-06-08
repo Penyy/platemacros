@@ -224,8 +224,8 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
   ) => {
     const trimmedNote = note.trim();
     const userText = trimmedNote
-      ? `📷 ${imgs.length} zdj · "${trimmedNote}"`
-      : `📷 ${imgs.length} zdj`;
+      ? t("ai.userTextImagesWithNote", { n: imgs.length, note: trimmedNote })
+      : t("ai.userTextImages", { n: imgs.length });
     setHistory((h) => [
       ...h,
       { id: nid(), kind: "user", text: userText, previews: imgs.map((i) => i.dataUrl) },
@@ -234,7 +234,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
     try {
       const result = (await ask({
         data: {
-          message: trimmedNote || "Rozpoznaj zdjęcia",
+          message: trimmedNote || t("ai.fallbackRecognize"),
           history: [],
           dayContext,
           images: imgs.map((i) => i.base64),
@@ -244,7 +244,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
       })) as AssistantResult;
       if (result.kind === "items") {
         setPreview({
-          dishName: result.dishName || "Posiłek",
+          dishName: result.dishName || t("ai.fallbackDish"),
           meal: effectiveDefaultMeal ?? result.meal ?? guessMeal(),
           items: result.items,
           notes: result.notes,
@@ -253,13 +253,13 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
       } else if (result.kind === "text") {
         setHistory((h) => [...h, { id: nid(), kind: "text", text: result.text }]);
       } else {
-        setHistory((h) => [...h, { id: nid(), kind: "text", text: "Brak rozpoznanych pozycji." }]);
+        setHistory((h) => [...h, { id: nid(), kind: "text", text: t("ai.history.noItems") }]);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes("AI_RATE_LIMIT")) toast.error("Za dużo żądań, spróbuj za chwilę.");
-      else if (msg.includes("AI_CREDITS")) toast.error("Brak kredytów AI / problem z kluczem.");
-      else toast.error("Nie udało się rozpoznać zdjęcia.");
+      if (msg.includes("AI_RATE_LIMIT")) toast.error(t("ai.toast.rate"));
+      else if (msg.includes("AI_CREDITS")) toast.error(t("ai.toast.credits"));
+      else toast.error(t("ai.toast.imageFail"));
     } finally {
       setBusy(false);
     }
