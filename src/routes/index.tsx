@@ -328,9 +328,6 @@ function HeroLight({
           />
         </svg>
 
-
-
-        </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           <div
             className="num-tight text-[44px] font-extrabold leading-none tracking-tight"
