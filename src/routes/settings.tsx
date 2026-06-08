@@ -194,7 +194,9 @@ function SettingsPage() {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+    toast.success(t("data.exportDone"));
   }
+
 
   async function handleImport(file: File) {
     try {
