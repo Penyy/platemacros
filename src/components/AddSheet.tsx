@@ -694,17 +694,21 @@ function SearchForm({
   setMeal: (m: Meal) => void;
   onSubmit: (p: FormPayload) => void;
 }) {
+  const { t, i18n } = useTranslation();
   const products = usePlate((s) => s.products);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Product | null>(null);
   const [grams, setGrams] = useState("100");
+  const locale = i18n.language?.startsWith("en") ? "en" : "pl";
+  const libraryName = t("products.title");
 
   const results = products
     .filter((p) =>
       p.name.toLowerCase().includes(query.trim().toLowerCase())
     )
-    .sort((a, b) => a.name.localeCompare(b.name, "pl"))
+    .sort((a, b) => a.name.localeCompare(b.name, locale))
     .slice(0, 30);
+
 
   const g = Number(grams) || 0;
   const scale = g / 100;
