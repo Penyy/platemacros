@@ -189,6 +189,7 @@ function buildHints(lib: LibMod) {
 }
 
 export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
+  const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
@@ -203,7 +204,7 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
   const [usePortion, setUsePortion] = useState(true);
   const [saveToLib, setSaveToLib] = useState(false);
 
-  const [status, setStatus] = useState("Nakieruj na kod kreskowy");
+  const [status, setStatus] = useState<string>(() => t("scan.aim"));
   const [flashHit, setFlashHit] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
