@@ -290,7 +290,6 @@ function HeroLight({
   const startAngle = -135;
   const totalArc = 270;
   const trackPath = describeArc(cx, cy, r, startAngle, startAngle + totalArc);
-  const fillPath = describeArc(cx, cy, r, startAngle + totalArc, startAngle);
 
   return (
     <motion.div
