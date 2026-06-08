@@ -201,7 +201,7 @@ function SettingsPage() {
       const text = await file.text();
       const data = JSON.parse(text);
       if (!data || typeof data !== "object") {
-        alert("Nieprawidłowy plik.");
+        alert(t("data.importError"));
         return;
       }
 
@@ -209,12 +209,10 @@ function SettingsPage() {
       if (Array.isArray((data as any).myFoods)) {
         const converted = convertMacroFlow((data as any).myFoods);
         if (converted.length === 0) {
-          alert("Nie znaleziono wpisów w pliku MacroFlow.");
+          alert(t("data.macroflowEmpty"));
           return;
         }
-        const ok = confirm(
-          `Znaleziono ${converted.length} wpisów z MacroFlow — importować?`
-        );
+        const ok = confirm(t("data.macroflowConfirm", { n: converted.length }));
         if (!ok) return;
         await replaceAll({
           profile,
@@ -222,18 +220,16 @@ function SettingsPage() {
           burned,
           products,
         });
-        alert(`Zaimportowano ${converted.length} wpisów z MacroFlow.`);
+        toast.success(t("data.macroflowDone", { n: converted.length }));
         return;
       }
 
       // Plate native format
       if (!data.profile || !Array.isArray(data.entries)) {
-        alert("Nieprawidłowy plik kopii zapasowej.");
+        alert(t("data.importError"));
         return;
       }
-      const ok = confirm(
-        `Importować ${data.entries.length} wpisów? Obecne dane zostaną nadpisane.`
-      );
+      const ok = confirm(t("data.importConfirm", { n: data.entries.length }));
       if (!ok) return;
       await replaceAll({
         profile: data.profile,
@@ -241,11 +237,12 @@ function SettingsPage() {
         burned: data.burned && typeof data.burned === "object" ? data.burned : {},
         products: Array.isArray(data.products) ? data.products : [],
       });
-      alert("Dane zostały przywrócone.");
+      toast.success(t("data.importDone"));
     } catch {
-      alert("Nie udało się odczytać pliku.");
+      alert(t("data.importError"));
     }
   }
+
 
   return (
     <div>
