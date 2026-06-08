@@ -667,7 +667,7 @@ function PlusMenuVisibilityList({
             </span>
             <span
               className="flex-1 text-[15px]"
-              style={{ fontFamily: "Manrope, sans-serif", fontWeight: 500, color: "#1A1A18" }}
+              style={{ fontFamily: "Manrope, sans-serif", fontWeight: 500, color: "var(--ink)" }}
             >
               {PLUS_MENU_LABELS[id]}
             </span>
