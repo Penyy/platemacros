@@ -155,6 +155,7 @@ interface State {
   setWeeklyEnabled: (v: boolean) => void;
   setWeeklyDay: (dayIdx: number, m: Partial<DayMacro>) => void;
   setAssistant: (patch: Partial<AssistantSettings>) => void;
+  setPlusMenuItem: (id: PlusMenuItemId, visible: boolean) => void;
   setBurned: (date: string, kcal: number) => void;
   addEntry: (e: Omit<LogEntry, "id" | "created_at">) => void;
   updateEntry: (id: string, patch: Partial<Omit<LogEntry, "id" | "created_at">>) => void;
