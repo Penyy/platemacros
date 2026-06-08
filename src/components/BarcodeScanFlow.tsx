@@ -372,13 +372,13 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
       } catch (e: unknown) {
         if (cancelled) return;
         const err = e as { name?: string; message?: string };
-        let msg = "Nie udało się uruchomić skanera — dodaj ręcznie.";
+        let msg = t("scan.errGeneric");
         if (err?.name === "NotAllowedError" || err?.name === "SecurityError") {
-          msg = "Brak dostępu do kamery — sprawdź uprawnienia lub dodaj ręcznie.";
+          msg = t("scan.errNotAllowed");
         } else if (err?.name === "NotFoundError" || err?.name === "OverconstrainedError") {
-          msg = "Nie znaleziono kamery — dodaj ręcznie.";
+          msg = t("scan.errNotFoundCam");
         } else if (err?.name === "NotReadableError") {
-          msg = "Kamera jest używana przez inną aplikację.";
+          msg = t("scan.errNotReadable");
         }
         setScannerError(msg);
       }
