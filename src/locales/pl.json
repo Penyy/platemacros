@@ -418,6 +418,46 @@
     "grams": "Ile gramów",
     "total": "Razem",
     "submit": "Dodaj do dziennika"
+  },
+  "data": {
+    "title": "Eksport / Import",
+    "export": "Eksportuj dane (JSON)",
+    "import": "Importuj dane (JSON)",
+    "importMacroflow": "Importuj z MacroFlow",
+    "exportHint": "Pobierz kopię wszystkich danych.",
+    "importHint": "Wczytaj dane z pliku JSON.",
+    "exportDone": "Dane wyeksportowane",
+    "importDone": "Dane zaimportowane",
+    "importError": "Nieprawidłowy plik",
+    "macroflowEmpty": "Nie znaleziono wpisów w pliku MacroFlow.",
+    "macroflowConfirm": "Znaleziono {{n}} wpisów z MacroFlow — importować?",
+    "macroflowDone": "Zaimportowano {{n}} wpisów z MacroFlow.",
+    "importConfirm": "Importować {{n}} wpisów? Obecne dane zostaną nadpisane."
+  },
+  "feedback": {
+    "title": "Prześlij opinię",
+    "placeholder": "Napisz, co możemy poprawić…",
+    "send": "Wyślij opinię",
+    "sending": "Wysyłam…",
+    "wait": "Poczekaj {{n}}s",
+    "sent": "Dziękujemy za opinię!",
+    "error": "Nie udało się wysłać. Spróbuj ponownie.",
+    "tooMany": "Za dużo zgłoszeń. Spróbuj później.",
+    "cooldown": "Poczekaj chwilę przed kolejnym zgłoszeniem.",
+    "duplicate": "To zgłoszenie już wysłano.",
+    "tooShort": "Wiadomość musi mieć co najmniej 5 znaków.",
+    "tooLong": "Wiadomość może mieć maks. 2000 znaków.",
+    "needLogin": "Musisz być zalogowany.",
+    "minChars": "min. 5 znaków",
+    "typeLabel": "Typ (opcjonalnie)",
+    "ratingLabel": "Ocena (opcjonalnie)",
+    "starsAria": "{{n}} gwiazdek",
+    "type": {
+      "bug": "Błąd",
+      "suggestion": "Sugestia",
+      "other": "Inne"
+    }
   }
 }
+
 
