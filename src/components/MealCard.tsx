@@ -61,7 +61,7 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
     >
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
-        <div className="text-[17px] font-bold tracking-tight">{MEAL_LABEL[meal]}</div>
+        <div className="text-[17px] font-bold tracking-tight">{t(`meal.${meal}`)}</div>
         <div className="flex items-center gap-2">
           {!isEmpty && (
             <div className="num-tight text-right">
