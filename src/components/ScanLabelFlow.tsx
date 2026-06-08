@@ -274,10 +274,11 @@ export function ScanLabelFlow({ meal, setMeal, onSubmit }: Props) {
 }
 
 function ConfidenceBadge({ confidence }: { confidence: NutritionLabel["confidence"] }) {
+  const { t } = useTranslation();
   const map = {
-    high: { label: "Wysoka pewność", cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" },
-    medium: { label: "Średnia pewność", cls: "bg-amber-500/15 text-amber-600 dark:text-amber-400" },
-    low: { label: "Niska pewność", cls: "bg-rose-500/15 text-rose-600 dark:text-rose-400" },
+    high: { label: t("label.confidenceHigh"), cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" },
+    medium: { label: t("label.confidenceMedium"), cls: "bg-amber-500/15 text-amber-600 dark:text-amber-400" },
+    low: { label: t("label.confidenceLow"), cls: "bg-rose-500/15 text-rose-600 dark:text-rose-400" },
   } as const;
   const it = map[confidence];
   return (
@@ -288,6 +289,7 @@ function ConfidenceBadge({ confidence }: { confidence: NutritionLabel["confidenc
 }
 
 function MealPicker({ meal, setMeal }: { meal: Meal; setMeal: (m: Meal) => void }) {
+  const { t } = useTranslation();
   return (
     <div className="flex gap-1 rounded-full bg-foreground/5 p-1">
       {MEALS.map((m) => (
@@ -299,7 +301,7 @@ function MealPicker({ meal, setMeal }: { meal: Meal; setMeal: (m: Meal) => void 
             meal === m ? "bg-primary text-primary-foreground" : "text-muted-foreground"
           }`}
         >
-          {MEAL_LABEL[m]}
+          {t(`meal.${m}`)}
         </button>
       ))}
     </div>
