@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Plus, Trash2, X, Search, ArrowDown, ArrowUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useMotionValue, animate, type PanInfo } from "framer-motion";
+import { toast } from "sonner";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { usePlate, type Product } from "@/lib/store";
