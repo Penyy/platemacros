@@ -376,11 +376,22 @@
     "title": "Profil",
     "metaTitle": "Plate — Profil",
     "metaDescription": "Twoje cele i rozkład makroskładników.",
+    "yourGoals": "Twoje cele",
     "dailyGoals": "Cele dzienne",
     "library": "Biblioteka",
     "myProducts": "Moje produkty",
     "macroSplit": "Rozkład makro",
     "bodyProfile": "Profil ciała",
+    "suggestedGoal": "Sugerowany cel",
+    "setAsDaily": "Ustaw jako cel dzienny",
+    "willOverride": "Nadpisze „Cele dzienne” u góry. Później możesz je ręcznie zmienić.",
+    "actDesc": {
+      "sedentary": "Mało lub brak ćwiczeń",
+      "light": "1–3 dni w tygodniu",
+      "moderate": "3–5 dni w tygodniu",
+      "high": "6–7 dni w tygodniu",
+      "very_high": "Trening 2× dziennie / praca fizyczna"
+    },
     "needMore": "Uzupełnij wiek, wzrost i wagę, aby obliczyć sugerowane cele.",
     "editLater": "Możesz je później ręcznie edytować w Ustawieniach."
   },
