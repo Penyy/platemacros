@@ -7,7 +7,16 @@
     "delete": "Usuń",
     "add": "Dodaj",
     "edit": "Edytuj",
-    "close": "Zamknij"
+    "close": "Zamknij",
+    "undo": "Cofnij"
+  },
+  "snackbar": {
+    "copied_one": "Skopiowano {{count}} pozycję",
+    "copied_few": "Skopiowano {{count}} pozycje",
+    "copied_many": "Skopiowano {{count}} pozycji",
+    "copied_other": "Skopiowano {{count}} pozycji",
+    "deletedMeal": "Usunięto {{meal}}",
+    "noMealToCopy": "Brak posiłku do skopiowania"
   },
   "products": {
     "title": "Moje produkty",
