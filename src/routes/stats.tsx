@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, ChevronLeft, Hand } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
@@ -26,6 +26,27 @@ function StatsPage() {
   const profile = usePlate((s) => s.profile);
   const [range, setRange] = useState<Range>(7);
   const [view, setView] = useState<View>("combined");
+  const savedScrollRef = useRef(0);
+  const pendingRestoreRef = useRef(false);
+
+  const goSplit = () => {
+    savedScrollRef.current = window.scrollY;
+    setView("split");
+    requestAnimationFrame(() => window.scrollTo({ top: 0 }));
+  };
+  const goCombined = () => {
+    pendingRestoreRef.current = true;
+    setView("combined");
+  };
+
+  useEffect(() => {
+    if (view === "combined" && pendingRestoreRef.current) {
+      pendingRestoreRef.current = false;
+      requestAnimationFrame(() =>
+        window.scrollTo({ top: savedScrollRef.current })
+      );
+    }
+  }, [view]);
 
   const days = useMemo(() => {
     const out: {
@@ -125,7 +146,7 @@ function StatsPage() {
                 range={range}
                 goalKcal={profile.goal_kcal}
                 avgKcal={avg.kcal}
-                onTap={() => setView("split")}
+                onTap={goSplit}
               />
             </motion.div>
           ) : (
@@ -138,7 +159,7 @@ function StatsPage() {
               className="space-y-3"
             >
               <button
-                onClick={() => setView("combined")}
+                onClick={goCombined}
                 className="flex items-center gap-1 -ml-1 px-1 py-1 text-[13px] active:scale-[0.98] transition"
                 style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
               >
@@ -172,6 +193,7 @@ function StatsPage() {
                       date: d.date,
                       v: Math.round(d.totals[m.key as keyof typeof d.totals]),
                     }))}
+                    onTap={goCombined}
                   />
                 </motion.div>
               ))}
@@ -421,6 +443,7 @@ function SplitChartCard({
   today,
   range,
   values,
+  onTap,
 }: {
   title: string;
   unit: string;
@@ -430,6 +453,7 @@ function SplitChartCard({
   today: string;
   range: Range;
   values: { label: string; date: string; v: number }[];
+  onTap?: () => void;
 }) {
   const max = Math.max(Math.max(...values.map((d) => d.v), 0), goal) * 1.1 || 1;
   const goalTop = (1 - goal / max) * 100;
@@ -438,8 +462,10 @@ function SplitChartCard({
   const onTarget = goal > 0 && Math.abs(diff) <= goal * 0.02;
 
   return (
-    <div
-      className="rounded-[24px] p-4 relative overflow-hidden"
+    <motion.div
+      whileTap={onTap ? { scale: 0.99 } : undefined}
+      onClick={onTap}
+      className="rounded-[24px] p-4 relative overflow-hidden cursor-pointer"
       style={{
         background: "var(--card)",
         boxShadow: "var(--shadow-card)",
@@ -588,7 +614,7 @@ function SplitChartCard({
           ))}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
