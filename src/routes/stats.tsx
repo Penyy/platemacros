@@ -550,7 +550,7 @@ function SplitChartCard({
           className="num-tight text-right text-[11px]"
           style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
         >
-          cel {goal} {unit}
+          {cycling ? "śr. cel" : "cel"} {goal} {unit}
         </div>
       </div>
 
