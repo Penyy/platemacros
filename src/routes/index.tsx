@@ -87,10 +87,13 @@ function TodayPage() {
     d.setDate(d.getDate() - 1);
     return ymd(d);
   }, [selected]);
-  const prevEntries = useMemo(
-    () => entries.filter((e) => e.date === prevDate),
-    [entries, prevDate]
-  );
+  const missingPrev = useMemo(() => {
+    const out: Record<Meal, boolean> = {} as Record<Meal, boolean>;
+    for (const m of MEALS) {
+      out[m] = countMissingFromPrevDay(entries, selected, m) > 0;
+    }
+    return out;
+  }, [entries, selected]);
   const sum = useMemo(() => sumEntries(dayEntries), [dayEntries]);
   const dayGoals = useMemo(() => getDayGoals(profile, selected), [profile, selected]);
   const burned = Math.round(burnedMap[selected] ?? 0);
