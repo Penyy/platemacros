@@ -303,7 +303,7 @@ function HeroLight({
       transition={{ duration: 0.35, ease: "easeOut" }}
       className="relative overflow-hidden p-5"
       style={{
-        background: "var(--cream)",
+        background: "var(--hero-bg)",
         borderRadius: 28,
         color: "var(--ink)",
         boxShadow: "var(--shadow-card)",
