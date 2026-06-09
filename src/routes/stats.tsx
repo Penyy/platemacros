@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, ChevronLeft, Hand } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
