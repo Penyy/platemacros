@@ -8,7 +8,9 @@
     "add": "Dodaj",
     "edit": "Edytuj",
     "close": "Zamknij",
-    "undo": "Cofnij"
+    "undo": "Cofnij",
+    "yes": "Tak",
+    "no": "Nie"
   },
   "snackbar": {
     "copied_one": "Skopiowano {{count}} pozycję",
