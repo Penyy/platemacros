@@ -156,6 +156,14 @@
     height: 100%;
   }
 
+  /* The actual scroller is <html>. Giving it a solid theme background means
+     vertical overscroll AND the browser's horizontal swipe-between-pages show
+     the app colour instead of the default white. */
+  html {
+    background-color: var(--background);
+    overscroll-behavior-y: none;
+  }
+
   body {
     background: var(--page-gradient);
     background-attachment: fixed;
