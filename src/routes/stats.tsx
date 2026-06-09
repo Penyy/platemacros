@@ -443,6 +443,7 @@ function SplitChartCard({
   today,
   range,
   values,
+  onTap,
 }: {
   title: string;
   unit: string;
@@ -452,6 +453,7 @@ function SplitChartCard({
   today: string;
   range: Range;
   values: { label: string; date: string; v: number }[];
+  onTap?: () => void;
 }) {
   const max = Math.max(Math.max(...values.map((d) => d.v), 0), goal) * 1.1 || 1;
   const goalTop = (1 - goal / max) * 100;
@@ -460,8 +462,10 @@ function SplitChartCard({
   const onTarget = goal > 0 && Math.abs(diff) <= goal * 0.02;
 
   return (
-    <div
-      className="rounded-[24px] p-4 relative overflow-hidden"
+    <motion.div
+      whileTap={onTap ? { scale: 0.99 } : undefined}
+      onClick={onTap}
+      className="rounded-[24px] p-4 relative overflow-hidden cursor-pointer"
       style={{
         background: "var(--card)",
         boxShadow: "var(--shadow-card)",
