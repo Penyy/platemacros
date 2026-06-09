@@ -267,19 +267,26 @@ interface GeminiResponse {
   candidates?: Array<{ content?: { parts?: GeminiPart[] } }>;
 }
 
-async function callGemini(body: unknown, apiKey: string): Promise<GeminiResponse> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+const PRIMARY_MODEL = "gemini-3.5-flash";
+const FALLBACK_MODEL = "gemini-2.5-flash";
+
+async function callGeminiModel(model: string, body: unknown, apiKey: string): Promise<{ resp?: GeminiResponse; unavailable?: boolean; error?: Error }> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
   const maxAttempts = 4;
-  let lastErr: unknown = null;
+  let lastErr: Error | null = null;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    if (res.ok) return (await res.json()) as GeminiResponse;
-    if (res.status === 402 || res.status === 403) throw new Error("AI_CREDITS");
+    if (res.ok) return { resp: (await res.json()) as GeminiResponse };
     const txt = await res.text().catch(() => "");
+    // Model availability errors -> signal fallback
+    if (res.status === 404 || (res.status === 400 && /model|not found|not supported|unavailable/i.test(txt))) {
+      return { unavailable: true, error: new Error(`AI_MODEL_UNAVAILABLE_${res.status}`) };
+    }
+    if (res.status === 402 || res.status === 403) return { error: new Error("AI_CREDITS") };
     const retriable = res.status === 429 || res.status === 503 || res.status === 502 || res.status === 504;
     if (retriable && attempt < maxAttempts) {
       const delay = 500 * 2 ** (attempt - 1) + Math.floor(Math.random() * 250);
@@ -287,11 +294,22 @@ async function callGemini(body: unknown, apiKey: string): Promise<GeminiResponse
       lastErr = new Error(`AI_HTTP_${res.status}`);
       continue;
     }
-    if (res.status === 429) throw new Error("AI_RATE_LIMIT");
-    if (res.status === 503) throw new Error("AI_OVERLOADED");
-    throw new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`);
+    if (res.status === 429) return { error: new Error("AI_RATE_LIMIT") };
+    if (res.status === 503) return { error: new Error("AI_OVERLOADED") };
+    return { error: new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`) };
   }
-  throw (lastErr instanceof Error ? lastErr : new Error("AI_HTTP_UNKNOWN"));
+  return { error: lastErr ?? new Error("AI_HTTP_UNKNOWN") };
+}
+
+async function callGemini(body: unknown, apiKey: string): Promise<GeminiResponse> {
+  const primary = await callGeminiModel(PRIMARY_MODEL, body, apiKey);
+  if (primary.resp) return primary.resp;
+  if (primary.unavailable) {
+    const fb = await callGeminiModel(FALLBACK_MODEL, body, apiKey);
+    if (fb.resp) return fb.resp;
+    throw fb.error ?? new Error("AI_HTTP_UNKNOWN");
+  }
+  throw primary.error ?? new Error("AI_HTTP_UNKNOWN");
 }
 
 // ============================================================
