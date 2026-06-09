@@ -186,14 +186,16 @@ const ESTIMATE_PROMPT = `Oszacuj wartości odżywcze gotowego posiłku widoczneg
 Zwróć WYŁĄCZNIE poprawny JSON (bez markdown) o strukturze:
 {"name": string, "total": {"kcal": number, "protein": number, "carbs": number, "fat": number}, "confidence": "high"|"medium"|"low"}
 
+${ACCURACY_RULES}
+
 Zasady:
 - Wartości w "total" to CAŁKOWITE wartości dla widocznej porcji (NIE na 100 g).
-- Rozpoznaj składniki i oszacuj wielkość porcji (talerz ~26 cm, miska, sztućce jako skala).
+- Rozpoznaj składniki i oszacuj wielkość porcji (talerz ~26 cm, miska, sztućce jako skala). Policz per składnik i zsumuj.
 - Wykorzystaj opis użytkownika do rozpoznania składników i wielkości, jeśli jest podany.
 - Makro w gramach, energia w kcal. Zaokrąglij do 1 miejsca po przecinku.
 - name = krótka polska nazwa dania (do 60 znaków).
 - confidence: "high" gdy wyraźnie widać składniki i porcję, "medium" przy częściowej widoczności, "low" gdy mocno szacujesz.
-- To jest SZACUNEK — przy wątpliwościach obniż confidence, ale zawsze podaj liczby > 0 jeśli widać jedzenie.`;
+- To jest SZACUNEK — przy wątpliwościach stosuj zasadę ostrożności (lekko w górę) i obniż confidence, ale zawsze podaj liczby > 0 jeśli widać jedzenie.`;
 
 export const estimateMealFromPhoto = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => EstimateInputSchema.parse(input))
