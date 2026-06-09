@@ -53,6 +53,7 @@ function StatsPage() {
       date: string;
       label: string;
       totals: ReturnType<typeof sumEntries>;
+      goals: ReturnType<typeof getDayGoals>;
     }[] = [];
     const now = new Date();
     for (let i = range - 1; i >= 0; i--) {
@@ -64,10 +65,11 @@ function StatsPage() {
         date,
         label: d.toLocaleDateString("pl-PL", { weekday: "short" }).slice(0, 2),
         totals: sumEntries(dayEntries),
+        goals: getDayGoals(profile, date),
       });
     }
     return out;
-  }, [entries, range]);
+  }, [entries, range, profile]);
 
   const today = ymd(new Date());
   const loggedDays = days.filter((d) => d.totals.kcal > 0).length;
@@ -80,6 +82,22 @@ function StatsPage() {
           carbs: Math.round(days.reduce((s, d) => s + d.totals.carbs, 0) / loggedDays),
           fat: Math.round(days.reduce((s, d) => s + d.totals.fat, 0) / loggedDays),
         };
+
+  const avgGoal = useMemo(() => {
+    const logged = days.filter((d) => d.totals.kcal > 0);
+    if (logged.length === 0) {
+      const g = getDayGoals(profile, today);
+      return { kcal: g.kcal, protein: g.protein, carbs: g.carbs, fat: g.fat };
+    }
+    return {
+      kcal: Math.round(logged.reduce((s, d) => s + d.goals.kcal, 0) / logged.length),
+      protein: Math.round(logged.reduce((s, d) => s + d.goals.protein, 0) / logged.length),
+      carbs: Math.round(logged.reduce((s, d) => s + d.goals.carbs, 0) / logged.length),
+      fat: Math.round(logged.reduce((s, d) => s + d.goals.fat, 0) / logged.length),
+    };
+  }, [days, profile, today]);
+
+  const cycling = !!profile.weekly_targets_enabled;
 
   let streak = 0;
   for (let i = days.length - 1; i >= 0; i--) {
