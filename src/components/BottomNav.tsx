@@ -1,6 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Home, BarChart3, BookOpen, Settings as Cog } from "lucide-react";
+import { Home, BarChart3, ShoppingBag, SlidersHorizontal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface Props {
@@ -10,8 +10,8 @@ interface Props {
 const TABS = [
   { to: "/", key: "today", icon: Home },
   { to: "/stats", key: "stats", icon: BarChart3 },
-  { to: "/products", key: "products", icon: BookOpen },
-  { to: "/settings", key: "settings", icon: Cog },
+  { to: "/products", key: "products", icon: ShoppingBag },
+  { to: "/settings", key: "settings", icon: SlidersHorizontal },
 ] as const;
 
 export function BottomNav({ onAdd }: Props) {
@@ -83,17 +83,10 @@ function NavItem({
     <Link
       to={to}
       className="flex flex-col items-center justify-center gap-0.5 py-1"
-      style={{ color: active ? "var(--ink)" : "var(--muted-foreground)" }}
+      style={{ color: active ? "var(--accent-yellow)" : "var(--muted-foreground)" }}
     >
-      <span
-        className="relative grid h-8 w-8 place-items-center rounded-full"
-        style={{
-          background: active
-            ? "color-mix(in oklab, var(--ink) 8%, transparent)"
-            : "transparent",
-        }}
-      >
-        <Icon size={19} strokeWidth={active ? 2.3 : 1.8} />
+      <span className="grid h-8 w-8 place-items-center">
+        <Icon size={24} strokeWidth={2} />
       </span>
       <span className="text-[10px] tracking-tight" style={{ fontWeight: active ? 800 : 600 }}>
         {label}
