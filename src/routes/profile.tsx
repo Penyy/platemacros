@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
 import { ChevronRight, Pencil, ShoppingBag } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import {
@@ -65,6 +66,11 @@ function ProfilePage() {
   const p = usePlate((s) => s.profile);
   const setBody = usePlate((s) => s.setBody);
   const setGoals = usePlate((s) => s.setGoals);
+  const anim = (i: number) => ({
+    initial: { opacity: 0, y: 8 },
+    animate: { opacity: 1, y: 0 },
+    transition: { delay: 0.04 * i, duration: 0.3, ease: "easeOut" as const },
+  });
 
   const body = p.body ?? DEFAULT_BODY;
   const ready = body.age > 0 && body.height > 0 && body.weight > 0;
@@ -99,7 +105,7 @@ function ProfilePage() {
         {/* ============ TWOJE CELE ============ */}
         <section className="space-y-2">
           <SectionLabel>{t("profile.yourGoals")}</SectionLabel>
-          <div className="p-4" style={CARD}>
+          <motion.div {...anim(0)} className="p-4" style={CARD}>
             <div className="flex items-start justify-between">
               <div>
                 <div className="text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: "var(--muted-foreground)" }}>
@@ -131,26 +137,28 @@ function ProfilePage() {
               <MacroCell label={t("macro.carbs")} g={p.goal_carbs} color="var(--macro-carbs)" />
               <MacroCell label={t("macro.fat")} g={p.goal_fat} color="var(--macro-fat)" />
             </ul>
-          </div>
+          </motion.div>
 
           {/* Library row */}
-          <Link to="/products" className="flex items-center gap-3 p-3" style={CARD}>
-            <div
-              className="grid h-10 w-10 place-items-center rounded-xl"
-              style={{ background: "color-mix(in oklab, var(--ink) 6%, transparent)", color: "var(--ink)" }}
-            >
-              <ShoppingBag size={18} strokeWidth={2} />
-            </div>
-            <div className="flex-1">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: "var(--muted-foreground)" }}>
-                {t("profile.library")}
+          <motion.div {...anim(1)}>
+            <Link to="/products" className="flex items-center gap-3 p-3" style={CARD}>
+              <div
+                className="grid h-10 w-10 place-items-center rounded-xl"
+                style={{ background: "color-mix(in oklab, var(--ink) 6%, transparent)", color: "var(--ink)" }}
+              >
+                <ShoppingBag size={18} strokeWidth={2} />
               </div>
-              <div className="mt-0.5 text-[15px]" style={{ fontWeight: 700, color: "var(--ink)" }}>
-                {t("profile.myProducts")}
+              <div className="flex-1">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: "var(--muted-foreground)" }}>
+                  {t("profile.library")}
+                </div>
+                <div className="mt-0.5 text-[15px]" style={{ fontWeight: 700, color: "var(--ink)" }}>
+                  {t("profile.myProducts")}
+                </div>
               </div>
-            </div>
-            <ChevronRight size={18} style={{ color: "var(--muted-foreground)" }} />
-          </Link>
+              <ChevronRight size={18} style={{ color: "var(--muted-foreground)" }} />
+            </Link>
+          </motion.div>
         </section>
 
         {/* ============ PROFIL CIAŁA ============ */}
@@ -158,7 +166,7 @@ function ProfilePage() {
           <SectionLabel>{t("profile.bodyProfile")}</SectionLabel>
 
           {/* Card A: Sex + Age/Height/Weight */}
-          <div className="p-4 space-y-3" style={CARD}>
+          <motion.div {...anim(2)} className="p-4 space-y-3" style={CARD}>
             <Seg
               label={t("calc.sex")}
               value={body.sex}
@@ -173,10 +181,10 @@ function ProfilePage() {
               <NumField label={t("calc.height")} unit="cm" value={body.height} onChange={(v) => setBody({ height: v })} />
               <NumField label={t("calc.weight")} unit="kg" value={body.weight} onChange={(v) => setBody({ weight: v })} />
             </div>
-          </div>
+          </motion.div>
 
           {/* Card B: Activity (vertical list) */}
-          <div className="p-4 space-y-2" style={CARD}>
+          <motion.div {...anim(3)} className="p-4 space-y-2" style={CARD}>
             <FieldLabel>{t("calc.activity")}</FieldLabel>
             <div className="space-y-1.5">
               {ACTIVITY_ORDER.map((k) => (
@@ -189,24 +197,24 @@ function ProfilePage() {
                 />
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Card C: Goal */}
-          <div className="p-4 space-y-2" style={CARD}>
+          <motion.div {...anim(4)} className="p-4 space-y-2" style={CARD}>
             <Seg
               label={t("calc.goal")}
               value={body.goal}
               onChange={(v) => setBody({ goal: v })}
               options={GOAL_ORDER.map((k) => ({ v: k, l: t(GOAL_KEY[k]) }))}
             />
-          </div>
+          </motion.div>
         </section>
 
         {/* ============ KALKULATOR BMR / TDEE ============ */}
         <section className="space-y-2">
           <SectionLabel>{t("calc.title")}</SectionLabel>
 
-          <div className="p-4 space-y-3" style={CARD}>
+          <motion.div {...anim(5)} className="p-4 space-y-3" style={CARD}>
             {!computed ? (
               <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
                 {t("profile.needMore")}
@@ -248,7 +256,7 @@ function ProfilePage() {
                 </p>
               </>
             )}
-          </div>
+          </motion.div>
         </section>
       </div>
     </div>
