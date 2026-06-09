@@ -55,6 +55,59 @@ function round1(x: number) {
   return Math.round(x * 10) / 10;
 }
 
+interface GeminiBody {
+  contents: unknown;
+  generationConfig: Record<string, unknown>;
+}
+
+async function callGeminiOnce(model: string, apiKey: string, body: GeminiBody): Promise<{ ok: true; raw: string } | { ok: false; status: number; text: string }> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch (err) {
+    throw new Error("AI_NETWORK: " + (err instanceof Error ? err.message : String(err)));
+  }
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    return { ok: false, status: res.status, text };
+  }
+  const payload = (await res.json()) as {
+    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  };
+  const raw = payload.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+  return { ok: true, raw };
+}
+
+async function callGeminiWithFallback(apiKey: string, body: GeminiBody): Promise<string> {
+  const PRIMARY = "gemini-3.5-flash";
+  const FALLBACK = "gemini-2.5-flash";
+  const first = await callGeminiOnce(PRIMARY, apiKey, body);
+  const isUnavailable = (s: number, t: string) =>
+    s === 404 || (s === 400 && /model|not found|not supported|unavailable/i.test(t));
+  if (first.ok) {
+    if (!first.raw) throw new Error("AI_EMPTY");
+    return first.raw;
+  }
+  if (isUnavailable(first.status, first.text)) {
+    const second = await callGeminiOnce(FALLBACK, apiKey, body);
+    if (second.ok) {
+      if (!second.raw) throw new Error("AI_EMPTY");
+      return second.raw;
+    }
+    if (second.status === 429) throw new Error("AI_RATE_LIMIT");
+    if (second.status === 402 || second.status === 403) throw new Error("AI_CREDITS");
+    throw new Error(`AI_HTTP_${second.status}: ${second.text.slice(0, 200)}`);
+  }
+  if (first.status === 429) throw new Error("AI_RATE_LIMIT");
+  if (first.status === 402 || first.status === 403) throw new Error("AI_CREDITS");
+  throw new Error(`AI_HTTP_${first.status}: ${first.text.slice(0, 200)}`);
+}
+
 export const scanNutritionLabel = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data }): Promise<NutritionLabel> => {
