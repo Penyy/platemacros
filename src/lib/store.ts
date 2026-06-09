@@ -855,6 +855,29 @@ export function ymd(d: Date) {
   return `${y}-${m}-${day}`;
 }
 
+
+export function countMissingFromPrevDay(entries: LogEntry[], date: string, meal: Meal): number {
+  const d = new Date(date + "T00:00:00");
+  d.setDate(d.getDate() - 1);
+  const prev = ymd(d);
+  const src = entries.filter((e) => e.date === prev && e.meal === meal);
+  if (src.length === 0) return 0;
+  const today = entries.filter((e) => e.date === date && e.meal === meal);
+  const norm = (s: string) => s.trim().toLowerCase();
+  const counts = new Map<string, number>();
+  for (const e of today) {
+    const k = norm(e.name);
+    counts.set(k, (counts.get(k) ?? 0) + 1);
+  }
+  let missing = 0;
+  for (const e of src) {
+    const k = norm(e.name);
+    const c = counts.get(k) ?? 0;
+    if (c > 0) counts.set(k, c - 1);
+    else missing++;
+  }
+  return missing;
+}
 export function seedWeeklyFromProfile(p: Profile): WeeklyMacroTargets {
   const out: WeeklyMacroTargets = {};
   for (let i = 0; i < 7; i++) {
