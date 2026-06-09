@@ -199,7 +199,7 @@ function TodayPage() {
               meal={m}
               date={selected}
               entries={dayEntries.filter((e) => e.meal === m)}
-              prevDayHasEntries={prevEntries.some((e) => e.meal === m)}
+              prevDayHasEntries={missingPrev[m]}
               onAdd={(meal) => openAdd(meal, selected)}
             />
           </motion.div>
