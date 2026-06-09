@@ -251,46 +251,51 @@ function ProductsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.28, delay: Math.min(i, 12) * 0.04, ease: [0.22, 1, 0.36, 1] }}
               >
-                <button
-                  onClick={() => openEdit(p)}
-                  aria-label={t("products.editAria", { name: p.name })}
-                  className="flex w-full items-center gap-3 rounded-[18px] bg-card p-3.5 text-left active:scale-[0.99]"
-                  style={{ border: "1px solid var(--hairline)", boxShadow: "var(--shadow-card)" }}
+                <SwipeRow
+                  onDelete={() => setSwipeDeleteId(p.id)}
+                  deleteLabel={t("common.delete")}
                 >
-                  <div className="flex-1 min-w-0">
-                    <div
-                      className="truncate text-[15px]"
-                      style={{ fontWeight: 700, color: "var(--ink)" }}
-                    >
-                      {p.name}
-                    </div>
-                    <div className="mt-1.5 flex flex-wrap gap-1.5">
-                      <MacroPill macro="protein" letter={t("macro.short.protein")} value={round1(p.protein)} />
-                      <MacroPill macro="carbs" letter={t("macro.short.carbs")} value={round1(p.carbs)} />
-                      <MacroPill macro="fat" letter={t("macro.short.fat")} value={round1(p.fat)} />
-                    </div>
-                  </div>
-                  <div className="shrink-0 pr-1 text-right">
-                    <div
-                      className="num-tight text-[18px] leading-none"
-                      style={{ fontWeight: 800, color: "var(--ink)" }}
-                    >
-                      {Math.round(p.kcal)}
-                      <span
-                        className="ml-0.5 text-[10px]"
-                        style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+                  <button
+                    onClick={() => openEdit(p)}
+                    aria-label={t("products.editAria", { name: p.name })}
+                    className="flex w-full items-center gap-3 rounded-[18px] bg-card p-3.5 text-left active:scale-[0.99]"
+                    style={{ border: "1px solid var(--hairline)", boxShadow: "var(--shadow-card)" }}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div
+                        className="truncate text-[15px]"
+                        style={{ fontWeight: 700, color: "var(--ink)" }}
                       >
-                        kcal
-                      </span>
+                        {p.name}
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        <MacroPill macro="protein" letter={t("macro.short.protein")} value={round1(p.protein)} />
+                        <MacroPill macro="carbs" letter={t("macro.short.carbs")} value={round1(p.carbs)} />
+                        <MacroPill macro="fat" letter={t("macro.short.fat")} value={round1(p.fat)} />
+                      </div>
                     </div>
-                    <div
-                      className="mt-1 text-[10px]"
-                      style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
-                    >
-                      {t("products.per100")}
+                    <div className="shrink-0 pr-1 text-right">
+                      <div
+                        className="num-tight text-[18px] leading-none"
+                        style={{ fontWeight: 800, color: "var(--ink)" }}
+                      >
+                        {Math.round(p.kcal)}
+                        <span
+                          className="ml-0.5 text-[10px]"
+                          style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+                        >
+                          kcal
+                        </span>
+                      </div>
+                      <div
+                        className="mt-1 text-[10px]"
+                        style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
+                      >
+                        {t("products.per100")}
+                      </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+                </SwipeRow>
               </motion.li>
             ))}
           </ul>
