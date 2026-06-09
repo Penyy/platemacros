@@ -599,7 +599,7 @@ function SplitChartCard({
                   className="relative overflow-hidden"
                   style={{
                     width: "60%",
-                    background: color,
+                    background: barColorFor(d.v, d.goal),
                     borderRadius: "9px 9px 5px 5px",
                     opacity: isToday || !isAnyToday(values, today) && i === values.length - 1 ? 1 : 0.8,
                   }}
