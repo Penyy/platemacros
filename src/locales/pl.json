@@ -8,9 +8,7 @@
     "add": "Dodaj",
     "edit": "Edytuj",
     "close": "Zamknij",
-    "undo": "Cofnij",
-    "yes": "Tak",
-    "no": "Nie"
+    "undo": "Cofnij"
   },
   "snackbar": {
     "copied_one": "Skopiowano {{count}} pozycję",
@@ -45,10 +43,7 @@
       "fat": "Tłuszcz"
     },
     "deleteTitle": "Usunąć produkt?",
-    "deleteBody": "Czy na pewno chcesz usunąć „{{name}}”? Tej operacji nie można cofnąć.",
-    "deleteConfirmTitle": "Usunąć produkt?",
-    "deleteConfirmBody": "Usunąć „{{name}}” z biblioteki?",
-    "productDeleted": "Produkt usunięty"
+    "deleteBody": "Czy na pewno chcesz usunąć „{{name}}”? Tej operacji nie można cofnąć."
   },
   "item": {
     "editTitle": "Edytuj pozycję",
