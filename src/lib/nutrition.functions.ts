@@ -121,8 +121,6 @@ export const scanNutritionLabel = createServerFn({ method: "POST" })
       ? data.imageBase64.split(",")[1] ?? ""
       : data.imageBase64;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
-
     const body = {
       contents: [
         {
@@ -134,32 +132,11 @@ export const scanNutritionLabel = createServerFn({ method: "POST" })
       ],
       generationConfig: {
         responseMimeType: "application/json",
-        temperature: 0.1,
+        temperature: 0.2,
       },
     };
 
-    let res: Response;
-    try {
-      res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-    } catch (err) {
-      throw new Error("AI_NETWORK: " + (err instanceof Error ? err.message : String(err)));
-    }
-
-    if (!res.ok) {
-      if (res.status === 429) throw new Error("AI_RATE_LIMIT");
-      if (res.status === 402 || res.status === 403) throw new Error("AI_CREDITS");
-      const txt = await res.text().catch(() => "");
-      throw new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`);
-    }
-
-    const payload = (await res.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-    };
-    const raw = payload.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+    const raw = await callGeminiWithFallback(apiKey, body);
     if (!raw) throw new Error("AI_EMPTY");
 
     let parsed: unknown;
