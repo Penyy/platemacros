@@ -81,7 +81,8 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
+    // Single line by default (~22px), grow up to ~5 lines (~110px) then scroll.
+    el.style.height = `${Math.min(Math.max(el.scrollHeight, 22), 110)}px`;
   }, [input]);
 
   const [history, setHistory] = useState<HistoryItem[]>([]);
