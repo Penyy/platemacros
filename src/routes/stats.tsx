@@ -146,7 +146,7 @@ function StatsPage() {
                 range={range}
                 goalKcal={profile.goal_kcal}
                 avgKcal={avg.kcal}
-                onTap={() => setView("split")}
+                onTap={goSplit}
               />
             </motion.div>
           ) : (
