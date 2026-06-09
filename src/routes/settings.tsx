@@ -258,194 +258,216 @@ function SettingsPage() {
 
   const assistant = profile.assistant ?? defaultAssistantSettings;
 
+  const anim = (i: number) => ({
+    initial: { opacity: 0, y: 8 },
+    animate: { opacity: 1, y: 0 },
+    transition: { delay: 0.04 * i, duration: 0.3, ease: "easeOut" as const },
+  });
+
   return (
     <div className="pb-8">
       <ScreenHeader title={t("settings.title")} />
 
       {/* A) APLIKACJA */}
-      <Section title={t("settings.sec.app")}>
-        <Row label={t("settings.theme.label")}>
-          <ThemeSelect value={profile.theme} onChange={(th) => setTheme(th)} />
-        </Row>
-        <Row label={t("settings.language.label")}>
-          <LanguageSelect />
-        </Row>
-      </Section>
+      <motion.div {...anim(0)}>
+        <Section title={t("settings.sec.app")}>
+          <Row label={t("settings.theme.label")}>
+            <ThemeSelect value={profile.theme} onChange={(th) => setTheme(th)} />
+          </Row>
+          <Row label={t("settings.language.label")}>
+            <LanguageSelect />
+          </Row>
+        </Section>
+      </motion.div>
 
       {/* B) CELE I KALORIE */}
-      <Section title={t("settings.sec.goals")}>
-        <LinkRow
-          label={t("settings.goals.dailyTitle")}
-          subtitle={t("settings.goals.editInProfile")}
-          value={`${profile.goal_kcal} ${t("settings.goals.unitKcal")}`}
-          onClick={() => navigate({ to: "/profile" })}
-        />
-        <RowWithSub
-          label={t("settings.weekly.switch")}
-          subtitle={t("settings.weekly.note")}
-        >
-          <AccentSwitch
-            checked={!!profile.weekly_targets_enabled}
-            onCheckedChange={(v) => setWeeklyEnabled(v)}
+      <motion.div {...anim(1)}>
+        <Section title={t("settings.sec.goals")}>
+          <LinkRow
+            label={t("settings.goals.dailyTitle")}
+            subtitle={t("settings.goals.editInProfile")}
+            value={`${profile.goal_kcal} ${t("settings.goals.unitKcal")}`}
+            onClick={() => navigate({ to: "/profile" })}
           />
-        </RowWithSub>
-        {profile.weekly_targets_enabled && (
-          <WeeklyEditor
-            value={profile.weekly_macro_targets ?? seedWeeklyFromProfile(profile)}
-            onChange={(idx, m) => setWeeklyDay(idx, m)}
-          />
-        )}
-        <RowWithSub
-          label={t("settings.activity.includeBurned")}
-          subtitle={t("settings.activity.note")}
-        >
-          <AccentSwitch
-            checked={!!profile.include_burned}
-            onCheckedChange={(v) => setIncludeBurned(v)}
-          />
-        </RowWithSub>
-      </Section>
+          <RowWithSub
+            label={t("settings.weekly.switch")}
+            subtitle={t("settings.weekly.note")}
+          >
+            <AccentSwitch
+              checked={!!profile.weekly_targets_enabled}
+              onCheckedChange={(v) => setWeeklyEnabled(v)}
+            />
+          </RowWithSub>
+          {profile.weekly_targets_enabled && (
+            <WeeklyEditor
+              value={profile.weekly_macro_targets ?? seedWeeklyFromProfile(profile)}
+              onChange={(idx, m) => setWeeklyDay(idx, m)}
+            />
+          )}
+          <RowWithSub
+            label={t("settings.activity.includeBurned")}
+            subtitle={t("settings.activity.note")}
+          >
+            <AccentSwitch
+              checked={!!profile.include_burned}
+              onCheckedChange={(v) => setIncludeBurned(v)}
+            />
+          </RowWithSub>
+        </Section>
+      </motion.div>
 
       {/* C) ASYSTENT AI */}
-      <Section title={t("settings.sec.assistant")}>
-        <RowWithSub
-          label={t("settings.assistant.autoAddPhoto")}
-          subtitle={t("settings.assistant.autoAddPhotoNote")}
-        >
-          <AccentSwitch
-            checked={assistant.autoAddPhoto}
-            onCheckedChange={(v) => setAssistant({ autoAddPhoto: v })}
-          />
-        </RowWithSub>
-        <RowWithSub
-          label={t("settings.assistant.allowAddEntries")}
-          subtitle={t("settings.assistant.allowAddEntriesNote")}
-        >
-          <AccentSwitch
-            checked={assistant.allowAddEntries}
-            onCheckedChange={(v) => setAssistant({ allowAddEntries: v })}
-          />
-        </RowWithSub>
-        <Row label={t("settings.assistant.defaultMeal")}>
-          <DefaultMealSelect
-            value={assistant.defaultMeal}
-            onChange={(v) => setAssistant({ defaultMeal: v })}
-          />
-        </Row>
-        <Row label={t("settings.assistant.responseLength")}>
-          <ResponseLengthSelect
-            value={assistant.responseLength}
-            onChange={(v) => setAssistant({ responseLength: v })}
-          />
-        </Row>
-      </Section>
+      <motion.div {...anim(2)}>
+        <Section title={t("settings.sec.assistant")}>
+          <RowWithSub
+            label={t("settings.assistant.autoAddPhoto")}
+            subtitle={t("settings.assistant.autoAddPhotoNote")}
+          >
+            <AccentSwitch
+              checked={assistant.autoAddPhoto}
+              onCheckedChange={(v) => setAssistant({ autoAddPhoto: v })}
+            />
+          </RowWithSub>
+          <RowWithSub
+            label={t("settings.assistant.allowAddEntries")}
+            subtitle={t("settings.assistant.allowAddEntriesNote")}
+          >
+            <AccentSwitch
+              checked={assistant.allowAddEntries}
+              onCheckedChange={(v) => setAssistant({ allowAddEntries: v })}
+            />
+          </RowWithSub>
+          <Row label={t("settings.assistant.defaultMeal")}>
+            <DefaultMealSelect
+              value={assistant.defaultMeal}
+              onChange={(v) => setAssistant({ defaultMeal: v })}
+            />
+          </Row>
+          <Row label={t("settings.assistant.responseLength")}>
+            <ResponseLengthSelect
+              value={assistant.responseLength}
+              onChange={(v) => setAssistant({ responseLength: v })}
+            />
+          </Row>
+        </Section>
+      </motion.div>
 
       {/* D) MENU DODAWANIA */}
-      <Section
-        title={t("settings.sec.plusMenu")}
-        subtitle={t("settings.sec.plusMenuSubtitle")}
-      >
-        <PlusMenuVisibilityList
-          visibility={plusVisibility}
-          onToggle={(id, v) => setPlusMenuItem(id, v)}
-        />
-      </Section>
-
-      {/* E) DANE */}
-      <Section title={t("settings.sec.data")}>
-        <IconActionRow
-          icon={<Download size={18} strokeWidth={1.9} />}
-          label={t("data.export")}
-          subtitle={t("data.exportHint")}
-          onClick={handleExport}
-        />
-        <IconActionRow
-          icon={<Upload size={18} strokeWidth={1.9} />}
-          label={t("data.import")}
-          subtitle={t("data.importHint")}
-          onClick={() => fileRef.current?.click()}
-        />
-        <input
-          ref={fileRef}
-          type="file"
-          accept="application/json,.json"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) handleImport(f);
-            e.target.value = "";
-          }}
-        />
-      </Section>
-
-      {legacy && (
-        <Section title={t("settings.sec.migration")}>
-          <IconActionRow
-            icon={<CloudUpload size={18} strokeWidth={1.9} />}
-            label={
-              migrating
-                ? t("settings.migration.movingLabel")
-                : t("settings.migration.moveLabel")
-            }
-            subtitle={t("settings.migration.found", {
-              entries: legacy.entries.length,
-              products: legacy.products.length,
-            })}
-            onClick={handleMigrate}
-            disabled={migrating}
+      <motion.div {...anim(3)}>
+        <Section
+          title={t("settings.sec.plusMenu")}
+          subtitle={t("settings.sec.plusMenuSubtitle")}
+        >
+          <PlusMenuVisibilityList
+            visibility={plusVisibility}
+            onToggle={(id, v) => setPlusMenuItem(id, v)}
           />
         </Section>
+      </motion.div>
+
+      {/* E) DANE */}
+      <motion.div {...anim(4)}>
+        <Section title={t("settings.sec.data")}>
+          <IconActionRow
+            icon={<Download size={18} strokeWidth={1.9} />}
+            label={t("data.export")}
+            subtitle={t("data.exportHint")}
+            onClick={handleExport}
+          />
+          <IconActionRow
+            icon={<Upload size={18} strokeWidth={1.9} />}
+            label={t("data.import")}
+            subtitle={t("data.importHint")}
+            onClick={() => fileRef.current?.click()}
+          />
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleImport(f);
+              e.target.value = "";
+            }}
+          />
+        </Section>
+      </motion.div>
+
+      {legacy && (
+        <motion.div {...anim(5)}>
+          <Section title={t("settings.sec.migration")}>
+            <IconActionRow
+              icon={<CloudUpload size={18} strokeWidth={1.9} />}
+              label={
+                migrating
+                  ? t("settings.migration.movingLabel")
+                  : t("settings.migration.moveLabel")
+              }
+              subtitle={t("settings.migration.found", {
+                entries: legacy.entries.length,
+                products: legacy.products.length,
+              })}
+              onClick={handleMigrate}
+              disabled={migrating}
+            />
+          </Section>
+        </motion.div>
       )}
 
       {/* F) KONTO */}
-      <Section title={t("settings.sec.account")}>
-        <IconActionRow
-          icon={<LogOut size={18} strokeWidth={1.9} />}
-          label={t("settings.account.logout")}
-          onClick={handleLogout}
-        />
-        <IconActionRow
-          icon={<MessageSquare size={18} strokeWidth={1.9} />}
-          label={t("feedback.send")}
-          subtitle={t("settings.feedback.note")}
-          onClick={() => setFeedbackOpen(true)}
-          chevron
-        />
-      </Section>
+      <motion.div {...anim(6)}>
+        <Section title={t("settings.sec.account")}>
+          <IconActionRow
+            icon={<LogOut size={18} strokeWidth={1.9} />}
+            label={t("settings.account.logout")}
+            onClick={handleLogout}
+          />
+          <IconActionRow
+            icon={<MessageSquare size={18} strokeWidth={1.9} />}
+            label={t("feedback.send")}
+            subtitle={t("settings.feedback.note")}
+            onClick={() => setFeedbackOpen(true)}
+            chevron
+          />
+        </Section>
+      </motion.div>
 
       <FeedbackSheet open={feedbackOpen} onOpenChange={setFeedbackOpen} />
 
       {/* G) STREFA ZAGROŻENIA */}
-      <Section title={t("settings.sec.danger")}>
-        <button
-          onClick={() => setResetOpen(true)}
-          className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition active:bg-foreground/5"
-        >
-          <span
-            className="grid h-9 w-9 place-items-center rounded-xl"
-            style={{
-              background: "color-mix(in oklab, var(--macro-protein) 14%, transparent)",
-              color: "var(--macro-protein)",
-            }}
+      <motion.div {...anim(7)}>
+        <Section title={t("settings.sec.danger")}>
+          <button
+            onClick={() => setResetOpen(true)}
+            className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition active:bg-foreground/5"
           >
-            <Trash2 size={18} strokeWidth={1.9} />
-          </span>
-          <div className="flex-1">
-            <div
-              className="text-[15px]"
-              style={{ color: "var(--macro-protein)", fontWeight: 700 }}
+            <span
+              className="grid h-9 w-9 place-items-center rounded-xl"
+              style={{
+                background: "color-mix(in oklab, var(--macro-protein) 14%, transparent)",
+                color: "var(--macro-protein)",
+              }}
             >
-              {t("settings.danger.reset")}
+              <Trash2 size={18} strokeWidth={1.9} />
+            </span>
+            <div className="flex-1">
+              <div
+                className="text-[15px]"
+                style={{ color: "var(--macro-protein)", fontWeight: 700 }}
+              >
+                {t("settings.danger.reset")}
+              </div>
+              <div
+                className="mt-0.5 text-[12px]"
+                style={{ color: "var(--muted-foreground)" }}
+              >
+                {t("settings.danger.resetNote")}
+              </div>
             </div>
-            <div
-              className="mt-0.5 text-[12px]"
-              style={{ color: "var(--muted-foreground)" }}
-            >
-              {t("settings.danger.resetNote")}
-            </div>
-          </div>
-        </button>
-      </Section>
+          </button>
+        </Section>
+      </motion.div>
 
       <AlertDialog open={resetOpen} onOpenChange={(v) => !resetting && setResetOpen(v)}>
         <AlertDialogContent>
@@ -482,12 +504,13 @@ function SettingsPage() {
       </AlertDialog>
 
       {/* H) STOPKA */}
-      <p
+      <motion.p
+        {...anim(8)}
         className="px-6 pt-6 pb-2 text-center text-[11px]"
         style={{ color: "var(--muted-foreground)" }}
       >
         {t("settings.version")}
-      </p>
+      </motion.p>
     </div>
   );
 }
