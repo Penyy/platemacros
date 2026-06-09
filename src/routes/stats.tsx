@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, ChevronLeft, Hand } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
-import { sumEntries, usePlate, ymd } from "@/lib/store";
+import { getDayGoals, sumEntries, usePlate, ymd } from "@/lib/store";
 
 export const Route = createFileRoute("/stats")({
   head: () => ({
