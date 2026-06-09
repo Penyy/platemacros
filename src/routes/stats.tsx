@@ -193,6 +193,7 @@ function StatsPage() {
                       date: d.date,
                       v: Math.round(d.totals[m.key as keyof typeof d.totals]),
                     }))}
+                    onTap={goCombined}
                   />
                 </motion.div>
               ))}
