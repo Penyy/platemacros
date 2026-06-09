@@ -136,8 +136,19 @@ function ProductsPage() {
     closeSheet();
   }
 
+  function confirmSwipeRemove() {
+    if (!swipeDeleteId) return;
+    removeProduct(swipeDeleteId);
+    setSwipeDeleteId(null);
+    toast(t("products.productDeleted"));
+  }
+
   const editingProduct = editingId
     ? products.find((p) => p.id === editingId)
+    : null;
+
+  const swipeDeleteProduct = swipeDeleteId
+    ? products.find((p) => p.id === swipeDeleteId)
     : null;
 
   const sortOptions: { key: SortKey; label: string }[] = [
