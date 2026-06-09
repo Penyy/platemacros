@@ -156,12 +156,13 @@
     height: 100%;
   }
 
-  /* The actual scroller is <html>. Giving it a solid theme background means
-     vertical overscroll AND the browser's horizontal swipe-between-pages show
-     the app colour instead of the default white. */
+  /* The actual scroller is <html>. A solid theme background means vertical
+     overscroll shows the app colour instead of white. overscroll-behavior:none
+     also disables the browser's horizontal back/forward swipe gesture, which
+     was unpredictably jumping between tabs. */
   html {
     background-color: var(--background);
-    overscroll-behavior-y: none;
+    overscroll-behavior: none;
   }
 
   body {
@@ -171,7 +172,7 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    overscroll-behavior-y: none;
+    overscroll-behavior: none;
   }
 }
 
