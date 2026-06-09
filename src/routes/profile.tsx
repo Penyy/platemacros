@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
 import { ChevronRight, Pencil, ShoppingBag } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import {
