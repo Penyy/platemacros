@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -34,6 +34,19 @@ export function EditEntrySheet({ entry, onClose }: Props) {
   const [satFat, setSatFat] = useState("");
   const [sodium, setSodium] = useState("");
 
+  // Per-gram basis (kcal/macros per 1 g) captured when the sheet opens.
+  // null when the entry has no amount (e.g. quick kcal-only adds) -> no scaling.
+  const ratioRef = useRef<null | {
+    kcal: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number | null;
+    sugars: number | null;
+    satFat: number | null;
+    sodium: number | null;
+  }>(null);
+
   useEffect(() => {
     if (!entry) return;
     setName(entry.name);
@@ -47,9 +60,54 @@ export function EditEntrySheet({ entry, onClose }: Props) {
     setSugars(entry.sugars_g != null ? String(round1(entry.sugars_g)) : "");
     setSatFat(entry.saturated_fat_g != null ? String(round1(entry.saturated_fat_g)) : "");
     setSodium(entry.sodium_mg != null ? String(Math.round(entry.sodium_mg)) : "");
+
+    // Capture a per-gram basis so changing the amount can rescale everything.
+    const g0 = entry.grams ?? 0;
+    ratioRef.current = g0 > 0
+      ? {
+          kcal: entry.kcal / g0,
+          protein: entry.protein / g0,
+          carbs: entry.carbs / g0,
+          fat: entry.fat / g0,
+          fiber: entry.fiber_g != null ? entry.fiber_g / g0 : null,
+          sugars: entry.sugars_g != null ? entry.sugars_g / g0 : null,
+          satFat: entry.saturated_fat_g != null ? entry.saturated_fat_g / g0 : null,
+          sodium: entry.sodium_mg != null ? entry.sodium_mg / g0 : null,
+        }
+      : null;
   }, [entry]);
 
 
+
+  // Changing the amount proportionally rescales kcal + every nutrient.
+  const handleGrams = (v: string) => {
+    const val = v.replace(",", ".");
+    setGrams(val);
+    const g = Number(val);
+    const r = ratioRef.current;
+    if (!r || !Number.isFinite(g) || g <= 0) return;
+    setKcal(String(Math.round(r.kcal * g)));
+    setProtein(String(round1(r.protein * g)));
+    setCarbs(String(round1(r.carbs * g)));
+    setFat(String(round1(r.fat * g)));
+    if (r.fiber != null) setFiber(String(round1(r.fiber * g)));
+    if (r.sugars != null) setSugars(String(round1(r.sugars * g)));
+    if (r.satFat != null) setSatFat(String(round1(r.satFat * g)));
+    if (r.sodium != null) setSodium(String(Math.round(r.sodium * g)));
+  };
+
+  // Manually editing a value re-bases its per-gram ratio, so later amount
+  // changes keep that edit proportional.
+  const rebase = (
+    key: "kcal" | "protein" | "carbs" | "fat" | "fiber" | "sugars" | "satFat" | "sodium",
+    v: string,
+  ) => {
+    const g = Number(grams.replace(",", "."));
+    const val = Number(v.replace(",", "."));
+    if (ratioRef.current && Number.isFinite(g) && g > 0 && Number.isFinite(val)) {
+      ratioRef.current[key] = val / g;
+    }
+  };
 
   const optNum = (s: string): number | null => {
     if (s.trim() === "") return null;
@@ -209,9 +267,26 @@ export function EditEntrySheet({ entry, onClose }: Props) {
 
                 {/* Gramatura + kcal hero */}
                 <div className="grid grid-cols-2 gap-2">
-                  <NumCard label={t("item.amount")} unit="g" value={grams} onChange={setGrams} />
-                  <NumCard label={t("item.kcal")} unit="kcal" value={kcal} onChange={setKcal} hero />
+                  <NumCard label={t("item.amount")} unit="g" value={grams} onChange={handleGrams} />
+                  <NumCard
+                    label={t("item.kcal")}
+                    unit="kcal"
+                    value={kcal}
+                    onChange={(v) => {
+                      setKcal(v);
+                      rebase("kcal", v);
+                    }}
+                    hero
+                  />
                 </div>
+                {entry?.grams != null && entry.grams > 0 && (
+                  <p
+                    className="-mt-1 px-1 text-[11px]"
+                    style={{ color: "var(--muted-foreground)" }}
+                  >
+                    {t("item.autoScaleHint")}
+                  </p>
+                )}
 
                 {/* Macros */}
                 <div className="grid grid-cols-3 gap-2">
@@ -219,21 +294,30 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                     label={t("macro.protein")}
                     unit="g"
                     value={protein}
-                    onChange={setProtein}
+                    onChange={(v) => {
+                      setProtein(v);
+                      rebase("protein", v);
+                    }}
                     dot="var(--macro-protein)"
                   />
                   <NumCard
                     label={t("macro.carbs")}
                     unit="g"
                     value={carbs}
-                    onChange={setCarbs}
+                    onChange={(v) => {
+                      setCarbs(v);
+                      rebase("carbs", v);
+                    }}
                     dot="var(--macro-carbs, var(--accent-yellow))"
                   />
                   <NumCard
                     label={t("macro.fat")}
                     unit="g"
                     value={fat}
-                    onChange={setFat}
+                    onChange={(v) => {
+                      setFat(v);
+                      rebase("fat", v);
+                    }}
                     dot="var(--macro-fat, #6FB4E8)"
                   />
                 </div>
@@ -252,10 +336,10 @@ export function EditEntrySheet({ entry, onClose }: Props) {
 
                 {/* Extras (optional) */}
                 <div className="grid grid-cols-2 gap-2">
-                  <NumCard label={t("item.fiber")} unit="g" value={fiber} onChange={setFiber} />
-                  <NumCard label={t("item.sugars")} unit="g" value={sugars} onChange={setSugars} />
-                  <NumCard label={t("item.satFatShort")} unit="g" value={satFat} onChange={setSatFat} />
-                  <NumCard label={t("item.sodium")} unit="mg" value={sodium} onChange={setSodium} />
+                  <NumCard label={t("item.fiber")} unit="g" value={fiber} onChange={(v) => { setFiber(v); rebase("fiber", v); }} />
+                  <NumCard label={t("item.sugars")} unit="g" value={sugars} onChange={(v) => { setSugars(v); rebase("sugars", v); }} />
+                  <NumCard label={t("item.satFatShort")} unit="g" value={satFat} onChange={(v) => { setSatFat(v); rebase("satFat", v); }} />
+                  <NumCard label={t("item.sodium")} unit="mg" value={sodium} onChange={(v) => { setSodium(v); rebase("sodium", v); }} />
                 </div>
 
 
