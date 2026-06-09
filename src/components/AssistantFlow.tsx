@@ -81,10 +81,13 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
     const el = textareaRef.current;
     if (!el) return;
     if (input.length === 0) {
+      // Empty: always one clean line. Don't let the (wrapping) placeholder
+      // inflate the field to two lines.
       el.style.height = "22px";
       return;
     }
     el.style.height = "auto";
+    // Grow with content up to ~5 lines (~110px), then scroll inside the field.
     el.style.height = `${Math.min(Math.max(el.scrollHeight, 22), 110)}px`;
   }, [input]);
 
@@ -521,7 +524,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
         className="flex items-center gap-2"
       >
         <div
-          className="flex flex-1 items-center gap-2 rounded-full bg-card px-4"
+          className="flex flex-1 items-center gap-2 rounded-[22px] bg-card px-4 py-2"
           style={{
             border: "1px solid var(--hairline)",
             boxShadow: "var(--shadow-card)",
@@ -530,7 +533,6 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
         >
           <textarea
             ref={textareaRef}
-            
             rows={1}
             value={input}
             onChange={(e) => setInput(e.target.value)}
