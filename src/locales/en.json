@@ -7,7 +7,14 @@
     "delete": "Delete",
     "add": "Add",
     "edit": "Edit",
-    "close": "Close"
+    "close": "Close",
+    "undo": "Undo"
+  },
+  "snackbar": {
+    "copied_one": "Copied {{count}} item",
+    "copied_other": "Copied {{count}} items",
+    "deletedMeal": "Deleted {{meal}}",
+    "noMealToCopy": "No meal to copy"
   },
   "products": {
     "title": "My products",

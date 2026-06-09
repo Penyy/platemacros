@@ -24,16 +24,16 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
 
   const handleRepeat = () => {
     const n = repeatMeal(date, meal);
-    if (n === 0) toast.message("Brak posiłku do skopiowania");
-    else toast.success(`Skopiowano ${n} ${n === 1 ? "pozycję" : "pozycje"}`);
+    if (n === 0) toast.message(t("snackbar.noMealToCopy"));
+    else toast.success(t("snackbar.copied", { count: n }));
   };
 
   const handleDelete = (entry: LogEntry) => {
     remove(entry.id);
-    toast(`Usunięto ${entry.name}`, {
+    toast(t("snackbar.deletedMeal", { meal: entry.name }), {
       duration: 5000,
       action: {
-        label: "Cofnij",
+        label: t("common.undo"),
         onClick: () => {
           addEntry({
             date: entry.date,
