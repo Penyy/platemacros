@@ -21,16 +21,14 @@ export function BottomNav({ onAdd }: Props) {
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto flex w-full max-w-[430px] items-center gap-2 px-3 pb-[max(env(safe-area-inset-bottom),0.6rem)] pt-2">
-      {/* Tab group — liquid glass */}
+      {/* Tab group */}
       <nav
         className="pointer-events-auto grid flex-1 grid-cols-4 items-center rounded-[28px] px-2 py-1.5"
         style={{
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04))",
-          backdropFilter: "blur(26px) saturate(170%)",
-          border: "1px solid rgba(255,255,255,0.20)",
+          background: "#2A2A23",
+          border: "1px solid rgba(255,255,255,0.12)",
           boxShadow:
-            "0 10px 34px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(255,255,255,0.06)",
+            "0 10px 30px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)",
         }}
       >
         {TABS.map((tab) => (
