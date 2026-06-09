@@ -374,11 +374,22 @@
     "title": "Profile",
     "metaTitle": "Plate — Profile",
     "metaDescription": "Your goals and macro split.",
+    "yourGoals": "Your goals",
     "dailyGoals": "Daily goals",
     "library": "Library",
     "myProducts": "My products",
     "macroSplit": "Macro split",
     "bodyProfile": "Body profile",
+    "suggestedGoal": "Suggested goal",
+    "setAsDaily": "Set as daily goal",
+    "willOverride": "Overrides “Daily goals” above. You can edit them manually later.",
+    "actDesc": {
+      "sedentary": "Little or no exercise",
+      "light": "1–3 days a week",
+      "moderate": "3–5 days a week",
+      "high": "6–7 days a week",
+      "very_high": "2× a day training / physical job"
+    },
     "needMore": "Fill in age, height and weight to compute suggested goals.",
     "editLater": "You can edit them later in Settings."
   },
