@@ -82,11 +82,6 @@ function TodayPage() {
     () => entries.filter((e) => e.date === selected),
     [entries, selected]
   );
-  const prevDate = useMemo(() => {
-    const d = new Date(selected + "T00:00:00");
-    d.setDate(d.getDate() - 1);
-    return ymd(d);
-  }, [selected]);
   const missingPrev = useMemo(() => {
     const out: Record<Meal, boolean> = {} as Record<Meal, boolean>;
     for (const m of MEALS) {
