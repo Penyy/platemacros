@@ -1,505 +1,493 @@
-{
-  "common": {
-    "cancel": "Anuluj",
-    "save": "Zapisz",
-    "today": "Dziś",
-    "ok": "OK",
-    "delete": "Usuń",
-    "add": "Dodaj",
-    "edit": "Edytuj",
-    "close": "Zamknij",
-    "undo": "Cofnij"
-  },
-  "snackbar": {
-    "copied_one": "Skopiowano {{count}} pozycję",
-    "copied_few": "Skopiowano {{count}} pozycje",
-    "copied_many": "Skopiowano {{count}} pozycji",
-    "copied_other": "Skopiowano {{count}} pozycji",
-    "deletedMeal": "Usunięto {{meal}}",
-    "noMealToCopy": "Brak posiłku do skopiowania"
-  },
-  "products": {
-    "title": "Moje produkty",
-    "subtitle": "Wartości zapisywane na 100 g",
-    "searchPlaceholder": "Szukaj produktu…",
-    "empty": "Nie masz jeszcze produktów",
-    "emptyHint": "Dodaj produkt z edycji pozycji lub po zeskanowaniu kodu.",
-    "noResults": "Brak wyników.",
-    "per100": "na 100 g",
-    "namePlaceholder": "Nazwa produktu",
-    "saveProduct": "Zapisz produkt",
-    "deleteConfirm": "Usunąć „{{name}}”?",
-    "deleted": "Usunięto · Cofnij",
-    "editAria": "Edytuj {{name}}",
-    "addProduct": "Dodaj produkt",
-    "newProduct": "Nowy produkt",
-    "editProduct": "Edytuj produkt",
-    "name": "Nazwa",
-    "sort": {
-      "name": "Nazwa",
-      "kcal": "Kalorie",
-      "protein": "Białko",
-      "carbs": "Węgle",
-      "fat": "Tłuszcz"
-    },
-    "deleteTitle": "Usunąć produkt?",
-    "deleteBody": "Czy na pewno chcesz usunąć „{{name}}”? Tej operacji nie można cofnąć."
-  },
-  "item": {
-    "editTitle": "Edytuj pozycję",
-    "autoScaleHint": "Zmiana gramatury automatycznie przelicza kalorie i makro.",
-    "addTitle": "Dodaj pozycję",
-    "name": "Nazwa",
-    "namePlaceholder": "Nazwa pozycji",
-    "amount": "Gramatura",
-    "kcal": "Kalorie",
-    "meal": "Posiłek",
-    "fiber": "Błonnik",
-    "sugars": "Cukry",
-    "satFat": "Tł. nasycone",
-    "satFatShort": "Tł. nasyc.",
-    "sodium": "Sód",
-    "carbBreakdown": "w tym proste: {{simple}} g · złożone: {{complex}} g",
-    "addToProducts": "Dodaj do moich produktów",
-    "addedToProducts": "Dodano do Twoich produktów",
-    "deleted": "Usunięto pozycję"
-  },
-  "nav": {
-    "today": "Dziś",
-    "stats": "Statystyki",
-    "products": "Produkty",
-    "settings": "Ustawienia"
-  },
-  "a11y": {
-    "notifications": "Powiadomienia",
-    "profile": "Profil",
-    "addItem": "Dodaj pozycję",
-    "repeatYesterday": "Powtórz z wczoraj",
-    "releaseToDelete": "Puść aby usunąć"
-  },
-  "meal": {
-    "breakfast": "Śniadanie",
-    "second_breakfast": "Lunch",
-    "lunch": "Obiad",
-    "dinner": "Kolacja",
-    "snack": "Przekąska"
-  },
-  "macro": {
-    "protein": "Białko",
-    "carbs": "Węglowodany",
-    "fat": "Tłuszcz",
-    "short": {
-      "protein": "B",
-      "carbs": "W",
-      "fat": "T"
-    }
-  },
-  "card": {
-    "addMeal": "Dodaj posiłek"
-  },
-  "today": {
-    "metaTitle": "Plate — Dzisiaj",
-    "metaDescription": "Twój dzienny przegląd kalorii i makroskładników w jednym widoku.",
-    "prevDay": "Poprzedni dzień",
-    "nextDay": "Następny dzień",
-    "notifications": "Powiadomienia",
-    "profile": "Profil",
-    "ofKcal": "z {{goal}} kcal",
-    "remaining": "zostało {{n}}",
-    "left": "zostało {{n}}",
-    "over": "ponad o {{n}}",
-    "burned": "Spalone {{n}}",
-    "editBurned": "Edytuj spalone kalorie",
-    "protein": "Białko",
-    "carbs": "Węglowodany",
-    "fat": "Tłuszcz"
-  },
-  "add": {
-    "title": {
-      "menu": "Dodaj pozycję",
-      "quick": "Szybkie dodawanie",
-      "manual": "Wpisz ręcznie",
-      "search": "Szukaj produktu",
-      "compound": "Złożony posiłek",
-      "barcode": "Skanuj kod kreskowy",
-      "assistant": "PlateAI",
-      "scan": "Skanuj etykietę"
-    },
-    "close": "Zamknij",
-    "heroSubtitle": "Opisz słowami albo zrób zdjęcie posiłku lub etykiety",
-    "barcodeLoading": "Ładowanie skanera…",
-    "menu": {
-      "barcodeLabel": "Skanuj kod kreskowy",
-      "barcodeSubtitle": "Kod kreskowy EAN",
-      "searchLabel": "Szukaj produktu",
-      "searchSubtitle": "Baza Open Food Facts",
-      "quickLabel": "Szybkie dodawanie",
-      "quickSubtitle": "Tylko kcal i makra",
-      "compoundLabel": "Złożony posiłek",
-      "compoundSubtitle": "Z wielu składników",
-      "manualLabel": "Wpisz ręcznie",
-      "manualSubtitle": "Własna pozycja z wartościami"
-    },
-    "quick": {
-      "kcal": "Kalorie",
-      "macroP": "Białko",
-      "macroC": "Węgl.",
-      "macroF": "Tłuszcz",
-      "submit": "Dodaj do dziennika"
-    }
-  },
-  "ai": {
-    "placeholderDefault": "Opisz albo zapytaj…",
-    "placeholderWithImages": "Opisz ilości…",
-    "send": "Wyślij",
-    "camera": "Dodaj zdjęcia",
-    "micStart": "Dyktuj głosem",
-    "micStop": "Zatrzymaj nasłuch",
-    "removeImage": "Usuń zdjęcie",
-    "addMore": "Dodaj kolejne",
-    "maxImages": "Maks. {{n}} zdjęć.",
-    "busyImage": "Analizuję zdjęcia…",
-    "busyText": "Myślę…",
-    "introTitle": "Mogę pomóc na 3 sposoby",
-    "introDescribe": "<b>Opisz co zjadłeś</b> — dodam z makro",
-    "introPhoto": "<b>Dodaj zdjęcia etykiet</b> (do 5) i opisz ilości",
-    "introAsk": "<b>Zapytaj o makro</b> — ile zostało, co dojeść",
-    "chip1": "Ile mi zostało?",
-    "chip2": "Co dojeść na białko?",
-    "chip3": "Dodaj posiłek",
-    "toast": {
-      "rate": "Za dużo żądań, spróbuj za chwilę.",
-      "credits": "Brak kredytów AI / problem z kluczem.",
-      "geminiKey": "Brak klucza Gemini.",
-      "imageFail": "Nie udało się rozpoznać zdjęcia.",
-      "loadImage": "Nie udało się wczytać zdjęcia.",
-      "textFail": "Nie udało się — spróbuj ponownie lub dodaj ręcznie.",
-      "micFail": "Nie udało się uruchomić mikrofonu.",
-      "recognitionFail": "Rozpoznawanie mowy nie powiodło się.",
-      "added": "Dodano · {{meal}}",
-      "undo": "Cofnij"
-    },
-    "voice": {
-      "notAllowed": "Brak dostępu do mikrofonu — sprawdź uprawnienia.",
-      "noSpeech": "Nie wykryto mowy. Spróbuj ponownie.",
-      "network": "Problem z rozpoznawaniem mowy. Spróbuj ponownie."
-    },
-    "history": {
-      "noItems": "Brak rozpoznanych pozycji.",
-      "noAnswer": "Hmm, brak odpowiedzi.",
-      "fail": "Nie udało się — spróbuj ponownie lub dodaj ręcznie.",
-      "addedOne": "Dodano 1 wpis: {{name}}.",
-      "addedMany": "Dodano {{n}} pozycji: {{name}}."
-    },
-    "userTextImagesWithNote": "📷 {{n}} zdj · \"{{note}}\"",
-    "userTextImages": "📷 {{n}} zdj",
-    "fallbackDish": "Posiłek",
-    "fallbackRecognize": "Rozpoznaj zdjęcia"
-  },
-  "preview": {
-    "title": "Podgląd z PlateAI",
-    "sum": "Suma",
-    "dishName": "Nazwa dania",
-    "meal": "Posiłek",
-    "mergeOne": "Dodaj jako jeden wpis (całość)",
-    "add": "Dodaj",
-    "empty": "Brak pozycji — dodaj zdjęcie lub opisz ilości.",
-    "itemName": "Nazwa",
-    "close": "Zamknij",
-    "removeItem": "Usuń pozycję"
-  },
-  "scan": {
-    "aim": "Nakieruj na kod kreskowy",
-    "cameraUnavail": "Kamera niedostępna w tej przeglądarce.",
-    "searching": "Szukam produktu…",
-    "searchingDb": "Szukam produktu w bazie…",
-    "code": "Kod: {{code}}",
-    "notFoundTitle": "Produktu nie ma w bazie",
-    "notFoundHint": "Możesz wpisać dane ręcznie.",
-    "netErrorTitle": "Błąd połączenia",
-    "netErrorHint": "Sprawdź internet i spróbuj ponownie.",
-    "retry": "Spróbuj ponownie",
-    "fatalTitle": "Nie udało się uruchomić skanera",
-    "torch": "Latarka",
-    "fileFallback": "Zrób zdjęcie kodu zamiast skanowania",
-    "noCodeOnPhoto": "Nie wykryto kodu na zdjęciu, spróbuj ponownie.",
-    "photoFail": "Nie udało się odczytać zdjęcia.",
-    "torchUnavail": "Latarka niedostępna na tym urządzeniu.",
-    "errNotAllowed": "Brak dostępu do kamery — sprawdź uprawnienia lub dodaj ręcznie.",
-    "permission": "Brak dostępu do aparatu — sprawdź uprawnienia.",
-    "takePhoto": "Zrób zdjęcie",
-    "fromGallery": "Z galerii",
-    "shutter": "Zrób zdjęcie",
-    "closeCamera": "Zamknij aparat",
-    "errNotFoundCam": "Nie znaleziono kamery — dodaj ręcznie.",
-    "errNotReadable": "Kamera jest używana przez inną aplikację.",
-    "errGeneric": "Nie udało się uruchomić skanera — dodaj ręcznie.",
-    "scanAgain": "Skanuj ponownie",
-    "servingBadge": "Porcja: {{g}} g (z bazy)",
-    "toggleServing": "Porcja ({{g}} g)",
-    "togglePer100": "100 g",
-    "per100Title": "Wartości na 100 g",
-    "fieldName": "Nazwa",
-    "fieldGrams": "Ile gramów zjadłeś/aś?",
-    "fieldGramsShort": "Ile gramów",
-    "fieldFiber": "Błonnik",
-    "fieldSugars": "Cukry",
-    "fieldSat": "Nasyc.",
-    "fieldSodium": "Sód mg",
-    "totalsTitle": "Razem",
-    "totalsSimple": "w tym proste: {{s}} g · złożone: {{c}} g",
-    "totalsFiber": "Błonnik {{n}} g · ",
-    "totalsSat": "Nasyc. {{n}} g · ",
-    "totalsSodium": "Sód {{n}} mg",
-    "saveToLib": "Zapisz do moich produktów",
-    "submit": "Dodaj do dziennika",
-    "add": "Dodaj"
-  },
-  "label": {
-    "captureTitle": "Zrób zdjęcie etykiety",
-    "captureHint": "Najlepsze rezultaty: dobrze oświetlona tabela odżywcza",
-    "reading": "Czytam etykietę…",
-    "checkValues": "Sprawdź i popraw wartości jeśli trzeba.",
-    "retake": "Zrób ponownie",
-    "name": "Nazwa",
-    "namePlaceholder": "np. Jogurt naturalny",
-    "per100Title": "Wartości na 100 g",
-    "gramsLabel": "Ile gramów zjadłeś/aś?",
-    "total": "Razem",
-    "saveToLib": "Zapisz do moich produktów",
-    "submit": "Dodaj do dziennika",
-    "confidenceHigh": "Wysoka pewność",
-    "confidenceMedium": "Średnia pewność",
-    "confidenceLow": "Niska pewność",
-    "errorRate": "Za dużo żądań do AI. Spróbuj za chwilę.",
-    "errorCredits": "Brak kredytów AI lub problem z kluczem Gemini.",
-    "errorGeminiKey": "Brak klucza Gemini w sekretach.",
-    "errorGeneric": "Nie udało się odczytać etykiety, spróbuj ponownie."
-  },
-  "settings": {
-    "title": "Ustawienia",
-    "version": "Plate · wersja 0.1",
-    "metaTitle": "Plate — Ustawienia",
-    "metaDescription": "Ustaw cele dzienne i wygląd aplikacji.",
-    "sec": {
-      "app": "Aplikacja",
-      "appearance": "Wygląd",
-      "language": "Język",
-      "goals": "Cele i kalorie",
-      "weekly": "Cele tygodniowe",
-      "activity": "Aktywność",
-      "assistant": "Asystent AI",
-      "plusMenu": "Menu dodawania",
-      "plusMenuSubtitle": "Wybierz, co widać po dotknięciu +",
-      "data": "Dane",
-      "migration": "Migracja",
-      "account": "Konto",
-      "feedback": "Opinie",
-      "danger": "Strefa zagrożenia"
-    },
-    "theme": {
-      "label": "Motyw",
-      "light": "Jasny",
-      "dark": "Ciemny",
-      "system": "System"
-    },
-    "language": {
-      "label": "Język",
-      "pl": "PL",
-      "en": "EN"
-    },
-    "goals": {
-      "kcal": "Kalorie",
-      "protein": "Białko",
-      "carbs": "Węglowodany",
-      "fat": "Tłuszcz",
-      "unitKcal": "kcal",
-      "unitG": "g",
-      "dailyTitle": "Cele dzienne",
-      "editInProfile": "Edytuj w Profilu"
-    },
-    "weekly": {
-      "switch": "Inne cele na każdy dzień tygodnia",
-      "note": "Dla cyklizacji węglowodanów — kcal liczone z B×4 + W×4 + T×9."
-    },
-    "weekday": {
-      "mon": "Pon",
-      "tue": "Wt",
-      "wed": "Śr",
-      "thu": "Czw",
-      "fri": "Pt",
-      "sat": "Sob",
-      "sun": "Niedz"
-    },
-    "activity": {
-      "includeBurned": "Uwzględniaj spalone kcal",
-      "note": "Gdy włączone, spalone kalorie powiększają dzienny cel (cel + spalone − zjedzone)."
-    },
-    "assistant": {
-      "autoAddPhoto": "Auto-dodaj ze zdjęcia z opisem",
-      "autoAddPhotoNote": "Gdy włączone, zdjęcie posiłku z opisem dodaje się bez dodatkowego potwierdzenia.",
-      "allowAddEntries": "Asystent może dodawać wpisy",
-      "allowAddEntriesNote": "Gdy wyłączone, AI tylko odpowiada — nie zapisuje nic do dziennika.",
-      "defaultMeal": "Domyślny posiłek",
-      "defaultMealAuto": "Wnioskuj z pory",
-      "responseLength": "Długość odpowiedzi",
-      "lenShort": "Krótkie",
-      "lenLong": "Szczegółowe"
-    },
-    "plusMenu": {
-      "assistant": "PlateAI",
-      "barcode": "Skanuj kod kreskowy",
-      "compound": "Złożony posiłek",
-      "search": "Szukaj produktu",
-      "quick": "Szybkie dodawanie",
-      "manual": "Wpisz ręcznie"
-    },
-    "data": {
-      "export": "Eksportuj dane",
-      "exportNote": "Pobierz plik JSON z całą historią",
-      "import": "Importuj dane",
-      "importNote": "Wczytaj kopię zapasową (nadpisze obecne)"
-    },
-    "migration": {
-      "movingLabel": "Przenoszę…",
-      "moveLabel": "Przenieś moje dane do chmury",
-      "found": "Znaleziono {{entries}} wpisów i {{products}} produktów lokalnie."
-    },
-    "account": {
-      "logout": "Wyloguj się"
-    },
-    "feedback": {
-      "send": "Prześlij opinię",
-      "note": "Powiedz nam co poprawić lub co Ci się podoba"
-    },
-    "danger": {
-      "reset": "Resetuj wszystkie dane",
-      "resetNote": "Usuwa wpisy, produkty i historię. Konto pozostaje.",
-      "dialogTitle": "Zresetować wszystkie dane?",
-      "dialogDesc": "Tej operacji nie można cofnąć. Usuniesz wszystkie wpisy, produkty i historię, a cele oraz ustawienia wrócą do stanu początkowego. Konto pozostaje. Rozważ najpierw Eksport JSON.",
-      "deleting": "Usuwanie…",
-      "deleteCountdown": "Usuń dane ({{n}})",
-      "delete": "Usuń dane",
-      "resetSuccess": "Dane zostały zresetowane",
-      "resetError": "Nie udało się zresetować danych"
-    },
-    "toast": {
-      "migrateOk": "Dane zostały przeniesione do chmury.",
-      "migrateErr": "Nie udało się przenieść danych."
-    }
-  },
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { Trash2, X } from "lucide-react";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { type LogEntry, type Meal, usePlate } from "@/lib/store";
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 
-  "profile": {
-    "title": "Profil",
-    "metaTitle": "Plate — Profil",
-    "metaDescription": "Twoje cele i rozkład makroskładników.",
-    "yourGoals": "Twoje cele",
-    "dailyGoals": "Cele dzienne",
-    "library": "Biblioteka",
-    "myProducts": "Moje produkty",
-    "macroSplit": "Rozkład makro",
-    "bodyProfile": "Profil ciała",
-    "suggestedGoal": "Sugerowany cel",
-    "setAsDaily": "Ustaw jako cel dzienny",
-    "willOverride": "Nadpisze „Cele dzienne” u góry. Później możesz je ręcznie zmienić.",
-    "actDesc": {
-      "sedentary": "Mało lub brak ćwiczeń",
-      "light": "1–3 dni w tygodniu",
-      "moderate": "3–5 dni w tygodniu",
-      "high": "6–7 dni w tygodniu",
-      "very_high": "Trening 2× dziennie / praca fizyczna"
-    },
-    "needMore": "Uzupełnij wiek, wzrost i wagę, aby obliczyć sugerowane cele.",
-    "editLater": "Możesz je później ręcznie edytować w Ustawieniach."
-  },
-  "goals": {
-    "title": "Cele",
-    "calories": "Cel kalorii",
-    "dailyToggle": "Cele dzienne (carb cycling)",
-    "dailyHint": "Ustaw inne makro dla każdego dnia tygodnia."
-  },
-  "calc": {
-    "title": "Kalkulator BMR/TDEE",
-    "sex": "Płeć",
-    "sexMale": "Mężczyzna",
-    "sexFemale": "Kobieta",
-    "age": "Wiek",
-    "ageUnit": "lat",
-    "height": "Wzrost",
-    "weight": "Waga",
-    "activity": "Poziom aktywności",
-    "activitySedentary": "Siedzący tryb",
-    "activityLight": "Lekka aktywność",
-    "activityModerate": "Umiarkowana aktywność",
-    "activityActive": "Wysoka aktywność",
-    "activityVeryActive": "Bardzo wysoka aktywność",
-    "goal": "Cel",
-    "goalCut": "Redukcja",
-    "goalMaintain": "Utrzymanie",
-    "goalBulk": "Budowa masy",
-    "bmr": "BMR",
-    "tdee": "TDEE",
-    "calculate": "Oblicz",
-    "useAsGoal": "Ustaw jako cel"
-  },
-  "days": {
-    "mon": "Pon",
-    "tue": "Wt",
-    "wed": "Śr",
-    "thu": "Czw",
-    "fri": "Pt",
-    "sat": "Sob",
-    "sun": "Niedz"
-  },
-  "productSearch": {
-    "title": "Szukaj produktu",
-    "placeholder": "Szukaj w bibliotece",
-    "empty": "Twoja biblioteka jest pusta. Dodaj produkty w „{{name}}”.",
-    "noResults": "Brak wyników — dodaj produkt w „{{name}}”.",
-    "pickAnother": "← Wybierz inny produkt",
-    "grams": "Ile gramów",
-    "total": "Razem",
-    "submit": "Dodaj do dziennika"
-  },
-  "data": {
-    "title": "Eksport / Import",
-    "export": "Eksportuj dane (JSON)",
-    "import": "Importuj dane (JSON)",
-    "importMacroflow": "Importuj z MacroFlow",
-    "exportHint": "Pobierz kopię wszystkich danych.",
-    "importHint": "Wczytaj dane z pliku JSON.",
-    "exportDone": "Dane wyeksportowane",
-    "importDone": "Dane zaimportowane",
-    "importError": "Nieprawidłowy plik",
-    "macroflowEmpty": "Nie znaleziono wpisów w pliku MacroFlow.",
-    "macroflowConfirm": "Znaleziono {{n}} wpisów z MacroFlow — importować?",
-    "macroflowDone": "Zaimportowano {{n}} wpisów z MacroFlow.",
-    "importConfirm": "Importować {{n}} wpisów? Obecne dane zostaną nadpisane."
-  },
-  "feedback": {
-    "title": "Prześlij opinię",
-    "placeholder": "Napisz, co możemy poprawić…",
-    "send": "Wyślij opinię",
-    "sending": "Wysyłam…",
-    "wait": "Poczekaj {{n}}s",
-    "sent": "Dziękujemy za opinię!",
-    "error": "Nie udało się wysłać. Spróbuj ponownie.",
-    "tooMany": "Za dużo zgłoszeń. Spróbuj później.",
-    "cooldown": "Poczekaj chwilę przed kolejnym zgłoszeniem.",
-    "duplicate": "To zgłoszenie już wysłano.",
-    "tooShort": "Wiadomość musi mieć co najmniej 5 znaków.",
-    "tooLong": "Wiadomość może mieć maks. 2000 znaków.",
-    "needLogin": "Musisz być zalogowany.",
-    "minChars": "min. 5 znaków",
-    "typeLabel": "Typ (opcjonalnie)",
-    "ratingLabel": "Ocena (opcjonalnie)",
-    "starsAria": "{{n}} gwiazdek",
-    "type": {
-      "bug": "Błąd",
-      "suggestion": "Sugestia",
-      "other": "Inne"
-    }
-  }
+const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
+
+interface Props {
+  entry: LogEntry | null;
+  onClose: () => void;
 }
 
+export function EditEntrySheet({ entry, onClose }: Props) {
+  const { t } = useTranslation();
+  useScrollLock(entry != null);
+  const updateEntry = usePlate((s) => s.updateEntry);
+  const removeEntry = usePlate((s) => s.removeEntry);
+  const products = usePlate((s) => s.products);
+  const addProduct = usePlate((s) => s.addProduct);
+  const updateProduct = usePlate((s) => s.updateProduct);
 
+  const [name, setName] = useState("");
+  const [meal, setMeal] = useState<Meal>("breakfast");
+  const [grams, setGrams] = useState("");
+  const [kcal, setKcal] = useState("");
+  const [protein, setProtein] = useState("");
+  const [carbs, setCarbs] = useState("");
+  const [fat, setFat] = useState("");
+  const [fiber, setFiber] = useState("");
+  const [sugars, setSugars] = useState("");
+  const [satFat, setSatFat] = useState("");
+  const [sodium, setSodium] = useState("");
+
+  // Per-gram basis (kcal/macros per 1 g) captured when the sheet opens.
+  // null when the entry has no amount (e.g. quick kcal-only adds) -> no scaling.
+  const ratioRef = useRef<null | {
+    kcal: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number | null;
+    sugars: number | null;
+    satFat: number | null;
+    sodium: number | null;
+  }>(null);
+
+  useEffect(() => {
+    if (!entry) return;
+    setName(entry.name);
+    setMeal(entry.meal);
+    setGrams(entry.grams != null ? String(Math.round(entry.grams)) : "");
+    setKcal(String(Math.round(entry.kcal)));
+    setProtein(String(round1(entry.protein)));
+    setCarbs(String(round1(entry.carbs)));
+    setFat(String(round1(entry.fat)));
+    setFiber(entry.fiber_g != null ? String(round1(entry.fiber_g)) : "");
+    setSugars(entry.sugars_g != null ? String(round1(entry.sugars_g)) : "");
+    setSatFat(entry.saturated_fat_g != null ? String(round1(entry.saturated_fat_g)) : "");
+    setSodium(entry.sodium_mg != null ? String(Math.round(entry.sodium_mg)) : "");
+
+    // Capture a per-gram basis so changing the amount can rescale everything.
+    const g0 = entry.grams ?? 0;
+    ratioRef.current = g0 > 0
+      ? {
+          kcal: entry.kcal / g0,
+          protein: entry.protein / g0,
+          carbs: entry.carbs / g0,
+          fat: entry.fat / g0,
+          fiber: entry.fiber_g != null ? entry.fiber_g / g0 : null,
+          sugars: entry.sugars_g != null ? entry.sugars_g / g0 : null,
+          satFat: entry.saturated_fat_g != null ? entry.saturated_fat_g / g0 : null,
+          sodium: entry.sodium_mg != null ? entry.sodium_mg / g0 : null,
+        }
+      : null;
+  }, [entry]);
+
+
+
+  // Changing the amount proportionally rescales kcal + every nutrient.
+  const handleGrams = (v: string) => {
+    const val = v.replace(",", ".");
+    setGrams(val);
+    const g = Number(val);
+    const r = ratioRef.current;
+    if (!r || !Number.isFinite(g) || g <= 0) return;
+    setKcal(String(Math.round(r.kcal * g)));
+    setProtein(String(round1(r.protein * g)));
+    setCarbs(String(round1(r.carbs * g)));
+    setFat(String(round1(r.fat * g)));
+    if (r.fiber != null) setFiber(String(round1(r.fiber * g)));
+    if (r.sugars != null) setSugars(String(round1(r.sugars * g)));
+    if (r.satFat != null) setSatFat(String(round1(r.satFat * g)));
+    if (r.sodium != null) setSodium(String(Math.round(r.sodium * g)));
+  };
+
+  // Manually editing a value re-bases its per-gram ratio, so later amount
+  // changes keep that edit proportional.
+  const rebase = (
+    key: "kcal" | "protein" | "carbs" | "fat" | "fiber" | "sugars" | "satFat" | "sodium",
+    v: string,
+  ) => {
+    const g = Number(grams.replace(",", "."));
+    const val = Number(v.replace(",", "."));
+    if (ratioRef.current && Number.isFinite(g) && g > 0 && Number.isFinite(val)) {
+      ratioRef.current[key] = val / g;
+    }
+  };
+
+  const optNum = (s: string): number | null => {
+    if (s.trim() === "") return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const save = () => {
+    if (!entry) return;
+    const g = grams.trim() === "" ? undefined : numOr(grams, entry.grams ?? 0);
+    const finalName = name.trim() || entry.name;
+    const finalKcal = numOr(kcal, entry.kcal);
+    const finalProtein = numOr(protein, entry.protein);
+    const finalCarbs = numOr(carbs, entry.carbs);
+    const finalFat = numOr(fat, entry.fat);
+    updateEntry(entry.id, {
+      name: finalName,
+      meal,
+      grams: g,
+      kcal: finalKcal,
+      protein: finalProtein,
+      carbs: finalCarbs,
+      fat: finalFat,
+      fiber_g: optNum(fiber),
+      sugars_g: optNum(sugars),
+      saturated_fat_g: optNum(satFat),
+      sodium_mg: optNum(sodium),
+    });
+    onClose();
+  };
+
+  const saveToLibrary = () => {
+    if (!entry) return;
+    const g = grams.trim() === "" ? undefined : numOr(grams, entry.grams ?? 0);
+    const finalName = name.trim() || entry.name;
+    const finalKcal = numOr(kcal, entry.kcal);
+    const finalProtein = numOr(protein, entry.protein);
+    const finalCarbs = numOr(carbs, entry.carbs);
+    const finalFat = numOr(fat, entry.fat);
+    const hasGrams = g !== undefined && g > 0;
+    const factor = hasGrams ? 100 / (g as number) : 1;
+    const fiberV = optNum(fiber);
+    const sugarsV = optNum(sugars);
+    const satV = optNum(satFat);
+    const sodV = optNum(sodium);
+    const macros = {
+      kcal: round1(finalKcal * factor),
+      protein: round1(finalProtein * factor),
+      carbs: round1(finalCarbs * factor),
+      fat: round1(finalFat * factor),
+      fiber_g: fiberV != null ? round1(fiberV * factor) : null,
+      sugars_g: sugarsV != null ? round1(sugarsV * factor) : null,
+      saturated_fat_g: satV != null ? round1(satV * factor) : null,
+      sodium_mg: sodV != null ? Math.round(sodV * factor) : null,
+    };
+    const norm = finalName.trim().toLowerCase();
+    const existing = products.find((p) => p.name.trim().toLowerCase() === norm);
+    if (existing) {
+      updateProduct(existing.id, { name: finalName, ...macros });
+    } else {
+      addProduct({ name: finalName, ...macros });
+    }
+    toast.success(t("item.addedToProducts"));
+  };
+
+
+  const handleDelete = () => {
+    if (!entry) return;
+    removeEntry(entry.id);
+    toast.success(t("item.deleted"));
+    onClose();
+  };
+
+  return (
+    <AnimatePresence>
+      {entry && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-40 bg-black/30"
+          />
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", stiffness: 320, damping: 32 }}
+            className="fixed inset-x-0 z-50 mx-auto flex w-full max-w-[430px] flex-col"
+            style={{ bottom: "var(--kb-inset, 0px)" }}
+          >
+            <div
+              className="mx-2 mb-[max(env(safe-area-inset-bottom),1.25rem)] max-h-[92vh] overflow-y-auto rounded-t-[32px] rounded-b-[28px] bg-card p-6 pb-[max(env(safe-area-inset-bottom),1.5rem)]"
+              style={{ boxShadow: "var(--shadow-card)" }}
+            >
+              <div
+                className="mx-auto mb-4 h-1.5 w-10 rounded-full"
+                style={{ background: "var(--hairline)" }}
+              />
+              <div className="mb-5 flex items-center justify-between">
+                <h2
+                  className="text-[22px] leading-tight"
+                  style={{
+                    fontFamily: "Manrope, sans-serif",
+                    fontWeight: 700,
+                    letterSpacing: "-0.03em",
+                    color: "var(--ink)",
+                  }}
+                >
+                  {t("item.editTitle")}
+                </h2>
+                <button
+                  onClick={onClose}
+                  aria-label={t("common.close")}
+                  className="grid h-9 w-9 place-items-center rounded-full"
+                  style={{ background: "var(--hairline)", color: "var(--ink)" }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Name */}
+                <CardField label={t("item.name")}>
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onFocus={onFocusScroll}
+                    placeholder={t("item.namePlaceholder")}
+                    className="w-full bg-transparent text-[17px] leading-tight outline-none placeholder:text-foreground/30"
+                    style={{ fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.01em" }}
+                  />
+                </CardField>
+
+                {/* Meal pills */}
+                <div className="flex flex-wrap gap-1.5">
+                  {MEALS.map((m) => {
+                    const active = meal === m;
+                    return (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setMeal(m)}
+                        className="rounded-full px-3.5 py-1.5 text-[12px] transition active:scale-[0.97]"
+                        style={{
+                          background: active ? "var(--ink)" : "var(--hairline)",
+                          color: active ? "var(--card)" : "var(--ink)",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {t(`meal.${m}`)}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Gramatura + kcal hero */}
+                <div className="grid grid-cols-2 gap-2">
+                  <NumCard label={t("item.amount")} unit="g" value={grams} onChange={handleGrams} />
+                  <NumCard
+                    label={t("item.kcal")}
+                    unit="kcal"
+                    value={kcal}
+                    onChange={(v) => {
+                      setKcal(v);
+                      rebase("kcal", v);
+                    }}
+                    hero
+                  />
+                </div>
+                {entry?.grams != null && entry.grams > 0 && (
+                  <p
+                    className="-mt-1 px-1 text-[11px]"
+                    style={{ color: "var(--muted-foreground)" }}
+                  >
+                    {t("item.autoScaleHint")}
+                  </p>
+                )}
+
+                {/* Macros */}
+                <div className="grid grid-cols-3 gap-2">
+                  <NumCard
+                    label={t("macro.protein")}
+                    unit="g"
+                    value={protein}
+                    onChange={(v) => {
+                      setProtein(v);
+                      rebase("protein", v);
+                    }}
+                    dot="var(--macro-protein)"
+                  />
+                  <NumCard
+                    label={t("macro.carbs")}
+                    unit="g"
+                    value={carbs}
+                    onChange={(v) => {
+                      setCarbs(v);
+                      rebase("carbs", v);
+                    }}
+                    dot="var(--macro-carbs, var(--accent-yellow))"
+                  />
+                  <NumCard
+                    label={t("macro.fat")}
+                    unit="g"
+                    value={fat}
+                    onChange={(v) => {
+                      setFat(v);
+                      rebase("fat", v);
+                    }}
+                    dot="var(--macro-fat, #6FB4E8)"
+                  />
+                </div>
+
+                {(() => {
+                  const sg = Number(sugars);
+                  const cb = Number(carbs);
+                  if (sugars.trim() === "" || !Number.isFinite(sg) || !Number.isFinite(cb)) return null;
+                  const complex = Math.max(0, Math.round((cb - sg) * 10) / 10);
+                  return (
+                    <div className="px-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                      {t("item.carbBreakdown", { simple: round1(sg), complex })}
+                    </div>
+                  );
+                })()}
+
+                {/* Extras (optional) */}
+                <div className="grid grid-cols-2 gap-2">
+                  <NumCard label={t("item.fiber")} unit="g" value={fiber} onChange={(v) => { setFiber(v); rebase("fiber", v); }} />
+                  <NumCard label={t("item.sugars")} unit="g" value={sugars} onChange={(v) => { setSugars(v); rebase("sugars", v); }} />
+                  <NumCard label={t("item.satFatShort")} unit="g" value={satFat} onChange={(v) => { setSatFat(v); rebase("satFat", v); }} />
+                  <NumCard label={t("item.sodium")} unit="mg" value={sodium} onChange={(v) => { setSodium(v); rebase("sodium", v); }} />
+                </div>
+
+
+
+                {/* Actions */}
+                <div className="pt-2 space-y-2">
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={save}
+                    className="w-full rounded-full py-4 text-[15px] tracking-tight"
+                    style={{
+                      background: "var(--ink)",
+                      color: "var(--card)",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {t("common.save")}
+                  </motion.button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={saveToLibrary}
+                      className="rounded-full py-3 text-[13px] active:scale-[0.98]"
+                      style={{
+                        background: "var(--hairline)",
+                        color: "var(--ink)",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {t("item.addToProducts")}
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      className="flex items-center justify-center gap-1.5 rounded-full py-3 text-[13px] active:scale-[0.98]"
+                      style={{
+                        background: "var(--hairline)",
+                        color: "var(--macro-protein)",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <Trash2 size={14} strokeWidth={1.9} />
+                      {t("common.delete")}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function CardField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label
+      className="block rounded-2xl bg-card p-3.5"
+      style={{ border: "1px solid var(--hairline)", boxShadow: "var(--shadow-card)" }}
+    >
+      <span
+        className="block text-[10px] uppercase tracking-wider"
+        style={{ color: "var(--muted-foreground)", fontWeight: 700 }}
+      >
+        {label}
+      </span>
+      <div className="mt-1">{children}</div>
+    </label>
+  );
+}
+
+function NumCard({
+  label,
+  unit,
+  value,
+  onChange,
+  dot,
+  hero,
+}: {
+  label: string;
+  unit: string;
+  value: string;
+  onChange: (v: string) => void;
+  dot?: string;
+  hero?: boolean;
+}) {
+  return (
+    <label
+      className="block min-w-0 rounded-2xl bg-card p-3"
+      style={{
+        border: hero ? "2px solid var(--accent-yellow)" : "1px solid var(--hairline)",
+        boxShadow: "var(--shadow-card)",
+      }}
+    >
+      <span
+        className="flex items-center gap-1 text-[10px] uppercase tracking-wider"
+        style={{ color: "var(--muted-foreground)", fontWeight: 700 }}
+      >
+        {dot && (
+          <span
+            className="inline-block h-2 w-2 shrink-0 rounded-full"
+            style={{ background: dot }}
+            aria-hidden
+          />
+        )}
+        <span className="truncate">{label}</span>
+      </span>
+      <div className="mt-1 flex items-baseline gap-1">
+        <input
+          inputMode="decimal"
+          value={value}
+          onChange={(e) => onChange(e.target.value.replace(",", "."))}
+          onFocus={(e) => {
+            onFocusScroll(e);
+            e.currentTarget.select();
+          }}
+          placeholder="0"
+          className={`num-tight w-full min-w-0 bg-transparent leading-none tracking-tight outline-none placeholder:text-foreground/20 ${
+            hero ? "text-[32px]" : "text-[22px]"
+          }`}
+          style={{ fontWeight: 800, color: "var(--ink)" }}
+        />
+        <span
+          className="text-[11px]"
+          style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+        >
+          {unit}
+        </span>
+      </div>
+    </label>
+  );
+}
+
+function onFocusScroll(e: React.FocusEvent<HTMLElement>) {
+  const el = e.currentTarget;
+  setTimeout(() => {
+    try {
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+    } catch {
+      /* noop */
+    }
+  }, 100);
+}
+
+function numOr(s: string, fallback: number) {
+  const n = Number(s);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function round1(n: number) {
+  return Math.round(n * 10) / 10;
+}
