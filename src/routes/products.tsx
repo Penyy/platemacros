@@ -373,11 +373,15 @@ function ProductSheet({
             exit={{ y: "100%", opacity: 0 }}
             transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
             className="fixed inset-x-0 z-50 mx-auto flex w-full max-w-[430px] flex-col"
-            style={{ bottom: "var(--kb-inset, 0px)" }}
+            style={{
+              bottom: "var(--kb-inset, 0px)",
+              maxHeight:
+                "calc(100dvh - var(--kb-inset, 0px) - env(safe-area-inset-top) - 12px)",
+            }}
           >
             <div
-              className="mx-2 mb-[max(env(safe-area-inset-bottom),1.25rem)] rounded-t-[30px] rounded-b-[28px] bg-card px-5 pt-3 pb-[max(env(safe-area-inset-bottom),1.5rem)]"
-              style={{ boxShadow: "var(--shadow-card)" }}
+              className="mx-2 mb-[max(env(safe-area-inset-bottom),1.25rem)] overflow-y-auto overscroll-contain rounded-t-[30px] rounded-b-[28px] bg-card px-5 pt-3 pb-[max(env(safe-area-inset-bottom),1.5rem)]"
+              style={{ boxShadow: "var(--shadow-card)", WebkitOverflowScrolling: "touch" }}
             >
               <div
                 className="mx-auto mb-3 h-1.5 w-11 rounded-full"
