@@ -279,9 +279,10 @@
     "metaTitle": "Plate — Settings",
     "metaDescription": "Set daily goals and app appearance.",
     "sec": {
+      "app": "App",
       "appearance": "Appearance",
       "language": "Language",
-      "goals": "Daily goals",
+      "goals": "Goals & calories",
       "weekly": "Weekly goals",
       "activity": "Activity",
       "assistant": "AI Assistant",
