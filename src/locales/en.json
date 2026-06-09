@@ -8,7 +8,9 @@
     "add": "Add",
     "edit": "Edit",
     "close": "Close",
-    "undo": "Undo"
+    "undo": "Undo",
+    "yes": "Yes",
+    "no": "No"
   },
   "snackbar": {
     "copied_one": "Copied {{count}} item",
