@@ -323,7 +323,7 @@ function CombinedChart({
                 className="num-tight text-right text-[11px]"
                 style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
               >
-                cel {goalKcal} kcal
+                {cycling ? "śr. cel" : "cel"} {goalKcal} kcal
               </div>
             </div>
 
