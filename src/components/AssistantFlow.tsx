@@ -515,11 +515,15 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
           e.preventDefault();
           void sendText(input);
         }}
-        className="flex items-end gap-2"
+        className="flex items-center gap-2"
       >
         <div
-          className="flex flex-1 items-end gap-2 rounded-[22px] bg-card px-4 py-3"
-          style={{ border: "1px solid var(--hairline)", boxShadow: "var(--shadow-card)" }}
+          className="flex flex-1 items-center gap-2 rounded-full bg-card px-4"
+          style={{
+            border: "1px solid var(--hairline)",
+            boxShadow: "var(--shadow-card)",
+            minHeight: 48,
+          }}
         >
           <textarea
             ref={textareaRef}
@@ -539,8 +543,8 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
                 : t("ai.placeholderDefault")
             }
             disabled={!!busy}
-            className="flex-1 resize-none bg-transparent text-[15px] leading-snug outline-none max-h-32 overflow-y-auto placeholder:text-[color:var(--muted-foreground)]"
-            style={{ color: "var(--ink)", fontWeight: 500 }}
+            className="flex-1 resize-none bg-transparent py-3 text-[15px] leading-[22px] outline-none max-h-[110px] overflow-y-auto placeholder:text-[color:var(--muted-foreground)]"
+            style={{ color: "var(--ink)", fontWeight: 500, height: 22 }}
           />
           <button
             type="submit"
