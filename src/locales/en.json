@@ -43,7 +43,10 @@
       "fat": "Fat"
     },
     "deleteTitle": "Delete product?",
-    "deleteBody": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+    "deleteBody": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "deleteConfirmTitle": "Delete product?",
+    "deleteConfirmBody": "Remove \"{{name}}\" from your library?",
+    "productDeleted": "Product deleted"
   },
   "item": {
     "editTitle": "Edit item",
