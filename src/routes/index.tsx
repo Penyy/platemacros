@@ -109,9 +109,9 @@ function TodayPage() {
         <Logo />
         <div className="flex items-center gap-2">
           <IconCircle aria-label={t("a11y.notifications")} onClick={() => setNotifOpen(true)}>
-            <Bell size={18} strokeWidth={1.8} />
+            <Bell size={20} strokeWidth={2} />
           </IconCircle>
-          <LinkCircle to="/profile" aria-label={t("a11y.profile")}><User size={18} strokeWidth={1.8} /></LinkCircle>
+          <LinkCircle to="/profile" aria-label={t("a11y.profile")}><User size={20} strokeWidth={2} /></LinkCircle>
         </div>
 
 
