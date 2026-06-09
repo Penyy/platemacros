@@ -19,9 +19,22 @@ const LabelSchema = z.object({
 
 export type NutritionLabel = z.infer<typeof LabelSchema>;
 
+const PRIMARY_MODEL = "gemini-3.5-flash";
+const FALLBACK_MODEL = "gemini-2.5-flash";
+
+const ACCURACY_RULES = `WYTYCZNE DOKŁADNOŚCI: Jesteś precyzyjnym ekspertem ds. żywienia.
+- Rozróżniaj 'na 100 g/ml' vs 'na porcję'. Pilnuj jednostek (kJ→kcal: kcal=kJ/4,184; g vs mg; sód vs sól=sód×2,5).
+- Gdy etykieta podaje wartość, ufaj jej bardziej niż własnemu szacunkowi.
+- Bez etykiety: rozpoznaj każdy składnik i oszacuj jego gramaturę (naczynia, sztućce, opakowanie jako skala), policz per składnik i zsumuj.
+- ZASADA OSTROŻNOŚCI: gdy masz przedział możliwych wartości, wybieraj GÓRNĄ granicę realistycznego zakresu. Lepiej lekko PRZESZACOWAĆ kalorie i makro niż niedoszacować — w razie wątpliwości zaokrąglaj w górę, ale rozsądnie.
+- SPÓJNOŚĆ: kcal ≈ 4×białko + 4×węglowodany + 9×tłuszcz (tolerancja ~10%). Przy szacowaniu popraw wartości tak, by się zgadzały. Przy odczycie z etykiety zachowaj wydrukowane kcal.
+- Zawsze zwróć najlepsze możliwe oszacowanie — nie odmawiaj z powodu niepewności.`;
+
 const PROMPT = `Odczytaj tabelę wartości odżywczych z tej etykiety produktu spożywczego.
 Zwróć WYŁĄCZNIE poprawny JSON (bez markdown, bez komentarzy) o strukturze:
 {"name": string, "per100": {"kcal": number, "protein": number, "carbs": number, "fat": number}, "confidence": "high"|"medium"|"low"}
+
+${ACCURACY_RULES}
 
 Zasady:
 - Wartości w per100 ZAWSZE na 100 g (lub 100 ml dla płynów).
