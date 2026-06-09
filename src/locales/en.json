@@ -23,12 +23,25 @@
     "empty": "No products yet",
     "emptyHint": "Add a product from item edit or after scanning a barcode.",
     "noResults": "No results.",
-    "per100": "Values per 100 g",
+    "per100": "per 100 g",
     "namePlaceholder": "Product name",
     "saveProduct": "Save product",
     "deleteConfirm": "Delete \"{{name}}\"?",
     "deleted": "Deleted · Undo",
-    "editAria": "Edit {{name}}"
+    "editAria": "Edit {{name}}",
+    "addProduct": "Add product",
+    "newProduct": "New product",
+    "editProduct": "Edit product",
+    "name": "Name",
+    "sort": {
+      "name": "Name",
+      "kcal": "Calories",
+      "protein": "Protein",
+      "carbs": "Carbs",
+      "fat": "Fat"
+    },
+    "deleteTitle": "Delete product?",
+    "deleteBody": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
   },
   "item": {
     "editTitle": "Edit item",
