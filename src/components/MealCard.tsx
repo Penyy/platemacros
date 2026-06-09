@@ -364,7 +364,7 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
           touchAction: "pan-y",
           background: "var(--card)",
         }}
-        className="relative flex items-center gap-3 py-3"
+        className="relative flex items-center gap-3 px-2 py-3"
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2">
