@@ -8,9 +8,7 @@
     "add": "Add",
     "edit": "Edit",
     "close": "Close",
-    "undo": "Undo",
-    "yes": "Yes",
-    "no": "No"
+    "undo": "Undo"
   },
   "snackbar": {
     "copied_one": "Copied {{count}} item",
@@ -43,10 +41,7 @@
       "fat": "Fat"
     },
     "deleteTitle": "Delete product?",
-    "deleteBody": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
-    "deleteConfirmTitle": "Delete product?",
-    "deleteConfirmBody": "Remove \"{{name}}\" from your library?",
-    "productDeleted": "Product deleted"
+    "deleteBody": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
   },
   "item": {
     "editTitle": "Edit item",
