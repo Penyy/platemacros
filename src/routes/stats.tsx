@@ -26,6 +26,27 @@ function StatsPage() {
   const profile = usePlate((s) => s.profile);
   const [range, setRange] = useState<Range>(7);
   const [view, setView] = useState<View>("combined");
+  const savedScrollRef = useRef(0);
+  const pendingRestoreRef = useRef(false);
+
+  const goSplit = () => {
+    savedScrollRef.current = window.scrollY;
+    setView("split");
+    requestAnimationFrame(() => window.scrollTo({ top: 0 }));
+  };
+  const goCombined = () => {
+    pendingRestoreRef.current = true;
+    setView("combined");
+  };
+
+  useEffect(() => {
+    if (view === "combined" && pendingRestoreRef.current) {
+      pendingRestoreRef.current = false;
+      requestAnimationFrame(() =>
+        window.scrollTo({ top: savedScrollRef.current })
+      );
+    }
+  }, [view]);
 
   const days = useMemo(() => {
     const out: {
