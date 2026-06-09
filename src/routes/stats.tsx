@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, ChevronLeft, Hand } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
-import { sumEntries, usePlate, ymd } from "@/lib/store";
+import { getDayGoals, sumEntries, usePlate, ymd } from "@/lib/store";
 
 export const Route = createFileRoute("/stats")({
   head: () => ({
@@ -53,6 +53,7 @@ function StatsPage() {
       date: string;
       label: string;
       totals: ReturnType<typeof sumEntries>;
+      goals: ReturnType<typeof getDayGoals>;
     }[] = [];
     const now = new Date();
     for (let i = range - 1; i >= 0; i--) {
@@ -64,10 +65,11 @@ function StatsPage() {
         date,
         label: d.toLocaleDateString("pl-PL", { weekday: "short" }).slice(0, 2),
         totals: sumEntries(dayEntries),
+        goals: getDayGoals(profile, date),
       });
     }
     return out;
-  }, [entries, range]);
+  }, [entries, range, profile]);
 
   const today = ymd(new Date());
   const loggedDays = days.filter((d) => d.totals.kcal > 0).length;
@@ -80,6 +82,22 @@ function StatsPage() {
           carbs: Math.round(days.reduce((s, d) => s + d.totals.carbs, 0) / loggedDays),
           fat: Math.round(days.reduce((s, d) => s + d.totals.fat, 0) / loggedDays),
         };
+
+  const avgGoal = useMemo(() => {
+    const logged = days.filter((d) => d.totals.kcal > 0);
+    if (logged.length === 0) {
+      const g = getDayGoals(profile, today);
+      return { kcal: g.kcal, protein: g.protein, carbs: g.carbs, fat: g.fat };
+    }
+    return {
+      kcal: Math.round(logged.reduce((s, d) => s + d.goals.kcal, 0) / logged.length),
+      protein: Math.round(logged.reduce((s, d) => s + d.goals.protein, 0) / logged.length),
+      carbs: Math.round(logged.reduce((s, d) => s + d.goals.carbs, 0) / logged.length),
+      fat: Math.round(logged.reduce((s, d) => s + d.goals.fat, 0) / logged.length),
+    };
+  }, [days, profile, today]);
+
+  const cycling = !!profile.weekly_targets_enabled;
 
   let streak = 0;
   for (let i = days.length - 1; i >= 0; i--) {
@@ -144,8 +162,9 @@ function StatsPage() {
                 days={days}
                 today={today}
                 range={range}
-                goalKcal={profile.goal_kcal}
+                goalKcal={avgGoal.kcal}
                 avgKcal={avg.kcal}
+                cycling={cycling}
                 onTap={goSplit}
               />
             </motion.div>
@@ -168,10 +187,10 @@ function StatsPage() {
               </button>
               {(
                 [
-                  { key: "kcal", title: "Kalorie", unit: "kcal", color: "var(--ink)", goal: profile.goal_kcal, avg: avg.kcal },
-                  { key: "protein", title: "Białko", unit: "g", color: "var(--macro-protein)", goal: profile.goal_protein, avg: avg.protein },
-                  { key: "carbs", title: "Węglowodany", unit: "g", color: "var(--macro-carbs)", goal: profile.goal_carbs, avg: avg.carbs },
-                  { key: "fat", title: "Tłuszcz", unit: "g", color: "var(--macro-fat)", goal: profile.goal_fat, avg: avg.fat },
+                  { key: "kcal", title: "Kalorie", unit: "kcal", color: "var(--ink)", goal: avgGoal.kcal, avg: avg.kcal },
+                  { key: "protein", title: "Białko", unit: "g", color: "var(--macro-protein)", goal: avgGoal.protein, avg: avg.protein },
+                  { key: "carbs", title: "Węglowodany", unit: "g", color: "var(--macro-carbs)", goal: avgGoal.carbs, avg: avg.carbs },
+                  { key: "fat", title: "Tłuszcz", unit: "g", color: "var(--macro-fat)", goal: avgGoal.fat, avg: avg.fat },
                 ] as const
               ).map((m, idx) => (
                 <motion.div
@@ -188,10 +207,12 @@ function StatsPage() {
                     avg={m.avg}
                     today={today}
                     range={range}
+                    cycling={cycling}
                     values={days.map((d) => ({
                       label: d.label,
                       date: d.date,
                       v: Math.round(d.totals[m.key as keyof typeof d.totals]),
+                      goal: d.goals[m.key as keyof typeof d.goals],
                     }))}
                     onTap={goCombined}
                   />
@@ -238,6 +259,7 @@ function CombinedChart({
   range,
   goalKcal,
   avgKcal,
+  cycling,
   onTap,
 }: {
   days: { date: string; label: string; totals: ReturnType<typeof sumEntries> }[];
@@ -245,6 +267,7 @@ function CombinedChart({
   range: Range;
   goalKcal: number;
   avgKcal: number;
+  cycling: boolean;
   onTap: () => void;
 }) {
   const dailyKcal = days.map((d) => Math.round(d.totals.kcal));
@@ -300,7 +323,7 @@ function CombinedChart({
                 className="num-tight text-right text-[11px]"
                 style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
               >
-                cel {goalKcal} kcal
+                {cycling ? "śr. cel" : "cel"} {goalKcal} kcal
               </div>
             </div>
 
@@ -442,6 +465,7 @@ function SplitChartCard({
   avg,
   today,
   range,
+  cycling,
   values,
   onTap,
 }: {
@@ -452,7 +476,8 @@ function SplitChartCard({
   avg: number;
   today: string;
   range: Range;
-  values: { label: string; date: string; v: number }[];
+  cycling: boolean;
+  values: { label: string; date: string; v: number; goal: number }[];
   onTap?: () => void;
 }) {
   const max = Math.max(Math.max(...values.map((d) => d.v), 0), goal) * 1.1 || 1;
@@ -460,6 +485,15 @@ function SplitChartCard({
   const showLabels = range === 7;
   const diff = avg - goal;
   const onTarget = goal > 0 && Math.abs(diff) <= goal * 0.02;
+
+  const TOLERANCE = 0.1;
+  const barColorFor = (v: number, dayGoal: number) => {
+    if (v <= 0 || dayGoal <= 0) return color;
+    const ratio = v / dayGoal;
+    if (ratio > 1 + TOLERANCE) return "var(--macro-protein)";
+    if (ratio < 1 - TOLERANCE) return "var(--macro-fat)";
+    return "var(--accent-yellow)";
+  };
 
   return (
     <motion.div
@@ -516,7 +550,7 @@ function SplitChartCard({
           className="num-tight text-right text-[11px]"
           style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
         >
-          cel {goal} {unit}
+          {cycling ? "śr. cel" : "cel"} {goal} {unit}
         </div>
       </div>
 
@@ -565,7 +599,7 @@ function SplitChartCard({
                   className="relative overflow-hidden"
                   style={{
                     width: "60%",
-                    background: color,
+                    background: barColorFor(d.v, d.goal),
                     borderRadius: "9px 9px 5px 5px",
                     opacity: isToday || !isAnyToday(values, today) && i === values.length - 1 ? 1 : 0.8,
                   }}
@@ -614,6 +648,12 @@ function SplitChartCard({
           ))}
         </div>
       )}
+
+      <div className="mt-2.5 flex items-center gap-2.5">
+        <LegendDot color="var(--accent-yellow)" label="na celu" />
+        <LegendDot color="var(--macro-protein)" label="powyżej celu" />
+        <LegendDot color="var(--macro-fat)" label="poniżej celu" />
+      </div>
     </motion.div>
   );
 }
