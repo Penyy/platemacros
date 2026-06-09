@@ -338,9 +338,17 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
       >
         <div className="flex items-center gap-2">
           {armed && <span className="text-sm font-semibold">{t("a11y.releaseToDelete")}</span>}
-          <span className="inline-flex" style={{ transform: `scale(${0.7 + progress * 0.4})` }}>
+          <motion.span
+            className="inline-flex"
+            animate={armed
+              ? { scale: [1.1, 1.4, 1.05, 1.22], rotate: [0, -12, 9, 0] }
+              : { scale: 0.7 + progress * 0.4, rotate: 0 }}
+            transition={armed
+              ? { duration: 0.45, ease: "easeOut", times: [0, 0.4, 0.7, 1] }
+              : { duration: 0.05 }}
+          >
             <Trash2 size={20} />
-          </span>
+          </motion.span>
         </div>
       </div>
       <div
@@ -356,7 +364,7 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
           touchAction: "pan-y",
           background: "var(--card)",
         }}
-        className="relative flex items-center gap-3 py-3"
+        className="relative flex items-center gap-3 px-2 py-3"
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2">
