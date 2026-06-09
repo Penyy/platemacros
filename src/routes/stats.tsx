@@ -259,6 +259,7 @@ function CombinedChart({
   range,
   goalKcal,
   avgKcal,
+  cycling,
   onTap,
 }: {
   days: { date: string; label: string; totals: ReturnType<typeof sumEntries> }[];
@@ -266,6 +267,7 @@ function CombinedChart({
   range: Range;
   goalKcal: number;
   avgKcal: number;
+  cycling: boolean;
   onTap: () => void;
 }) {
   const dailyKcal = days.map((d) => Math.round(d.totals.kcal));
