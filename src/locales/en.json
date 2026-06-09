@@ -279,9 +279,10 @@
     "metaTitle": "Plate — Settings",
     "metaDescription": "Set daily goals and app appearance.",
     "sec": {
+      "app": "App",
       "appearance": "Appearance",
       "language": "Language",
-      "goals": "Daily goals",
+      "goals": "Goals & calories",
       "weekly": "Weekly goals",
       "activity": "Activity",
       "assistant": "AI Assistant",
@@ -310,7 +311,9 @@
       "carbs": "Carbs",
       "fat": "Fat",
       "unitKcal": "kcal",
-      "unitG": "g"
+      "unitG": "g",
+      "dailyTitle": "Daily goals",
+      "editInProfile": "Edit in Profile"
     },
     "weekly": {
       "switch": "Different goals each day of the week",

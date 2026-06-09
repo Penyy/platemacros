@@ -1,7 +1,22 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Download, Upload, LogOut, CloudUpload, MessageSquare, Layers, Zap, PencilLine, Search as SearchIcon, ScanLine, Sparkles, Trash2 } from "lucide-react";
+import {
+  Download,
+  Upload,
+  LogOut,
+  CloudUpload,
+  MessageSquare,
+  Layers,
+  Zap,
+  PencilLine,
+  Search as SearchIcon,
+  ScanLine,
+  Sparkles,
+  Trash2,
+  ChevronRight,
+  Target,
+} from "lucide-react";
 import { setAppLanguage, type AppLang } from "@/lib/i18n";
 import {
   AlertDialog,
@@ -27,7 +42,6 @@ import {
   defaultAssistantSettings,
   defaultPlusMenuVisibility,
   PLUS_MENU_ITEMS,
-  
   usePlate,
   readLegacyLocalStorage,
   clearLegacyLocalStorage,
@@ -94,7 +108,6 @@ function SettingsPage() {
   const burned = usePlate((s) => s.burned);
   const products = usePlate((s) => s.products);
   const setTheme = usePlate((s) => s.setTheme);
-  const setGoals = usePlate((s) => s.setGoals);
   const setIncludeBurned = usePlate((s) => s.setIncludeBurned);
   const setWeeklyEnabled = usePlate((s) => s.setWeeklyEnabled);
   const setWeeklyDay = usePlate((s) => s.setWeeklyDay);
@@ -151,7 +164,7 @@ function SettingsPage() {
   async function handleMigrate() {
     if (!legacy || migrating) return;
     const ok = confirm(
-      `Przenieść ${legacy.entries.length} wpisów i ${legacy.products.length} produktów do chmury? Obecne dane w chmurze zostaną nadpisane.`
+      `Przenieść ${legacy.entries.length} wpisów i ${legacy.products.length} produktów do chmury? Obecne dane w chmurze zostaną nadpisane.`,
     );
     if (!ok) return;
     setMigrating(true);
@@ -197,7 +210,6 @@ function SettingsPage() {
     toast.success(t("data.exportDone"));
   }
 
-
   async function handleImport(file: File) {
     try {
       const text = await file.text();
@@ -207,7 +219,6 @@ function SettingsPage() {
         return;
       }
 
-      // MacroFlow export detection
       if (Array.isArray((data as any).myFoods)) {
         const converted = convertMacroFlow((data as any).myFoods);
         if (converted.length === 0) {
@@ -226,7 +237,6 @@ function SettingsPage() {
         return;
       }
 
-      // Plate native format
       if (!data.profile || !Array.isArray(data.entries)) {
         alert(t("data.importError"));
         return;
@@ -245,113 +255,91 @@ function SettingsPage() {
     }
   }
 
+  const assistant = profile.assistant ?? defaultAssistantSettings;
 
   return (
-    <div>
+    <div className="pb-8">
       <ScreenHeader title={t("settings.title")} />
 
-      <Section title={t("settings.sec.appearance")}>
+      {/* A) APLIKACJA */}
+      <Section title={t("settings.sec.app")}>
         <Row label={t("settings.theme.label")}>
           <ThemeSelect value={profile.theme} onChange={(th) => setTheme(th)} />
         </Row>
-      </Section>
-
-      <Section title={t("settings.sec.language")}>
         <Row label={t("settings.language.label")}>
           <LanguageSelect />
         </Row>
       </Section>
 
+      {/* B) CELE I KALORIE */}
       <Section title={t("settings.sec.goals")}>
-        <NumberRow
-          label={t("settings.goals.kcal")}
-          unit={t("settings.goals.unitKcal")}
-          value={profile.goal_kcal}
-          onChange={(v) => setGoals({ goal_kcal: v })}
+        <LinkRow
+          label={t("settings.goals.dailyTitle")}
+          subtitle={t("settings.goals.editInProfile")}
+          value={`${profile.goal_kcal} ${t("settings.goals.unitKcal")}`}
+          onClick={() => navigate({ to: "/profile" })}
         />
-        <NumberRow
-          label={t("settings.goals.protein")}
-          unit={t("settings.goals.unitG")}
-          value={profile.goal_protein}
-          onChange={(v) => setGoals({ goal_protein: v })}
-        />
-        <NumberRow
-          label={t("settings.goals.carbs")}
-          unit={t("settings.goals.unitG")}
-          value={profile.goal_carbs}
-          onChange={(v) => setGoals({ goal_carbs: v })}
-        />
-        <NumberRow
-          label={t("settings.goals.fat")}
-          unit={t("settings.goals.unitG")}
-          value={profile.goal_fat}
-          onChange={(v) => setGoals({ goal_fat: v })}
-        />
-      </Section>
-
-      <Section title={t("settings.sec.weekly")}>
-        <Row label={t("settings.weekly.switch")}>
-          <Switch
+        <RowWithSub
+          label={t("settings.weekly.switch")}
+          subtitle={t("settings.weekly.note")}
+        >
+          <AccentSwitch
             checked={!!profile.weekly_targets_enabled}
             onCheckedChange={(v) => setWeeklyEnabled(v)}
           />
-        </Row>
-        <p className="px-4 pb-2 pt-1 text-[11px] text-muted-foreground">
-          {t("settings.weekly.note")}
-        </p>
+        </RowWithSub>
         {profile.weekly_targets_enabled && (
           <WeeklyEditor
             value={profile.weekly_macro_targets ?? seedWeeklyFromProfile(profile)}
             onChange={(idx, m) => setWeeklyDay(idx, m)}
           />
         )}
-      </Section>
-
-      <Section title={t("settings.sec.activity")}>
-        <Row label={t("settings.activity.includeBurned")}>
-          <Switch
+        <RowWithSub
+          label={t("settings.activity.includeBurned")}
+          subtitle={t("settings.activity.note")}
+        >
+          <AccentSwitch
             checked={!!profile.include_burned}
             onCheckedChange={(v) => setIncludeBurned(v)}
           />
-        </Row>
-        <p className="px-4 pb-3 pt-1 text-[11px] text-muted-foreground">
-          {t("settings.activity.note")}
-        </p>
+        </RowWithSub>
       </Section>
 
+      {/* C) ASYSTENT AI */}
       <Section title={t("settings.sec.assistant")}>
-        <Row label={t("settings.assistant.autoAddPhoto")}>
-          <Switch
-            checked={(profile.assistant ?? defaultAssistantSettings).autoAddPhoto}
+        <RowWithSub
+          label={t("settings.assistant.autoAddPhoto")}
+          subtitle={t("settings.assistant.autoAddPhotoNote")}
+        >
+          <AccentSwitch
+            checked={assistant.autoAddPhoto}
             onCheckedChange={(v) => setAssistant({ autoAddPhoto: v })}
           />
-        </Row>
-        <p className="px-4 pb-2 pt-1 text-[11px] text-muted-foreground">
-          {t("settings.assistant.autoAddPhotoNote")}
-        </p>
-        <Row label={t("settings.assistant.allowAddEntries")}>
-          <Switch
-            checked={(profile.assistant ?? defaultAssistantSettings).allowAddEntries}
+        </RowWithSub>
+        <RowWithSub
+          label={t("settings.assistant.allowAddEntries")}
+          subtitle={t("settings.assistant.allowAddEntriesNote")}
+        >
+          <AccentSwitch
+            checked={assistant.allowAddEntries}
             onCheckedChange={(v) => setAssistant({ allowAddEntries: v })}
           />
-        </Row>
-        <p className="px-4 pb-2 pt-1 text-[11px] text-muted-foreground">
-          {t("settings.assistant.allowAddEntriesNote")}
-        </p>
+        </RowWithSub>
         <Row label={t("settings.assistant.defaultMeal")}>
           <DefaultMealSelect
-            value={(profile.assistant ?? defaultAssistantSettings).defaultMeal}
+            value={assistant.defaultMeal}
             onChange={(v) => setAssistant({ defaultMeal: v })}
           />
         </Row>
         <Row label={t("settings.assistant.responseLength")}>
           <ResponseLengthSelect
-            value={(profile.assistant ?? defaultAssistantSettings).responseLength}
+            value={assistant.responseLength}
             onChange={(v) => setAssistant({ responseLength: v })}
           />
         </Row>
       </Section>
 
+      {/* D) MENU DODAWANIA */}
       <Section
         title={t("settings.sec.plusMenu")}
         subtitle={t("settings.sec.plusMenuSubtitle")}
@@ -362,33 +350,20 @@ function SettingsPage() {
         />
       </Section>
 
-
-      <Section title={t("data.title")}>
-        <button
+      {/* E) DANE */}
+      <Section title={t("settings.sec.data")}>
+        <IconActionRow
+          icon={<Download size={18} strokeWidth={1.9} />}
+          label={t("data.export")}
+          subtitle={t("data.exportHint")}
           onClick={handleExport}
-          className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
-        >
-          <Download size={18} className="text-muted-foreground" />
-          <div className="flex-1">
-            <div className="text-[15px]">{t("data.export")}</div>
-            <div className="text-[11px] text-muted-foreground">
-              {t("data.exportHint")}
-            </div>
-          </div>
-        </button>
-        <button
+        />
+        <IconActionRow
+          icon={<Upload size={18} strokeWidth={1.9} />}
+          label={t("data.import")}
+          subtitle={t("data.importHint")}
           onClick={() => fileRef.current?.click()}
-          className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
-        >
-          <Upload size={18} className="text-muted-foreground" />
-          <div className="flex-1">
-            <div className="text-[15px]">{t("data.import")}</div>
-            <div className="text-[11px] text-muted-foreground">
-              {t("data.importHint")}
-            </div>
-          </div>
-        </button>
-
+        />
         <input
           ref={fileRef}
           type="file"
@@ -404,65 +379,67 @@ function SettingsPage() {
 
       {legacy && (
         <Section title={t("settings.sec.migration")}>
-          <button
+          <IconActionRow
+            icon={<CloudUpload size={18} strokeWidth={1.9} />}
+            label={
+              migrating
+                ? t("settings.migration.movingLabel")
+                : t("settings.migration.moveLabel")
+            }
+            subtitle={t("settings.migration.found", {
+              entries: legacy.entries.length,
+              products: legacy.products.length,
+            })}
             onClick={handleMigrate}
             disabled={migrating}
-            className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition disabled:opacity-60"
-          >
-            <CloudUpload size={18} className="text-muted-foreground" />
-            <div className="flex-1">
-              <div className="text-[15px]">
-                {migrating ? t("settings.migration.movingLabel") : t("settings.migration.moveLabel")}
-              </div>
-              <div className="text-[11px] text-muted-foreground">
-                {t("settings.migration.found", { entries: legacy.entries.length, products: legacy.products.length })}
-              </div>
-            </div>
-          </button>
+          />
         </Section>
       )}
 
+      {/* F) KONTO */}
       <Section title={t("settings.sec.account")}>
-        <button
+        <IconActionRow
+          icon={<LogOut size={18} strokeWidth={1.9} />}
+          label={t("settings.account.logout")}
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
-        >
-          <LogOut size={18} className="text-muted-foreground" />
-          <div className="flex-1">
-            <div className="text-[15px]">{t("settings.account.logout")}</div>
-          </div>
-        </button>
-      </Section>
-
-      <Section title={t("feedback.title")}>
-        <button
+        />
+        <IconActionRow
+          icon={<MessageSquare size={18} strokeWidth={1.9} />}
+          label={t("feedback.send")}
+          subtitle={t("settings.feedback.note")}
           onClick={() => setFeedbackOpen(true)}
-          className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
-        >
-          <MessageSquare size={18} className="text-muted-foreground" />
-          <div className="flex-1">
-            <div className="text-[15px]">{t("feedback.send")}</div>
-            <div className="text-[11px] text-muted-foreground">
-              {t("settings.feedback.note")}
-            </div>
-
-          </div>
-        </button>
+          chevron
+        />
       </Section>
 
       <FeedbackSheet open={feedbackOpen} onOpenChange={setFeedbackOpen} />
 
+      {/* G) STREFA ZAGROŻENIA */}
       <Section title={t("settings.sec.danger")}>
         <button
           onClick={() => setResetOpen(true)}
-          className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-foreground/5 transition"
+          className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition active:bg-foreground/5"
         >
-          <Trash2 size={18} style={{ color: "#D64545" }} />
+          <span
+            className="grid h-9 w-9 place-items-center rounded-xl"
+            style={{
+              background: "color-mix(in oklab, var(--macro-protein) 14%, transparent)",
+              color: "var(--macro-protein)",
+            }}
+          >
+            <Trash2 size={18} strokeWidth={1.9} />
+          </span>
           <div className="flex-1">
-            <div className="text-[15px]" style={{ color: "#D64545", fontWeight: 600 }}>
+            <div
+              className="text-[15px]"
+              style={{ color: "var(--macro-protein)", fontWeight: 700 }}
+            >
               {t("settings.danger.reset")}
             </div>
-            <div className="text-[11px] text-muted-foreground">
+            <div
+              className="mt-0.5 text-[12px]"
+              style={{ color: "var(--muted-foreground)" }}
+            >
               {t("settings.danger.resetNote")}
             </div>
           </div>
@@ -478,7 +455,9 @@ function SettingsPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={resetting}>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogCancel disabled={resetting}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
@@ -486,7 +465,7 @@ function SettingsPage() {
               }}
               disabled={resetCountdown > 0 || resetting}
               style={{
-                background: "#D64545",
+                background: "var(--macro-protein)",
                 color: "#FFF",
                 opacity: resetCountdown > 0 || resetting ? 0.5 : 1,
               }}
@@ -501,13 +480,18 @@ function SettingsPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <p className="px-6 pt-2 pb-6 text-center text-[11px] text-muted-foreground">
+      {/* H) STOPKA */}
+      <p
+        className="px-6 pt-6 pb-2 text-center text-[11px]"
+        style={{ color: "var(--muted-foreground)" }}
+      >
         {t("settings.version")}
-
       </p>
     </div>
   );
 }
+
+/* ============================== Building blocks ============================ */
 
 function Section({
   title,
@@ -519,26 +503,37 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="mt-4">
+    <div className="mt-5">
       <div className="px-[26px] pb-2">
         <h2
-          className="text-[13px]"
-          style={{ fontFamily: "Manrope, sans-serif", fontWeight: 700, color: "var(--ink)" }}
+          className="text-[11px] uppercase"
+          style={{
+            fontFamily: "Manrope, sans-serif",
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            color: "var(--muted-foreground)",
+          }}
         >
           {title}
         </h2>
         {subtitle && (
           <p
-            className="mt-0.5 text-[11px]"
-            style={{ fontFamily: "Manrope, sans-serif", fontWeight: 600, color: "var(--muted-foreground)" }}
+            className="mt-1 text-[12px]"
+            style={{
+              fontFamily: "Manrope, sans-serif",
+              color: "var(--muted-foreground)",
+            }}
           >
             {subtitle}
           </p>
         )}
       </div>
       <div
-        className="mx-[18px] divide-y overflow-hidden rounded-[24px] bg-card"
-        style={{ boxShadow: "var(--shadow-card)", borderColor: "var(--hairline)" }}
+        className="mx-[18px] divide-y overflow-hidden rounded-[20px] border bg-card"
+        style={{
+          borderColor: "var(--hairline)",
+          boxShadow: "var(--shadow-card)",
+        }}
       >
         {children}
       </div>
@@ -555,39 +550,195 @@ function Row({
 }) {
   return (
     <div className="flex items-center justify-between gap-3 px-4 py-3.5">
-      <span className="text-[15px]" style={{ color: "var(--ink)", fontWeight: 500 }}>{label}</span>
+      <span
+        className="text-[15px]"
+        style={{ color: "var(--ink)", fontWeight: 700 }}
+      >
+        {label}
+      </span>
       {children}
     </div>
   );
 }
 
-function NumberRow({
+function RowWithSub({
   label,
-  unit,
-  value,
-  onChange,
+  subtitle,
+  children,
 }: {
   label: string;
-  unit: string;
-  value: number;
-  onChange: (v: number) => void;
+  subtitle?: string;
+  children: React.ReactNode;
 }) {
   return (
-    <Row label={label}>
-      <div className="flex items-center gap-1">
-        <input
-          inputMode="numeric"
-          value={value}
-          onChange={(e) => {
-            const n = Number(e.target.value.replace(/[^\d]/g, ""));
-            if (!Number.isNaN(n)) onChange(n);
-          }}
-          className="num-tight w-20 rounded-xl px-2.5 py-1.5 text-right text-[15px] outline-none"
-          style={{ background: "var(--hairline)", color: "var(--ink)", fontWeight: 700 }}
-        />
-        <span className="w-7 text-left text-xs" style={{ color: "var(--muted-foreground)" }}>{unit}</span>
+    <div className="flex items-center justify-between gap-3 px-4 py-3.5">
+      <div className="min-w-0 flex-1">
+        <div
+          className="text-[15px]"
+          style={{ color: "var(--ink)", fontWeight: 700 }}
+        >
+          {label}
+        </div>
+        {subtitle && (
+          <div
+            className="mt-0.5 text-[12px]"
+            style={{ color: "var(--muted-foreground)" }}
+          >
+            {subtitle}
+          </div>
+        )}
       </div>
-    </Row>
+      {children}
+    </div>
+  );
+}
+
+function LinkRow({
+  label,
+  subtitle,
+  value,
+  onClick,
+}: {
+  label: string;
+  subtitle?: string;
+  value?: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition active:bg-foreground/5"
+    >
+      <span
+        className="grid h-9 w-9 place-items-center rounded-xl"
+        style={{ background: "var(--hairline)", color: "var(--ink)" }}
+      >
+        <Target size={18} strokeWidth={1.9} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="text-[15px]" style={{ color: "var(--ink)", fontWeight: 700 }}>
+          {label}
+        </div>
+        {subtitle && (
+          <div
+            className="mt-0.5 text-[12px]"
+            style={{ color: "var(--muted-foreground)" }}
+          >
+            {subtitle}
+          </div>
+        )}
+      </div>
+      {value && (
+        <span
+          className="num-tight text-[14px]"
+          style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+        >
+          {value}
+        </span>
+      )}
+      <ChevronRight
+        size={18}
+        strokeWidth={1.9}
+        style={{ color: "var(--muted-foreground)", opacity: 0.6 }}
+      />
+    </button>
+  );
+}
+
+function IconActionRow({
+  icon,
+  label,
+  subtitle,
+  onClick,
+  disabled,
+  chevron,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  subtitle?: string;
+  onClick: () => void;
+  disabled?: boolean;
+  chevron?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition active:bg-foreground/5 disabled:opacity-60"
+    >
+      <span
+        className="grid h-9 w-9 place-items-center rounded-xl"
+        style={{ background: "var(--hairline)", color: "var(--ink)" }}
+      >
+        {icon}
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="text-[15px]" style={{ color: "var(--ink)", fontWeight: 700 }}>
+          {label}
+        </div>
+        {subtitle && (
+          <div
+            className="mt-0.5 text-[12px]"
+            style={{ color: "var(--muted-foreground)" }}
+          >
+            {subtitle}
+          </div>
+        )}
+      </div>
+      {chevron && (
+        <ChevronRight
+          size={18}
+          strokeWidth={1.9}
+          style={{ color: "var(--muted-foreground)", opacity: 0.6 }}
+        />
+      )}
+    </button>
+  );
+}
+
+/* ============================== Controls ================================== */
+
+function AccentSwitch(props: React.ComponentProps<typeof Switch>) {
+  return (
+    <Switch
+      {...props}
+      className="data-[state=checked]:bg-[var(--accent-yellow)] data-[state=unchecked]:bg-[var(--hairline)]"
+    />
+  );
+}
+
+function Segmented<T extends string>({
+  value,
+  onChange,
+  options,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: { v: T; l: string }[];
+}) {
+  return (
+    <div
+      className="flex gap-0.5 rounded-full p-0.5"
+      style={{ background: "var(--hairline)" }}
+    >
+      {options.map((o) => {
+        const active = value === o.v;
+        return (
+          <button
+            key={o.v}
+            onClick={() => onChange(o.v)}
+            className="rounded-full px-3 py-1 text-xs transition"
+            style={{
+              background: active ? "var(--ink)" : "transparent",
+              color: active ? "var(--card)" : "var(--muted-foreground)",
+              fontWeight: active ? 700 : 600,
+            }}
+          >
+            {o.l}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -599,31 +750,16 @@ function ThemeSelect({
   onChange: (t: Theme) => void;
 }) {
   const { t } = useTranslation();
-  const opts: { v: Theme; l: string }[] = [
-    { v: "light", l: t("settings.theme.light") },
-    { v: "dark", l: t("settings.theme.dark") },
-    { v: "system", l: t("settings.theme.system") },
-  ];
   return (
-    <div className="flex gap-0.5 rounded-full p-0.5" style={{ background: "var(--hairline)" }}>
-      {opts.map((o) => {
-        const active = value === o.v;
-        return (
-          <button
-            key={o.v}
-            onClick={() => onChange(o.v)}
-            className="rounded-full px-3 py-1 text-xs transition"
-            style={{
-              background: active ? "#1B1B19" : "transparent",
-              color: active ? "#FBF4E2" : "var(--muted-foreground)",
-              fontWeight: active ? 700 : 600,
-            }}
-          >
-            {o.l}
-          </button>
-        );
-      })}
-    </div>
+    <Segmented<Theme>
+      value={value}
+      onChange={onChange}
+      options={[
+        { v: "light", l: t("settings.theme.light") },
+        { v: "dark", l: t("settings.theme.dark") },
+        { v: "system", l: t("settings.theme.system") },
+      ]}
+    />
   );
 }
 
@@ -632,33 +768,17 @@ const DAY_LABEL_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as cons
 function LanguageSelect() {
   const { t, i18n } = useTranslation();
   const cur: AppLang = (i18n.language?.startsWith("en") ? "en" : "pl") as AppLang;
-  const opts: { v: AppLang; l: string }[] = [
-    { v: "pl", l: t("settings.language.pl") },
-    { v: "en", l: t("settings.language.en") },
-  ];
   return (
-    <div className="flex gap-0.5 rounded-full p-0.5" style={{ background: "var(--hairline)" }}>
-      {opts.map((o) => {
-        const active = cur === o.v;
-        return (
-          <button
-            key={o.v}
-            onClick={() => setAppLanguage(o.v)}
-            className="rounded-full px-3 py-1 text-xs transition"
-            style={{
-              background: active ? "#1B1B19" : "transparent",
-              color: active ? "#FBF4E2" : "var(--muted-foreground)",
-              fontWeight: active ? 700 : 600,
-            }}
-          >
-            {o.l}
-          </button>
-        );
-      })}
-    </div>
+    <Segmented<AppLang>
+      value={cur}
+      onChange={(v) => setAppLanguage(v)}
+      options={[
+        { v: "pl", l: t("settings.language.pl") },
+        { v: "en", l: t("settings.language.en") },
+      ]}
+    />
   );
 }
-
 
 function WeeklyEditor({
   value,
@@ -687,7 +807,9 @@ function WeeklyEditor({
               key={key}
               className="grid grid-cols-[36px_1fr_1fr_1fr_auto] items-center gap-1 rounded-xl bg-foreground/5 px-2 py-1.5"
             >
-              <span className="text-[11px] font-semibold text-muted-foreground">{label}</span>
+              <span className="text-[11px] font-semibold text-muted-foreground">
+                {label}
+              </span>
               <MacroInput value={d.protein} onChange={(v) => onChange(i, { protein: v })} />
               <MacroInput value={d.carbs} onChange={(v) => onChange(i, { carbs: v })} />
               <MacroInput value={d.fat} onChange={(v) => onChange(i, { fat: v })} />
@@ -729,6 +851,7 @@ function DefaultMealSelect({
       value={value}
       onChange={(e) => onChange(e.target.value as AssistantDefaultMeal)}
       className="rounded-lg border border-border/60 bg-card px-2 py-1 text-[13px]"
+      style={{ color: "var(--ink)", fontWeight: 600 }}
     >
       <option value="auto">{t("settings.assistant.defaultMealAuto")}</option>
       {(Object.keys(MEAL_LABEL) as Meal[]).map((m) => (
@@ -748,35 +871,22 @@ function ResponseLengthSelect({
   onChange: (v: AssistantResponseLength) => void;
 }) {
   const { t } = useTranslation();
-  const opts: { v: AssistantResponseLength; l: string }[] = [
-    { v: "short", l: t("settings.assistant.lenShort") },
-    { v: "detailed", l: t("settings.assistant.lenLong") },
-  ];
-
   return (
-    <div className="flex gap-0.5 rounded-full p-0.5" style={{ background: "var(--hairline)" }}>
-      {opts.map((o) => {
-        const active = value === o.v;
-        return (
-          <button
-            key={o.v}
-            onClick={() => onChange(o.v)}
-            className="rounded-full px-3 py-1 text-xs transition"
-            style={{
-              background: active ? "#1B1B19" : "transparent",
-              color: active ? "#FBF4E2" : "var(--muted-foreground)",
-              fontWeight: active ? 700 : 600,
-            }}
-          >
-            {o.l}
-          </button>
-        );
-      })}
-    </div>
+    <Segmented<AssistantResponseLength>
+      value={value}
+      onChange={onChange}
+      options={[
+        { v: "short", l: t("settings.assistant.lenShort") },
+        { v: "detailed", l: t("settings.assistant.lenLong") },
+      ]}
+    />
   );
 }
 
-const PLUS_MENU_ICONS: Record<PlusMenuItemId, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
+const PLUS_MENU_ICONS: Record<
+  PlusMenuItemId,
+  React.ComponentType<{ size?: number; strokeWidth?: number }>
+> = {
   assistant: Sparkles,
   barcode: ScanLine,
   compound: Layers,
@@ -810,12 +920,16 @@ function PlusMenuVisibilityList({
             </span>
             <span
               className="flex-1 text-[15px]"
-              style={{ fontFamily: "Manrope, sans-serif", fontWeight: 500, color: "var(--ink)" }}
+              style={{
+                fontFamily: "Manrope, sans-serif",
+                fontWeight: 700,
+                color: "var(--ink)",
+              }}
             >
               {t(`settings.plusMenu.${id}`)}
             </span>
-            <div className={lastOne ? "opacity-50 pointer-events-none" : ""}>
-              <Switch
+            <div className={lastOne ? "pointer-events-none opacity-50" : ""}>
+              <AccentSwitch
                 checked={on}
                 disabled={lastOne}
                 onCheckedChange={(v) => onToggle(id, v)}

@@ -281,9 +281,10 @@
     "metaTitle": "Plate — Ustawienia",
     "metaDescription": "Ustaw cele dzienne i wygląd aplikacji.",
     "sec": {
+      "app": "Aplikacja",
       "appearance": "Wygląd",
       "language": "Język",
-      "goals": "Cele dzienne",
+      "goals": "Cele i kalorie",
       "weekly": "Cele tygodniowe",
       "activity": "Aktywność",
       "assistant": "Asystent AI",
@@ -312,7 +313,9 @@
       "carbs": "Węglowodany",
       "fat": "Tłuszcz",
       "unitKcal": "kcal",
-      "unitG": "g"
+      "unitG": "g",
+      "dailyTitle": "Cele dzienne",
+      "editInProfile": "Edytuj w Profilu"
     },
     "weekly": {
       "switch": "Inne cele na każdy dzień tygodnia",
