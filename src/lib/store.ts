@@ -582,11 +582,33 @@ export const usePlate = create<State>()((set, get) => ({
     const d = new Date(date + "T00:00:00");
     d.setDate(d.getDate() - 1);
     const prev = ymd(d);
-    const src = get().entries.filter((e) => e.date === prev && e.meal === meal);
+    const all = get().entries;
+    const src = all.filter((e) => e.date === prev && e.meal === meal);
     if (src.length === 0) return 0;
+    const today = all.filter((e) => e.date === date && e.meal === meal);
+
+    const norm = (s: string) => s.trim().toLowerCase();
+    const todayCounts = new Map<string, number>();
+    for (const e of today) {
+      const k = norm(e.name);
+      todayCounts.set(k, (todayCounts.get(k) ?? 0) + 1);
+    }
+
+    const missing: LogEntry[] = [];
+    for (const e of src) {
+      const k = norm(e.name);
+      const c = todayCounts.get(k) ?? 0;
+      if (c > 0) {
+        todayCounts.set(k, c - 1);
+      } else {
+        missing.push(e);
+      }
+    }
+    if (missing.length === 0) return 0;
+
     const uid = get().userId;
     const now = Date.now();
-    const clones: LogEntry[] = src.map((e, i) => ({
+    const clones: LogEntry[] = missing.map((e, i) => ({
       ...e,
       id: newId(),
       date,
