@@ -66,6 +66,11 @@ function ProfilePage() {
   const p = usePlate((s) => s.profile);
   const setBody = usePlate((s) => s.setBody);
   const setGoals = usePlate((s) => s.setGoals);
+  const anim = (i: number) => ({
+    initial: { opacity: 0, y: 8 },
+    animate: { opacity: 1, y: 0 },
+    transition: { delay: 0.04 * i, duration: 0.3, ease: "easeOut" as const },
+  });
 
   const body = p.body ?? DEFAULT_BODY;
   const ready = body.age > 0 && body.height > 0 && body.weight > 0;
