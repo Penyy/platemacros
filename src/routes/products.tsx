@@ -81,6 +81,7 @@ function ProductsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [swipeDeleteId, setSwipeDeleteId] = useState<string | null>(null);
 
   const locale = i18n.language?.startsWith("en") ? "en" : "pl";
 
