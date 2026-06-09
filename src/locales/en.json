@@ -146,8 +146,8 @@
     }
   },
   "ai": {
-    "placeholderDefault": "Describe what you ate or ask…",
-    "placeholderWithImages": "Describe amounts (e.g. 100 g rice, 1 whole pack)…",
+    "placeholderDefault": "Describe or ask…",
+    "placeholderWithImages": "Describe amounts…",
     "send": "Send",
     "camera": "Add photos",
     "micStart": "Voice",

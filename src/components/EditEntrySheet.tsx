@@ -4,6 +4,7 @@ import { Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { type LogEntry, type Meal, usePlate } from "@/lib/store";
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
@@ -14,6 +15,7 @@ interface Props {
 
 export function EditEntrySheet({ entry, onClose }: Props) {
   const { t } = useTranslation();
+  useScrollLock(entry != null);
   const updateEntry = usePlate((s) => s.updateEntry);
   const removeEntry = usePlate((s) => s.removeEntry);
   const products = usePlate((s) => s.products);
