@@ -162,8 +162,9 @@ function StatsPage() {
                 days={days}
                 today={today}
                 range={range}
-                goalKcal={profile.goal_kcal}
+                goalKcal={avgGoal.kcal}
                 avgKcal={avg.kcal}
+                cycling={cycling}
                 onTap={goSplit}
               />
             </motion.div>
@@ -186,10 +187,10 @@ function StatsPage() {
               </button>
               {(
                 [
-                  { key: "kcal", title: "Kalorie", unit: "kcal", color: "var(--ink)", goal: profile.goal_kcal, avg: avg.kcal },
-                  { key: "protein", title: "Białko", unit: "g", color: "var(--macro-protein)", goal: profile.goal_protein, avg: avg.protein },
-                  { key: "carbs", title: "Węglowodany", unit: "g", color: "var(--macro-carbs)", goal: profile.goal_carbs, avg: avg.carbs },
-                  { key: "fat", title: "Tłuszcz", unit: "g", color: "var(--macro-fat)", goal: profile.goal_fat, avg: avg.fat },
+                  { key: "kcal", title: "Kalorie", unit: "kcal", color: "var(--ink)", goal: avgGoal.kcal, avg: avg.kcal },
+                  { key: "protein", title: "Białko", unit: "g", color: "var(--macro-protein)", goal: avgGoal.protein, avg: avg.protein },
+                  { key: "carbs", title: "Węglowodany", unit: "g", color: "var(--macro-carbs)", goal: avgGoal.carbs, avg: avg.carbs },
+                  { key: "fat", title: "Tłuszcz", unit: "g", color: "var(--macro-fat)", goal: avgGoal.fat, avg: avg.fat },
                 ] as const
               ).map((m, idx) => (
                 <motion.div
@@ -206,10 +207,12 @@ function StatsPage() {
                     avg={m.avg}
                     today={today}
                     range={range}
+                    cycling={cycling}
                     values={days.map((d) => ({
                       label: d.label,
                       date: d.date,
                       v: Math.round(d.totals[m.key as keyof typeof d.totals]),
+                      goal: d.goals[m.key as keyof typeof d.goals],
                     }))}
                     onTap={goCombined}
                   />
