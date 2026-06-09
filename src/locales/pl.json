@@ -148,8 +148,8 @@
     }
   },
   "ai": {
-    "placeholderDefault": "Opisz co zjadłeś albo zapytaj…",
-    "placeholderWithImages": "Opisz ilości (np. 100 g ryżu, 1 całe opakowanie)…",
+    "placeholderDefault": "Opisz albo zapytaj…",
+    "placeholderWithImages": "Opisz ilości…",
     "send": "Wyślij",
     "camera": "Dodaj zdjęcia",
     "micStart": "Dyktuj głosem",

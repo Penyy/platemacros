@@ -80,8 +80,11 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
+    if (input.length === 0) {
+      el.style.height = "22px";
+      return;
+    }
     el.style.height = "auto";
-    // Single line by default (~22px), grow up to ~5 lines (~110px) then scroll.
     el.style.height = `${Math.min(Math.max(el.scrollHeight, 22), 110)}px`;
   }, [input]);
 
@@ -527,7 +530,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
         >
           <textarea
             ref={textareaRef}
-            autoFocus
+            
             rows={1}
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -543,7 +546,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
                 : t("ai.placeholderDefault")
             }
             disabled={!!busy}
-            className="flex-1 resize-none bg-transparent py-3 text-[15px] leading-[22px] outline-none max-h-[110px] overflow-y-auto placeholder:text-[color:var(--muted-foreground)]"
+            className="flex-1 resize-none bg-transparent text-[15px] leading-[22px] outline-none max-h-[110px] overflow-y-auto placeholder:text-[color:var(--muted-foreground)]"
             style={{ color: "var(--ink)", fontWeight: 500, height: 22 }}
           />
           <button
