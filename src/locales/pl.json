@@ -47,6 +47,7 @@
   },
   "item": {
     "editTitle": "Edytuj pozycję",
+    "autoScaleHint": "Zmiana gramatury automatycznie przelicza kalorie i makro.",
     "addTitle": "Dodaj pozycję",
     "name": "Nazwa",
     "namePlaceholder": "Nazwa pozycji",
