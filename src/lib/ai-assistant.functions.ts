@@ -148,12 +148,36 @@ type Meal = "breakfast" | "second_breakfast" | "lunch" | "dinner" | "snack";
 // Prompts
 // ============================================================
 
+const ACCURACY_GUIDELINES = `WYTYCZNE DOKŁADNOŚCI (PRIORYTET):
+Jesteś precyzyjnym ekspertem ds. żywienia. Szacuj wartości odżywcze jak najdokładniej.
+
+CZYTANIE ETYKIET:
+- Odczytuj wartości dokładnie; rozróżniaj kolumny 'na 100 g/ml' i 'na porcję'.
+- Pilnuj jednostek: kJ → kcal (kcal = kJ / 4,184); rozróżniaj g i mg; rozróżniaj sód i sól (sód = sól / 2,5).
+- Jeśli na etykiecie są wartości na 100 g i na porcję — użyj kolumny zgodnej z ilością opisaną przez użytkownika.
+- Gdy etykieta podaje wartość, ufaj jej bardziej niż własnemu szacunkowi.
+
+SZACOWANIE ZE ZDJĘCIA (bez etykiety):
+- Rozpoznaj każdy składnik z osobna i oszacuj jego gramaturę na podstawie wskazówek wizualnych (wielkość naczynia, sztućce, opakowanie, typowe porcje).
+- Policz wartości per składnik, a potem zsumuj.
+
+ZASADA OSTROŻNOŚCI (WAŻNE):
+- Gdy nie masz pewności lub masz przedział możliwych wartości, wybieraj GÓRNĄ granicę realistycznego przedziału.
+- Lepiej lekko PRZESZACOWAĆ kalorie i makroskładniki niż je niedoszacować. W razie wątpliwości zaokrąglaj w górę.
+- Margines ma być rozsądny — realny górny zakres, nie zawyżaj absurdalnie.
+
+SPÓJNOŚĆ:
+- Przy szacowaniu ze zdjęcia sprawdź, że kcal ≈ 4×białko + 4×węglowodany + 9×tłuszcz (tolerancja ~10%); jeśli się nie zgadza, popraw wartości tak, by były spójne. Przy odczycie z etykiety zachowaj wydrukowane kcal.
+- Zawsze zwróć najlepsze możliwe oszacowanie — nie odmawiaj z powodu niepewności.`;
+
 const SYSTEM_INSTRUCTION = `Jesteś asystentem żywieniowym aplikacji Plate. Twoim zadaniem jest POMAGAĆ z jedzeniem, makro, kaloriami, wartościami odżywczymi, doborem i rekomendacją posiłków oraz logowaniem jedzenia. Odpowiadaj pomocnie i konkretnie na WSZYSTKO co dotyczy jedzenia, odżywiania, makroskładników, diety i celów użytkownika — w tym pytania typu 'co zjeść', 'co dojeść na białko', 'czy to się zmieści w mój cel', rekomendacje produktów i posiłków. Odpowiadasz po polsku, krótko i konkretnie, korzystając z danych dnia użytkownika. Odmawiasz TYLKO gdy pytanie ewidentnie NIE ma związku z jedzeniem/odżywianiem (np. anatomia, medycyna, polityka, ogólna wiedza) — wtedy jednym zdaniem: 'Pomagam tylko z jedzeniem i makro w Plate.' W razie wątpliwości ZAWSZE pomagaj.
+
+${ACCURACY_GUIDELINES}
 
 Reguły logowania jedzenia:
 - Gdy użytkownik prosi o dodanie jedzenia, ZAWSZE wywołuj funkcję addFoodEntry (lub addMultipleEntries dla wielu pozycji), nie pisz tylko tekstu.
 - Jeśli posiłek nie został wskazany, wywnioskuj z pory dnia (5-10 śniadanie, 10-12 lunch, 12-16 obiad, 16-21 kolacja, reszta przekąski).
-- Jeśli dokładne makro nie jest znane, podaj najlepsze przybliżenie dla podanej porcji.
+- Jeśli dokładne makro nie jest znane, podaj najlepsze przybliżenie dla podanej porcji (stosuj zasadę ostrożności — lekko w górę).
 - Wartości kcal i makro w funkcjach to CAŁKOWITE wartości dla porcji, NIE na 100 g.
 
 Reguły odpowiedzi na pytania o postęp i rekomendacje:
@@ -267,19 +291,26 @@ interface GeminiResponse {
   candidates?: Array<{ content?: { parts?: GeminiPart[] } }>;
 }
 
-async function callGemini(body: unknown, apiKey: string): Promise<GeminiResponse> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+const PRIMARY_MODEL = "gemini-3.5-flash";
+const FALLBACK_MODEL = "gemini-2.5-flash";
+
+async function callGeminiModel(model: string, body: unknown, apiKey: string): Promise<{ resp?: GeminiResponse; unavailable?: boolean; error?: Error }> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
   const maxAttempts = 4;
-  let lastErr: unknown = null;
+  let lastErr: Error | null = null;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    if (res.ok) return (await res.json()) as GeminiResponse;
-    if (res.status === 402 || res.status === 403) throw new Error("AI_CREDITS");
+    if (res.ok) return { resp: (await res.json()) as GeminiResponse };
     const txt = await res.text().catch(() => "");
+    // Model availability errors -> signal fallback
+    if (res.status === 404 || (res.status === 400 && /model|not found|not supported|unavailable/i.test(txt))) {
+      return { unavailable: true, error: new Error(`AI_MODEL_UNAVAILABLE_${res.status}`) };
+    }
+    if (res.status === 402 || res.status === 403) return { error: new Error("AI_CREDITS") };
     const retriable = res.status === 429 || res.status === 503 || res.status === 502 || res.status === 504;
     if (retriable && attempt < maxAttempts) {
       const delay = 500 * 2 ** (attempt - 1) + Math.floor(Math.random() * 250);
@@ -287,11 +318,22 @@ async function callGemini(body: unknown, apiKey: string): Promise<GeminiResponse
       lastErr = new Error(`AI_HTTP_${res.status}`);
       continue;
     }
-    if (res.status === 429) throw new Error("AI_RATE_LIMIT");
-    if (res.status === 503) throw new Error("AI_OVERLOADED");
-    throw new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`);
+    if (res.status === 429) return { error: new Error("AI_RATE_LIMIT") };
+    if (res.status === 503) return { error: new Error("AI_OVERLOADED") };
+    return { error: new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`) };
   }
-  throw (lastErr instanceof Error ? lastErr : new Error("AI_HTTP_UNKNOWN"));
+  return { error: lastErr ?? new Error("AI_HTTP_UNKNOWN") };
+}
+
+async function callGemini(body: unknown, apiKey: string): Promise<GeminiResponse> {
+  const primary = await callGeminiModel(PRIMARY_MODEL, body, apiKey);
+  if (primary.resp) return primary.resp;
+  if (primary.unavailable) {
+    const fb = await callGeminiModel(FALLBACK_MODEL, body, apiKey);
+    if (fb.resp) return fb.resp;
+    throw fb.error ?? new Error("AI_HTTP_UNKNOWN");
+  }
+  throw primary.error ?? new Error("AI_HTTP_UNKNOWN");
 }
 
 // ============================================================
@@ -308,7 +350,9 @@ async function classifyTopic(_message: string): Promise<"in_scope" | "out_of_sco
 // Path A: Multi-image structured items (etykiety / posiłek / mix)
 // ============================================================
 
-const ItemsSystemAddendum = `Otrzymujesz jedno lub więcej zdjęć (zwykle etykiety wartości odżywczych) oraz opis tekstowy ilości użytych składników. Dla każdego składnika: odczytaj z etykiety wartości na 100 g (jeśli podane tylko w kJ, przelicz kcal = kJ / 4.184), dopasuj do ilości z tekstu i policz kcal/białko/węgle/tłuszcz dla użytej gramatury (wartość_na_100g × gramy / 100). Gdy user pisze "cały/cała/całe" — użyj wagi netto opakowania z etykiety. Składniki bez czytelnej etykiety lub niewidoczne na zdjęciu (np. oliwa) policz wg standardowych wartości i odnotuj to w notes. Zwróć JEDNĄ pozycję na składnik. Jeśli gramatury nie da się ustalić, ustaw grams = 100 i zaznacz w notes. Ksylitol/poliole licz wg kalorii z etykiety. Nie dubluj składników. Zaokrąglaj kcal do liczby całkowitej, makro do 0,1 g. Zaproponuj dishName i meal na podstawie opisu.`;
+const ItemsSystemAddendum = `Otrzymujesz jedno lub więcej zdjęć (zwykle etykiety wartości odżywczych) oraz opis tekstowy ilości użytych składników. Dla każdego składnika: odczytaj z etykiety wartości na 100 g (jeśli podane tylko w kJ, przelicz kcal = kJ / 4.184), dopasuj do ilości z tekstu i policz kcal/białko/węgle/tłuszcz dla użytej gramatury (wartość_na_100g × gramy / 100). Gdy user pisze "cały/cała/całe" — użyj wagi netto opakowania z etykiety. Składniki bez czytelnej etykiety lub niewidoczne na zdjęciu (np. oliwa) policz wg standardowych wartości i odnotuj to w notes. Zwróć JEDNĄ pozycję na składnik. Jeśli gramatury nie da się ustalić, ustaw grams = 100 i zaznacz w notes. Ksylitol/poliole licz wg kalorii z etykiety. Nie dubluj składników. Zaokrąglaj kcal do liczby całkowitej, makro do 0,1 g. Zaproponuj dishName i meal na podstawie opisu.
+
+DOKŁADNOŚĆ I OSTROŻNOŚĆ: Rozróżniaj kolumny 'na 100 g' vs 'na porcję' — wybieraj zgodną z opisem usera. Pilnuj jednostek (kJ/kcal, g/mg, sód vs sól = sód×2,5). Przy szacowaniu ze zdjęcia bez etykiety oszacuj gramaturę per składnik (naczynia, sztućce, opakowanie jako skala). Gdy masz przedział możliwych wartości — wybieraj GÓRNĄ granicę realistycznego zakresu; lepiej lekko PRZESZACOWAĆ niż niedoszacować. Sprawdź spójność: kcal ≈ 4×białko + 4×węgle + 9×tłuszcz (tolerancja ~10%) — przy odczycie z etykiety zachowaj wydrukowane kcal, przy szacowaniu popraw, by się zgadzało.`;
 
 const PL_MEAL_TO_INTERNAL: Record<string, Meal> = {
   "Śniadanie": "breakfast",
