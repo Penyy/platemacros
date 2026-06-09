@@ -45,6 +45,7 @@
   },
   "item": {
     "editTitle": "Edit item",
+    "autoScaleHint": "Changing the amount auto-scales calories and macros.",
     "addTitle": "Add item",
     "name": "Name",
     "namePlaceholder": "Item name",
