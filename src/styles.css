@@ -54,6 +54,7 @@
   --hairline: oklch(0.93 0.012 85);            /* #EFEBE1 */
   --light-gray: oklch(0.83 0.018 85);          /* #C9C3B6 */
   --cream: oklch(0.97 0.030 90);               /* #FBF4E2 plate card */
+  --hero-bg: var(--cream);
 
   --accent-yellow: oklch(0.82 0.165 85);       /* #F4B500 */
   --accent-yellow-soft: oklch(0.86 0.155 90);  /* #F6C840 */
