@@ -318,7 +318,153 @@ function ProductsPage() {
         onCancel={() => setConfirmDelete(false)}
         onConfirm={confirmRemove}
       />
+
+      <SwipeDeleteConfirm
+        open={!!swipeDeleteId}
+        name={swipeDeleteProduct?.name ?? ""}
+        onCancel={() => setSwipeDeleteId(null)}
+        onConfirm={confirmSwipeRemove}
+      />
     </div>
+  );
+}
+
+function SwipeRow({
+  children,
+  onDelete,
+  deleteLabel,
+}: {
+  children: React.ReactNode;
+  onDelete: () => void;
+  deleteLabel: string;
+}) {
+  const x = useMotionValue(0);
+  const ACTION_W = 88;
+  const TRIGGER = 56;
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  function handleDragEnd(_: unknown, info: PanInfo) {
+    const offset = info.offset.x;
+    const velocity = info.velocity.x;
+    if (offset < -TRIGGER || velocity < -500) {
+      animate(x, -ACTION_W, { type: "spring", stiffness: 500, damping: 40 }).then(() => {
+        onDelete();
+        animate(x, 0, { type: "spring", stiffness: 500, damping: 40 });
+      });
+    } else {
+      animate(x, 0, { type: "spring", stiffness: 500, damping: 40 });
+    }
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative overflow-hidden rounded-[18px]"
+    >
+      <div
+        className="absolute inset-y-0 right-0 flex items-center justify-end pr-4"
+        style={{
+          background: `rgb(${MACRO_RGB.protein})`,
+          width: ACTION_W + 24,
+        }}
+        aria-hidden
+      >
+        <span
+          className="flex items-center gap-1.5 text-[13px]"
+          style={{ color: "#FBF4E2", fontWeight: 800 }}
+        >
+          <Trash2 size={16} strokeWidth={2.2} />
+          {deleteLabel}
+        </span>
+      </div>
+      <motion.div
+        drag="x"
+        dragDirectionLock
+        dragConstraints={{ left: -ACTION_W, right: 0 }}
+        dragElastic={{ left: 0.15, right: 0 }}
+        dragMomentum={false}
+        onDragEnd={handleDragEnd}
+        style={{ x, touchAction: "pan-y" }}
+      >
+        {children}
+      </motion.div>
+    </div>
+  );
+}
+
+function SwipeDeleteConfirm({
+  open,
+  name,
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  name: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const { t } = useTranslation();
+  useScrollLock(open);
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onCancel}
+            className="fixed inset-0 z-[60] bg-black/50"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed left-1/2 top-1/2 z-[61] w-[88%] max-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-card p-5"
+            style={{ boxShadow: "var(--shadow-card)", border: "1px solid var(--hairline)" }}
+          >
+            <h3
+              className="text-[18px] leading-tight"
+              style={{
+                fontFamily: "Manrope, sans-serif",
+                fontWeight: 800,
+                letterSpacing: "-0.02em",
+                color: "var(--ink)",
+              }}
+            >
+              {t("products.deleteConfirmTitle")}
+            </h3>
+            <p
+              className="mt-2 text-[13.5px] leading-snug"
+              style={{ color: "var(--muted-foreground)", fontWeight: 500 }}
+            >
+              {t("products.deleteConfirmBody", { name })}
+            </p>
+            <div className="mt-5 flex gap-2">
+              <button
+                onClick={onCancel}
+                className="flex flex-1 items-center justify-center rounded-full py-3 text-[14px]"
+                style={{ background: "var(--hairline)", color: "var(--ink)", fontWeight: 600 }}
+              >
+                {t("common.no")}
+              </button>
+              <button
+                onClick={onConfirm}
+                className="flex flex-1 items-center justify-center rounded-full py-3 text-[14px]"
+                style={{
+                  background: `rgb(${MACRO_RGB.protein})`,
+                  color: "#FBF4E2",
+                  fontWeight: 800,
+                }}
+              >
+                {t("common.yes")}
+              </button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
 
