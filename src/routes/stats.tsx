@@ -159,7 +159,7 @@ function StatsPage() {
               className="space-y-3"
             >
               <button
-                onClick={() => setView("combined")}
+                onClick={goCombined}
                 className="flex items-center gap-1 -ml-1 px-1 py-1 text-[13px] active:scale-[0.98] transition"
                 style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
               >
