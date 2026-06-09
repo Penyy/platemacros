@@ -313,7 +313,9 @@
       "carbs": "Węglowodany",
       "fat": "Tłuszcz",
       "unitKcal": "kcal",
-      "unitG": "g"
+      "unitG": "g",
+      "dailyTitle": "Cele dzienne",
+      "editInProfile": "Edytuj w Profilu"
     },
     "weekly": {
       "switch": "Inne cele na każdy dzień tygodnia",
