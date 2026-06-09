@@ -88,7 +88,7 @@ function NavItem({
     <Link
       to={to}
       className="flex flex-col items-center justify-center gap-0.5 py-1"
-      style={{ color: active ? "var(--accent-yellow)" : "rgba(243,239,229,0.55)" }}
+      style={{ color: active ? "var(--accent-yellow)" : "#8B867C" }}
     >
       <span className="grid h-8 w-8 place-items-center">
         <Icon size={24} strokeWidth={2} />
