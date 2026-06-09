@@ -19,8 +19,8 @@ const LabelSchema = z.object({
 
 export type NutritionLabel = z.infer<typeof LabelSchema>;
 
-const PRIMARY_MODEL = "gemini-3.5-flash";
-const FALLBACK_MODEL = "gemini-2.5-flash";
+
+
 
 const ACCURACY_RULES = `WYTYCZNE DOKŁADNOŚCI: Jesteś precyzyjnym ekspertem ds. żywienia.
 - Rozróżniaj 'na 100 g/ml' vs 'na porcję'. Pilnuj jednostek (kJ→kcal: kcal=kJ/4,184; g vs mg; sód vs sól=sód×2,5).
