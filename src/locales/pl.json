@@ -25,12 +25,25 @@
     "empty": "Nie masz jeszcze produktów",
     "emptyHint": "Dodaj produkt z edycji pozycji lub po zeskanowaniu kodu.",
     "noResults": "Brak wyników.",
-    "per100": "Wartości na 100 g",
+    "per100": "na 100 g",
     "namePlaceholder": "Nazwa produktu",
     "saveProduct": "Zapisz produkt",
     "deleteConfirm": "Usunąć „{{name}}”?",
     "deleted": "Usunięto · Cofnij",
-    "editAria": "Edytuj {{name}}"
+    "editAria": "Edytuj {{name}}",
+    "addProduct": "Dodaj produkt",
+    "newProduct": "Nowy produkt",
+    "editProduct": "Edytuj produkt",
+    "name": "Nazwa",
+    "sort": {
+      "name": "Nazwa",
+      "kcal": "Kalorie",
+      "protein": "Białko",
+      "carbs": "Węgle",
+      "fat": "Tłuszcz"
+    },
+    "deleteTitle": "Usunąć produkt?",
+    "deleteBody": "Czy na pewno chcesz usunąć „{{name}}”? Tej operacji nie można cofnąć."
   },
   "item": {
     "editTitle": "Edytuj pozycję",
