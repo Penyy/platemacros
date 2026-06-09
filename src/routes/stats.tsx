@@ -614,7 +614,7 @@ function SplitChartCard({
           ))}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
