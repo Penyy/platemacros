@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import {
   type Meal,
+  countMissingFromPrevDay,
   getDayGoals,
   sumEntries,
   usePlate,
@@ -81,15 +82,13 @@ function TodayPage() {
     () => entries.filter((e) => e.date === selected),
     [entries, selected]
   );
-  const prevDate = useMemo(() => {
-    const d = new Date(selected + "T00:00:00");
-    d.setDate(d.getDate() - 1);
-    return ymd(d);
-  }, [selected]);
-  const prevEntries = useMemo(
-    () => entries.filter((e) => e.date === prevDate),
-    [entries, prevDate]
-  );
+  const missingPrev = useMemo(() => {
+    const out: Record<Meal, boolean> = {} as Record<Meal, boolean>;
+    for (const m of MEALS) {
+      out[m] = countMissingFromPrevDay(entries, selected, m) > 0;
+    }
+    return out;
+  }, [entries, selected]);
   const sum = useMemo(() => sumEntries(dayEntries), [dayEntries]);
   const dayGoals = useMemo(() => getDayGoals(profile, selected), [profile, selected]);
   const burned = Math.round(burnedMap[selected] ?? 0);
@@ -195,7 +194,7 @@ function TodayPage() {
               meal={m}
               date={selected}
               entries={dayEntries.filter((e) => e.meal === m)}
-              prevDayHasEntries={prevEntries.some((e) => e.meal === m)}
+              prevDayHasEntries={missingPrev[m]}
               onAdd={(meal) => openAdd(meal, selected)}
             />
           </motion.div>
