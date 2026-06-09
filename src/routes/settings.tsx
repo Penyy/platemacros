@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
 import {
   Download,
   Upload,
