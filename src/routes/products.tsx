@@ -366,6 +366,7 @@ function SwipeRow({
         style={{
           background: `rgb(${MACRO_RGB.protein})`,
           width: ACTION_W + 24,
+          zIndex: 0,
         }}
         aria-hidden
       >
@@ -378,6 +379,7 @@ function SwipeRow({
         </span>
       </div>
       <motion.div
+        className="relative z-10"
         drag="x"
         dragDirectionLock
         dragConstraints={{ left: -ACTION_W, right: 0 }}
