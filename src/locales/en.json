@@ -112,6 +112,13 @@
     "carbs": "Carbs",
     "fat": "Fat"
   },
+  "burned": {
+    "title": "Burned calories",
+    "label": "Burned (kcal)",
+    "hint": "Enter calories burned through activity.",
+    "clear": "Clear",
+    "unit": "kcal"
+  },
   "add": {
     "title": {
       "menu": "Add item",
