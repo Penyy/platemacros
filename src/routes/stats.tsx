@@ -157,16 +157,19 @@ function StatsPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.25 }}
+              style={{ willChange: "transform, opacity" }}
             >
-              <CombinedChart
-                days={days}
-                today={today}
-                range={range}
-                goalKcal={avgGoal.kcal}
-                avgKcal={avg.kcal}
-                cycling={cycling}
-                onTap={goSplit}
-              />
+              <DeferredMount placeholderMinHeight={260}>
+                <CombinedChart
+                  days={days}
+                  today={today}
+                  range={range}
+                  goalKcal={avgGoal.kcal}
+                  avgKcal={avg.kcal}
+                  cycling={cycling}
+                  onTap={goSplit}
+                />
+              </DeferredMount>
             </motion.div>
           ) : (
             <motion.div
@@ -176,6 +179,7 @@ function StatsPage() {
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.25 }}
               className="space-y-3"
+              style={{ willChange: "transform, opacity" }}
             >
               <button
                 onClick={goCombined}
@@ -198,24 +202,27 @@ function StatsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, delay: idx * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ willChange: "transform, opacity" }}
                 >
-                  <SplitChartCard
-                    title={m.title}
-                    unit={m.unit}
-                    color={m.color}
-                    goal={m.goal}
-                    avg={m.avg}
-                    today={today}
-                    range={range}
-                    cycling={cycling}
-                    values={days.map((d) => ({
-                      label: d.label,
-                      date: d.date,
-                      v: Math.round(d.totals[m.key as keyof typeof d.totals]),
-                      goal: d.goals[m.key as keyof typeof d.goals],
-                    }))}
-                    onTap={goCombined}
-                  />
+                  <DeferredMount placeholderMinHeight={220}>
+                    <SplitChartCard
+                      title={m.title}
+                      unit={m.unit}
+                      color={m.color}
+                      goal={m.goal}
+                      avg={m.avg}
+                      today={today}
+                      range={range}
+                      cycling={cycling}
+                      values={days.map((d) => ({
+                        label: d.label,
+                        date: d.date,
+                        v: Math.round(d.totals[m.key as keyof typeof d.totals]),
+                        goal: d.goals[m.key as keyof typeof d.goals],
+                      }))}
+                      onTap={goCombined}
+                    />
+                  </DeferredMount>
                 </motion.div>
               ))}
             </motion.div>
