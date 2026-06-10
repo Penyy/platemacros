@@ -228,9 +228,6 @@
   .display-tight {
     font-feature-settings: "tnum" 1, "lnum" 1;
     letter-spacing: -0.04em;
-  .display-tight {
-    font-feature-settings: "tnum" 1, "lnum" 1;
-    letter-spacing: -0.04em;
     font-weight: 800;
   }
 
