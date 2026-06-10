@@ -74,9 +74,13 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
             }}
           >
             <div
-              className="mx-2 mb-[max(env(safe-area-inset-bottom),1.25rem)] overflow-y-auto overscroll-contain rounded-t-[30px] rounded-b-[28px] bg-card px-5 pt-3 pb-[max(env(safe-area-inset-bottom),1.5rem)]"
-              style={{ boxShadow: "var(--shadow-card)", WebkitOverflowScrolling: "touch" }}
+              className="mx-2 mb-[max(env(safe-area-inset-bottom),1.25rem)] flex min-h-0 flex-col overflow-hidden rounded-t-[30px] rounded-b-[28px] bg-card"
+              style={{ boxShadow: "var(--shadow-card)" }}
             >
+              <div
+                className="min-h-0 overflow-y-auto overscroll-contain px-5 pt-3 pb-[max(env(safe-area-inset-bottom),1.5rem)]"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
               <div
                 className="mx-auto mb-3 h-1.5 w-11 rounded-full"
                 style={{ background: "var(--hairline)" }}
@@ -180,6 +184,7 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
               {mode === "assistant" && (
                 <AssistantFlow defaultMeal={meal} date={date} onClose={close} />
               )}
+            </div>
             </div>
           </motion.div>
         </>
