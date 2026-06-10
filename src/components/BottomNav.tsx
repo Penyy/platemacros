@@ -25,8 +25,8 @@ export function BottomNav({ onAdd }: Props) {
       <nav
         className="pointer-events-auto grid flex-1 grid-cols-4 items-center rounded-[28px] px-2 py-1.5"
         style={{
-          background: "#2A2A23",
-          border: "1px solid rgba(255,255,255,0.12)",
+          background: "#17150F",
+          border: "1px solid rgba(255,255,255,0.08)",
           boxShadow:
             "0 10px 30px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)",
         }}
@@ -47,7 +47,7 @@ export function BottomNav({ onAdd }: Props) {
         whileTap={{ scale: 0.9 }}
         onClick={onAdd}
         aria-label="Dodaj"
-        className="pointer-events-auto grid h-14 w-14 shrink-0 place-items-center rounded-full"
+        className="pointer-events-auto grid h-16 w-16 shrink-0 place-items-center rounded-full"
         style={{
           background: "var(--accent-yellow)",
           boxShadow:
@@ -60,10 +60,10 @@ export function BottomNav({ onAdd }: Props) {
             color: "var(--ink)",
             fontFamily: "Manrope, sans-serif",
             fontWeight: 800,
-            fontSize: 34,
+            fontSize: 38,
             lineHeight: 1,
             letterSpacing: "-0.04em",
-            marginTop: -2,
+            marginTop: -3,
           }}
         >
           +
