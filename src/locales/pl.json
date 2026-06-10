@@ -114,6 +114,13 @@
     "carbs": "Węglowodany",
     "fat": "Tłuszcz"
   },
+  "burned": {
+    "title": "Spalone kalorie",
+    "label": "Spalone (kcal)",
+    "hint": "Wpisz kalorie spalone aktywnością.",
+    "clear": "Wyczyść",
+    "unit": "kcal"
+  },
   "add": {
     "title": {
       "menu": "Dodaj pozycję",

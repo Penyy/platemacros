@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Flame } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { usePlate } from "@/lib/store";
 
@@ -12,6 +13,7 @@ export function BurnedEditSheet({
   date: string;
   onOpenChange: (v: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const burned = usePlate((s) => s.burned[date] ?? 0);
   const setBurned = usePlate((s) => s.setBurned);
   const [val, setVal] = useState<string>(String(burned || ""));
@@ -46,7 +48,7 @@ export function BurnedEditSheet({
             style={{ color: "var(--ink)", fontWeight: 700, fontSize: 20 }}
           >
             <Flame size={18} strokeWidth={1.8} />
-            Spalone kalorie
+            {t("burned.title")}
           </SheetTitle>
         </SheetHeader>
 
@@ -59,7 +61,7 @@ export function BurnedEditSheet({
               className="block pb-2 text-[11px] font-semibold"
               style={{ color: "var(--muted-foreground)" }}
             >
-              Kalorie spalone w tym dniu
+              {t("burned.label")}
             </label>
             <div className="flex items-baseline gap-2">
               <input
@@ -72,10 +74,14 @@ export function BurnedEditSheet({
                 style={{ color: "var(--ink)", fontWeight: 800, letterSpacing: "-0.02em" }}
               />
               <span className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-                kcal
+                {t("burned.unit")}
               </span>
             </div>
           </div>
+
+          <p className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+            {t("burned.hint")}
+          </p>
 
           <div className="flex gap-2">
             <button
@@ -86,14 +92,14 @@ export function BurnedEditSheet({
               className="flex-1 rounded-full py-3 text-[14px] font-semibold"
               style={{ background: "var(--muted)", color: "var(--ink)" }}
             >
-              Wyczyść
+              {t("burned.clear")}
             </button>
             <button
               onClick={save}
               className="flex-[2] rounded-full py-3 text-[14px] font-semibold"
               style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
             >
-              Zapisz
+              {t("common.save")}
             </button>
           </div>
         </div>
