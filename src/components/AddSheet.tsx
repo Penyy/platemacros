@@ -836,7 +836,7 @@ function SearchForm({
                   setGrams("100");
                 }}
                 className="flex w-full items-center gap-3 rounded-[20px] bg-card p-3.5 text-left active:opacity-80"
-                style={{ boxShadow: "var(--shadow-card)" }}
+                style={{ border: "1px solid var(--hairline)" }}
               >
                 <div className="min-w-0 flex-1">
                   <div
