@@ -486,14 +486,8 @@ function SplitChartCard({
   const diff = avg - goal;
   const onTarget = goal > 0 && Math.abs(diff) <= goal * 0.02;
 
-  const TOLERANCE = 0.1;
-  const barColorFor = (v: number, dayGoal: number) => {
-    if (v <= 0 || dayGoal <= 0) return color;
-    const ratio = v / dayGoal;
-    if (ratio > 1 + TOLERANCE) return "var(--macro-protein)";
-    if (ratio < 1 - TOLERANCE) return "var(--macro-fat)";
-    return "var(--accent-yellow)";
-  };
+
+
 
   return (
     <motion.div
@@ -599,7 +593,7 @@ function SplitChartCard({
                   className="relative overflow-hidden"
                   style={{
                     width: "60%",
-                    background: barColorFor(d.v, d.goal),
+                    background: color,
                     borderRadius: "9px 9px 5px 5px",
                     opacity: isToday || !isAnyToday(values, today) && i === values.length - 1 ? 1 : 0.8,
                   }}
@@ -649,11 +643,8 @@ function SplitChartCard({
         </div>
       )}
 
-      <div className="mt-2.5 flex items-center gap-2.5">
-        <LegendDot color="var(--accent-yellow)" label="na celu" />
-        <LegendDot color="var(--macro-protein)" label="powyżej celu" />
-        <LegendDot color="var(--macro-fat)" label="poniżej celu" />
-      </div>
+
+
     </motion.div>
   );
 }
