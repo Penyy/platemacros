@@ -108,7 +108,7 @@ function StatsPage() {
   return (
     <div className="pb-4">
       {/* Custom header with streak */}
-      <div className="px-[18px] pt-3 pb-2 flex items-end justify-between">
+      <div className="px-[18px] pt-[max(env(safe-area-inset-top),1rem)] pb-2 flex items-end justify-between">
         <div>
           <h1
             className="text-[28px] leading-tight"
