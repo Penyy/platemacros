@@ -643,11 +643,8 @@ function SplitChartCard({
         </div>
       )}
 
-      <div className="mt-2.5 flex items-center gap-2.5">
-        <LegendDot color="var(--accent-yellow)" label="na celu" />
-        <LegendDot color="var(--macro-protein)" label="powyżej celu" />
-        <LegendDot color="var(--macro-fat)" label="poniżej celu" />
-      </div>
+
+
     </motion.div>
   );
 }
