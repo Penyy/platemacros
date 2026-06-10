@@ -25,8 +25,8 @@ export function BottomNav({ onAdd }: Props) {
       <nav
         className="pointer-events-auto grid flex-1 grid-cols-4 items-center rounded-[28px] px-2 py-1.5"
         style={{
-          background: "#2A2A23",
-          border: "1px solid rgba(255,255,255,0.12)",
+          background: "#17150F",
+          border: "1px solid rgba(255,255,255,0.08)",
           boxShadow:
             "0 10px 30px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)",
         }}
