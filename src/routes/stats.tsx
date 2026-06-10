@@ -486,14 +486,8 @@ function SplitChartCard({
   const diff = avg - goal;
   const onTarget = goal > 0 && Math.abs(diff) <= goal * 0.02;
 
-  const TOLERANCE = 0.1;
-  const barColorFor = (v: number, dayGoal: number) => {
-    if (v <= 0 || dayGoal <= 0) return color;
-    const ratio = v / dayGoal;
-    if (ratio > 1 + TOLERANCE) return "var(--macro-protein)";
-    if (ratio < 1 - TOLERANCE) return "var(--macro-fat)";
-    return "var(--accent-yellow)";
-  };
+
+
 
   return (
     <motion.div
