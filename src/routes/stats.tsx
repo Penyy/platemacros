@@ -233,6 +233,24 @@ function StatsPage() {
   );
 }
 
+function DeferredMount({
+  children,
+  placeholderMinHeight,
+}: {
+  children: React.ReactNode;
+  placeholderMinHeight?: number;
+}) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setReady(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  if (!ready) {
+    return <div style={{ minHeight: placeholderMinHeight }} aria-hidden />;
+  }
+  return <>{children}</>;
+}
+
 function Pills({ value, onChange }: { value: Range; onChange: (r: Range) => void }) {
   return (
     <div
