@@ -87,8 +87,8 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
       return;
     }
     el.style.height = "auto";
-    // Grow with content up to ~5 lines (~110px), then scroll inside the field.
-    el.style.height = `${Math.min(Math.max(el.scrollHeight, 22), 110)}px`;
+    // Grow with content up to ~5 lines (~140px), then scroll inside the field.
+    el.style.height = `${Math.min(Math.max(el.scrollHeight, 22), 140)}px`;
   }, [input]);
 
   const [history, setHistory] = useState<HistoryItem[]>([]);
