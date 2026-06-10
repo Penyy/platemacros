@@ -185,6 +185,7 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
                 <AssistantFlow defaultMeal={meal} date={date} onClose={close} />
               )}
             </div>
+            </div>
           </motion.div>
         </>
       )}
