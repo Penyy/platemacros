@@ -55,57 +55,60 @@ function round1(x: number) {
   return Math.round(x * 10) / 10;
 }
 
+// Centralna lista modeli — priorytet = kolejność. Każdy ma osobną pulę darmową.
+const MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash"];
+// Skan etykiety — lżejszy model na froncie wystarczy do OCR tabeli wartości.
+const MODELS_LABEL = ["gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-2.0-flash"];
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const isRetryable = (s: number) => s === 429 || s === 503 || s === 502 || s === 504;
+
 interface GeminiBody {
   contents: unknown;
   generationConfig: Record<string, unknown>;
 }
 
-async function callGeminiOnce(model: string, apiKey: string, body: GeminiBody): Promise<{ ok: true; raw: string } | { ok: false; status: number; text: string }> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-  } catch (err) {
-    throw new Error("AI_NETWORK: " + (err instanceof Error ? err.message : String(err)));
-  }
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    return { ok: false, status: res.status, text };
-  }
-  const payload = (await res.json()) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-  };
-  const raw = payload.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-  return { ok: true, raw };
-}
-
-async function callGeminiWithFallback(apiKey: string, body: GeminiBody): Promise<string> {
-  const PRIMARY = "gemini-3.5-flash";
-  const FALLBACK = "gemini-2.5-flash";
-  const first = await callGeminiOnce(PRIMARY, apiKey, body);
-  const isUnavailable = (s: number, t: string) =>
-    s === 404 || (s === 400 && /model|not found|not supported|unavailable/i.test(t));
-  if (first.ok) {
-    if (!first.raw) throw new Error("AI_EMPTY");
-    return first.raw;
-  }
-  if (isUnavailable(first.status, first.text)) {
-    const second = await callGeminiOnce(FALLBACK, apiKey, body);
-    if (second.ok) {
-      if (!second.raw) throw new Error("AI_EMPTY");
-      return second.raw;
+async function callGeminiWithFallback(models: string[], apiKey: string, body: GeminiBody): Promise<string> {
+  let lastErr: Error | null = null;
+  for (let i = 0; i < models.length; i++) {
+    const model = models[i];
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const payload = (await res.json()) as {
+          candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+        };
+        const raw = payload.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+        if (!raw) throw new Error("AI_EMPTY");
+        return raw;
+      }
+      const txt = await res.text().catch(() => "");
+      if (isRetryable(res.status) && i < models.length - 1) {
+        await sleep(300 + Math.random() * 300);
+        lastErr = new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`);
+        continue;
+      }
+      if (!isRetryable(res.status)) {
+        if (res.status === 402 || res.status === 403) throw new Error("AI_CREDITS");
+        throw new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`);
+      }
+      if (res.status === 429) lastErr = new Error("AI_RATE_LIMIT");
+      else if (res.status === 503) lastErr = new Error("AI_OVERLOADED");
+      else lastErr = new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`);
+    } catch (e) {
+      lastErr = e instanceof Error ? e : new Error(String(e));
+      if (i < models.length - 1) {
+        await sleep(300);
+        continue;
+      }
     }
-    if (second.status === 429) throw new Error("AI_RATE_LIMIT");
-    if (second.status === 402 || second.status === 403) throw new Error("AI_CREDITS");
-    throw new Error(`AI_HTTP_${second.status}: ${second.text.slice(0, 200)}`);
   }
-  if (first.status === 429) throw new Error("AI_RATE_LIMIT");
-  if (first.status === 402 || first.status === 403) throw new Error("AI_CREDITS");
-  throw new Error(`AI_HTTP_${first.status}: ${first.text.slice(0, 200)}`);
+  throw lastErr ?? new Error("All Gemini models exhausted");
 }
 
 export const scanNutritionLabel = createServerFn({ method: "POST" })
@@ -133,10 +136,11 @@ export const scanNutritionLabel = createServerFn({ method: "POST" })
       generationConfig: {
         responseMimeType: "application/json",
         temperature: 0.2,
+        maxOutputTokens: 2048,
       },
     };
 
-    const raw = await callGeminiWithFallback(apiKey, body);
+    const raw = await callGeminiWithFallback(MODELS_LABEL, apiKey, body);
     if (!raw) throw new Error("AI_EMPTY");
 
     let parsed: unknown;
@@ -224,10 +228,11 @@ export const estimateMealFromPhoto = createServerFn({ method: "POST" })
       generationConfig: {
         responseMimeType: "application/json",
         temperature: 0.2,
+        maxOutputTokens: 2048,
       },
     };
 
-    const raw = await callGeminiWithFallback(apiKey, body);
+    const raw = await callGeminiWithFallback(MODELS, apiKey, body);
     if (!raw) throw new Error("AI_EMPTY");
 
     let parsed: unknown;

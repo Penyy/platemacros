@@ -148,41 +148,25 @@ type Meal = "breakfast" | "second_breakfast" | "lunch" | "dinner" | "snack";
 // Prompts
 // ============================================================
 
-const ACCURACY_GUIDELINES = `WYTYCZNE DOKŁADNOŚCI (PRIORYTET):
-Jesteś precyzyjnym ekspertem ds. żywienia. Szacuj wartości odżywcze jak najdokładniej.
+const ACCURACY_GUIDELINES = `DOKŁADNOŚĆ:
+- Etykiety: rozróżniaj 'na 100 g/ml' vs 'na porcję'; kJ→kcal /4,184; g vs mg; sól = sód×2,5. Gdy etykieta podaje wartość — ufaj jej.
+- Bez etykiety: rozpoznaj składniki, oszacuj gramaturę (naczynia/sztućce/opakowanie jako skala), licz per składnik i sumuj.
+- OSTROŻNOŚĆ: przy niepewności bias ku GÓRNEJ granicy realistycznego zakresu (lepiej lekko przeszacować niż niedoszacować).
+- SPÓJNOŚĆ: kcal ≈ 4×B + 4×W + 9×T (±10%). Przy etykiecie zachowaj wydrukowane kcal.
+- Polskie przecinki dziesiętne. Zawsze zwróć najlepsze oszacowanie.`;
 
-CZYTANIE ETYKIET:
-- Odczytuj wartości dokładnie; rozróżniaj kolumny 'na 100 g/ml' i 'na porcję'.
-- Pilnuj jednostek: kJ → kcal (kcal = kJ / 4,184); rozróżniaj g i mg; rozróżniaj sód i sól (sód = sól / 2,5).
-- Jeśli na etykiecie są wartości na 100 g i na porcję — użyj kolumny zgodnej z ilością opisaną przez użytkownika.
-- Gdy etykieta podaje wartość, ufaj jej bardziej niż własnemu szacunkowi.
-
-SZACOWANIE ZE ZDJĘCIA (bez etykiety):
-- Rozpoznaj każdy składnik z osobna i oszacuj jego gramaturę na podstawie wskazówek wizualnych (wielkość naczynia, sztućce, opakowanie, typowe porcje).
-- Policz wartości per składnik, a potem zsumuj.
-
-ZASADA OSTROŻNOŚCI (WAŻNE):
-- Gdy nie masz pewności lub masz przedział możliwych wartości, wybieraj GÓRNĄ granicę realistycznego przedziału.
-- Lepiej lekko PRZESZACOWAĆ kalorie i makroskładniki niż je niedoszacować. W razie wątpliwości zaokrąglaj w górę.
-- Margines ma być rozsądny — realny górny zakres, nie zawyżaj absurdalnie.
-
-SPÓJNOŚĆ:
-- Przy szacowaniu ze zdjęcia sprawdź, że kcal ≈ 4×białko + 4×węglowodany + 9×tłuszcz (tolerancja ~10%); jeśli się nie zgadza, popraw wartości tak, by były spójne. Przy odczycie z etykiety zachowaj wydrukowane kcal.
-- Zawsze zwróć najlepsze możliwe oszacowanie — nie odmawiaj z powodu niepewności.`;
-
-const SYSTEM_INSTRUCTION = `Jesteś asystentem żywieniowym aplikacji Plate. Twoim zadaniem jest POMAGAĆ z jedzeniem, makro, kaloriami, wartościami odżywczymi, doborem i rekomendacją posiłków oraz logowaniem jedzenia. Odpowiadaj pomocnie i konkretnie na WSZYSTKO co dotyczy jedzenia, odżywiania, makroskładników, diety i celów użytkownika — w tym pytania typu 'co zjeść', 'co dojeść na białko', 'czy to się zmieści w mój cel', rekomendacje produktów i posiłków. Odpowiadasz po polsku, krótko i konkretnie, korzystając z danych dnia użytkownika. Odmawiasz TYLKO gdy pytanie ewidentnie NIE ma związku z jedzeniem/odżywianiem (np. anatomia, medycyna, polityka, ogólna wiedza) — wtedy jednym zdaniem: 'Pomagam tylko z jedzeniem i makro w Plate.' W razie wątpliwości ZAWSZE pomagaj.
+const SYSTEM_INSTRUCTION = `Jesteś asystentem żywieniowym Plate. POMAGAJ ze wszystkim wokół jedzenia, makro, kalorii, doboru posiłków i logowania jedzenia — w tym 'co zjeść', 'co dojeść na białko', 'czy zmieszczę w cel'. Odmawiaj TYLKO gdy pytanie ewidentnie nie dotyczy jedzenia/odżywiania, jednym zdaniem: 'Pomagam tylko z jedzeniem i makro w Plate.' W razie wątpliwości — pomagaj.
 
 ${ACCURACY_GUIDELINES}
 
-Reguły logowania jedzenia:
-- Gdy użytkownik prosi o dodanie jedzenia, ZAWSZE wywołuj funkcję addFoodEntry (lub addMultipleEntries dla wielu pozycji), nie pisz tylko tekstu.
-- Jeśli posiłek nie został wskazany, wywnioskuj z pory dnia (5-10 śniadanie, 10-12 lunch, 12-16 obiad, 16-21 kolacja, reszta przekąski).
-- Jeśli dokładne makro nie jest znane, podaj najlepsze przybliżenie dla podanej porcji (stosuj zasadę ostrożności — lekko w górę).
-- Wartości kcal i makro w funkcjach to CAŁKOWITE wartości dla porcji, NIE na 100 g.
+LOGOWANIE:
+- Gdy user prosi o dodanie jedzenia, ZAWSZE wywołuj addFoodEntry / addMultipleEntries (nie tylko tekst).
+- Pole meal w toolach to ZAWSZE polski enum: Śniadanie / Obiad / Kolacja / Przekąska.
+- Bez wskazania posiłku wnioskuj z godziny: 5-10 śniadanie, 10-12 lunch, 12-16 obiad, 16-21 kolacja, reszta przekąska.
+- kcal i makro to CAŁKOWITE wartości dla porcji (NIE na 100 g).
 
-Reguły odpowiedzi na pytania o postęp i rekomendacje:
-- Korzystaj z dostarczonego kontekstu dnia (cele, spożycie, pozostało).
-- Odpowiadaj zwięźle (1-2 zdania), z konkretnymi liczbami i konkretnymi produktami.`;
+ODPOWIEDZI:
+- Zwięźle (1-2 zdania), konkretne liczby i konkretne produkty, korzystaj z kontekstu dnia.`;
 
 const FEW_SHOT_HISTORY = [
   { role: "user" as const, text: "Co dojeść na białko?" },
@@ -291,49 +275,55 @@ interface GeminiResponse {
   candidates?: Array<{ content?: { parts?: GeminiPart[] } }>;
 }
 
-const PRIMARY_MODEL = "gemini-3.5-flash";
-const FALLBACK_MODEL = "gemini-2.5-flash";
+// Centralna lista modeli — priorytet = kolejność. Każdy ma osobną pulę darmową,
+// więc fallback realnie sumuje limity. Aby włączyć 3.5 Flash, dodaj na początek.
+const MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash"];
 
-async function callGeminiModel(model: string, body: unknown, apiKey: string): Promise<{ resp?: GeminiResponse; unavailable?: boolean; error?: Error }> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
-  const maxAttempts = 4;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const isRetryable = (s: number) => s === 429 || s === 503 || s === 502 || s === 504;
+
+async function callGeminiWithFallback(
+  models: string[],
+  buildBody: (model: string) => unknown,
+  apiKey: string,
+): Promise<GeminiResponse> {
   let lastErr: Error | null = null;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (res.ok) return { resp: (await res.json()) as GeminiResponse };
-    const txt = await res.text().catch(() => "");
-    // Model availability errors -> signal fallback
-    if (res.status === 404 || (res.status === 400 && /model|not found|not supported|unavailable/i.test(txt))) {
-      return { unavailable: true, error: new Error(`AI_MODEL_UNAVAILABLE_${res.status}`) };
+  for (let i = 0; i < models.length; i++) {
+    const model = models[i];
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildBody(model)),
+      });
+      if (res.ok) return (await res.json()) as GeminiResponse;
+      const txt = await res.text().catch(() => "");
+      if (isRetryable(res.status) && i < models.length - 1) {
+        await sleep(300 + Math.random() * 300);
+        lastErr = new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`);
+        continue;
+      }
+      if (!isRetryable(res.status)) {
+        if (res.status === 402 || res.status === 403) throw new Error("AI_CREDITS");
+        throw new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`);
+      }
+      if (res.status === 429) lastErr = new Error("AI_RATE_LIMIT");
+      else if (res.status === 503) lastErr = new Error("AI_OVERLOADED");
+      else lastErr = new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`);
+    } catch (e) {
+      lastErr = e instanceof Error ? e : new Error(String(e));
+      if (i < models.length - 1) {
+        await sleep(300);
+        continue;
+      }
     }
-    if (res.status === 402 || res.status === 403) return { error: new Error("AI_CREDITS") };
-    const retriable = res.status === 429 || res.status === 503 || res.status === 502 || res.status === 504;
-    if (retriable && attempt < maxAttempts) {
-      const delay = 500 * 2 ** (attempt - 1) + Math.floor(Math.random() * 250);
-      await new Promise((r) => setTimeout(r, delay));
-      lastErr = new Error(`AI_HTTP_${res.status}`);
-      continue;
-    }
-    if (res.status === 429) return { error: new Error("AI_RATE_LIMIT") };
-    if (res.status === 503) return { error: new Error("AI_OVERLOADED") };
-    return { error: new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`) };
   }
-  return { error: lastErr ?? new Error("AI_HTTP_UNKNOWN") };
+  throw lastErr ?? new Error("All Gemini models exhausted");
 }
 
 async function callGemini(body: unknown, apiKey: string): Promise<GeminiResponse> {
-  const primary = await callGeminiModel(PRIMARY_MODEL, body, apiKey);
-  if (primary.resp) return primary.resp;
-  if (primary.unavailable) {
-    const fb = await callGeminiModel(FALLBACK_MODEL, body, apiKey);
-    if (fb.resp) return fb.resp;
-    throw fb.error ?? new Error("AI_HTTP_UNKNOWN");
-  }
-  throw primary.error ?? new Error("AI_HTTP_UNKNOWN");
+  return callGeminiWithFallback(MODELS, () => body, apiKey);
 }
 
 // ============================================================
@@ -437,6 +427,7 @@ async function handleImagesPath(
     generationConfig: {
       responseMimeType: "application/json",
       temperature: 0.2,
+      maxOutputTokens: 2048,
       responseSchema,
     },
   };
@@ -520,7 +511,7 @@ async function handleTextPath(
   const body: Record<string, unknown> = {
     system_instruction: { parts: [{ text: dynamicSystem }] },
     contents,
-    generationConfig: { temperature: 0.2 },
+    generationConfig: { temperature: 0.2, maxOutputTokens: 2048 },
   };
   if (settings.allowAddEntries) {
     body.tools = TOOLS;
