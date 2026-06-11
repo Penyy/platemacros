@@ -221,6 +221,63 @@ function TodayPage() {
 
 /* ---------- Subcomponents ---------- */
 
+function DayOffHero({ onBack }: { onBack: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="flex flex-col items-center px-5 py-8 text-center"
+      style={{
+        background: "var(--hero-bg)",
+        borderRadius: 28,
+        color: "var(--ink)",
+        boxShadow: "var(--shadow-card)",
+      }}
+    >
+      <span
+        className="grid h-16 w-16 place-items-center rounded-full"
+        style={{
+          border: "2px solid var(--accent-yellow)",
+          color: "var(--accent-yellow)",
+        }}
+      >
+        <Moon size={28} strokeWidth={1.8} />
+      </span>
+      <h2
+        className="mt-3 text-[22px] leading-tight"
+        style={{ fontFamily: "Manrope, sans-serif", fontWeight: 800, letterSpacing: "-0.02em", color: "var(--ink)" }}
+      >
+        {t("dayoff.heroTitle")}
+      </h2>
+      <p
+        className="mt-2 max-w-[28ch] text-[13px] leading-snug"
+        style={{ color: "var(--muted-foreground)" }}
+      >
+        {t("dayoff.heroSubtitle")}
+      </p>
+      <button
+        type="button"
+        onClick={onBack}
+        className="mt-4 rounded-full px-4 py-2 text-[12.5px] active:scale-[0.98]"
+        style={{
+          border: "1px solid var(--hairline)",
+          color: "var(--ink)",
+          fontWeight: 600,
+          background: "transparent",
+        }}
+      >
+        {t("dayoff.back")}
+      </button>
+      <div className="mt-3 text-[10.5px]" style={{ color: "var(--muted-foreground)", opacity: 0.75 }}>
+        {t("dayoff.reset")}
+      </div>
+    </motion.div>
+  );
+}
+
+
 function Logo() {
   return (
     <div className="flex items-baseline">
