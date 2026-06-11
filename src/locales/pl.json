@@ -538,6 +538,17 @@
     "vsGoal": "vs cel",
     "combinedView": "Widok zbiorczy",
     "tapToSplit": "Dotknij, aby rozbić na osobne wykresy"
+  },
+  "dayoff": {
+    "menu": "Dzień wolny",
+    "available": "Dostępny w {{month}}",
+    "usedOn": "Wykorzystany {{date}}",
+    "active": "Aktywny",
+    "heroTitle": "Dzień wolny",
+    "heroSubtitle": "Dziś przerwa od liczenia. Ten dzień nie wlicza się do statystyk ani wykresów.",
+    "back": "Wróć do liczenia",
+    "reset": "Token odnawia się 1. dnia miesiąca",
+    "chartNote": "Dzień wolny — poza średnią"
   }
 }
 
