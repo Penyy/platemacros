@@ -107,6 +107,9 @@
   --light-gray: #A39C8E;
   --cream: #211F19;                            /* hero/elevated card */
   --hero-bg: #26231A;                          /* hero card — warmer, lighter than page bg */
+  --nav-bg: #17150F;
+  --nav-border: rgba(255,255,255,0.08);
+  --nav-shadow: 0 10px 30px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
 
   --accent-yellow: #F4B500;
   --accent-yellow-soft: #F6C840;
