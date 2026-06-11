@@ -253,11 +253,12 @@ export const usePlate = create<State>()((set, get) => ({
     const uid = get().userId;
     if (!uid) return;
     try {
-      const [profRes, entRes, foodRes, burnRes] = await Promise.all([
+      const [profRes, entRes, foodRes, burnRes, dayOffRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
         supabase.from("food_entries").select("*").eq("user_id", uid).order("created_at"),
         supabase.from("foods").select("*").eq("user_id", uid).order("created_at"),
         supabase.from("daily_burned").select("date,burned_kcal").eq("user_id", uid),
+        supabase.from("day_offs").select("date").eq("user_id", uid),
       ]);
 
       const prof = profRes.data as (typeof profRes.data & {
