@@ -265,7 +265,7 @@ function Pills({ value, onChange }: { value: Range; onChange: (r: Range) => void
               fontWeight: active ? 700 : 600,
             }}
           >
-            {r} dni
+            {t("stats.daysCount", { n: r })}
           </button>
         );
       })}
