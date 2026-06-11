@@ -907,6 +907,26 @@ export function ymd(d: Date) {
   return `${y}-${m}-${day}`;
 }
 
+export function monthKey(date: string): string {
+  return date.slice(0, 7);
+}
+
+export function isDayOff(dayOffs: Set<string>, date: string): boolean {
+  return dayOffs.has(date);
+}
+
+export function dayOffInMonth(dayOffs: Set<string>, date: string): string | null {
+  const mk = monthKey(date);
+  for (const d of dayOffs) if (d.slice(0, 7) === mk) return d;
+  return null;
+}
+
+export function canSetDayOff(dayOffs: Set<string>, date: string): boolean {
+  const existing = dayOffInMonth(dayOffs, date);
+  return existing === null || existing === date;
+}
+
+
 
 export function countMissingFromPrevDay(entries: LogEntry[], date: string, meal: Meal): number {
   const d = new Date(date + "T00:00:00");
