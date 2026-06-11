@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Bell, User, Flame, ChevronLeft, ChevronRight } from "lucide-react";
+import { Bell, User, Flame, ChevronLeft, ChevronRight, Moon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { MealCard } from "@/components/MealCard";
 import { NotificationsSheet, startNotificationScheduler } from "@/components/NotificationsSheet";
