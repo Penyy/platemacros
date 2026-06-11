@@ -24,6 +24,8 @@ type Range = 7 | 30;
 type View = "combined" | "split";
 
 function StatsPage() {
+  const { t } = useTranslation();
+  const locale = (i18n.language ?? "pl").startsWith("en") ? "en-US" : "pl-PL";
   const entries = usePlate((s) => s.entries);
   const profile = usePlate((s) => s.profile);
   const [range, setRange] = useState<Range>(7);
