@@ -79,7 +79,6 @@ function StatsPage() {
   }, [entries, range, profile, locale, dayOffs]);
 
   const today = ymd(new Date());
-  const hasAnyDayOff = days.some((d) => d.isDayOff);
   const countable = days.filter((d) => !d.isDayOff && d.totals.kcal > 0);
   const loggedDays = countable.length;
   const avg =
