@@ -306,7 +306,7 @@ function HeroLight({
         borderRadius: 28,
         color: "var(--ink)",
         boxShadow: "var(--shadow-card)",
-        border: "1px solid var(--hairline)",
+        
       }}
     >
       <div className="relative grid place-items-center">
