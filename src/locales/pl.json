@@ -506,6 +506,38 @@
       "suggestion": "Sugestia",
       "other": "Inne"
     }
+  },
+  "stats": {
+    "title": "Statystyki",
+    "metaTitle": "Plate — Statystyki",
+    "metaDescription": "Trendy kalorii i makro z ostatnich dni.",
+    "lastDays": "Ostatnie {{n}} dni",
+    "daysCount": "{{n}} dni",
+    "period": {
+      "week": "Tydzień",
+      "month": "Miesiąc",
+      "year": "Rok"
+    },
+    "average": "Średnia",
+    "avgDaily": "Średnio dziennie",
+    "avgShort": "śr.",
+    "calories": "Kalorie",
+    "macros": "Makroskładniki",
+    "consumed": "Spożyte",
+    "goal": "Cel",
+    "goalShort": "cel",
+    "avgGoalShort": "śr. cel",
+    "remaining": "Pozostało",
+    "burned": "Spalone",
+    "balance": "Bilans",
+    "adherence": "Trzymanie celu",
+    "empty": "Brak danych do pokazania",
+    "weight": "Waga",
+    "caloriesDistribution": "Rozkład kalorii",
+    "onTarget": "≈ na celu",
+    "vsGoal": "vs cel",
+    "combinedView": "Widok zbiorczy",
+    "tapToSplit": "Dotknij, aby rozbić na osobne wykresy"
   }
 }
 

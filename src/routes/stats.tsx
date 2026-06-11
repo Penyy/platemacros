@@ -2,8 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, ChevronLeft, Hand } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { getDayGoals, sumEntries, usePlate, ymd } from "@/lib/store";
+import i18n from "@/lib/i18n";
 
 export const Route = createFileRoute("/stats")({
   head: () => ({
@@ -22,6 +24,8 @@ type Range = 7 | 30;
 type View = "combined" | "split";
 
 function StatsPage() {
+  const { t } = useTranslation();
+  const locale = (i18n.language ?? "pl").startsWith("en") ? "en-US" : "pl-PL";
   const entries = usePlate((s) => s.entries);
   const profile = usePlate((s) => s.profile);
   const [range, setRange] = useState<Range>(7);
@@ -63,13 +67,13 @@ function StatsPage() {
       const dayEntries = entries.filter((e) => e.date === date);
       out.push({
         date,
-        label: d.toLocaleDateString("pl-PL", { weekday: "short" }).slice(0, 2),
+        label: d.toLocaleDateString(locale, { weekday: "short" }).slice(0, 2),
         totals: sumEntries(dayEntries),
         goals: getDayGoals(profile, date),
       });
     }
     return out;
-  }, [entries, range, profile]);
+  }, [entries, range, profile, locale]);
 
   const today = ymd(new Date());
   const loggedDays = days.filter((d) => d.totals.kcal > 0).length;
@@ -108,8 +112,8 @@ function StatsPage() {
   return (
     <div className="pb-4">
       <ScreenHeader
-        title="Statystyki"
-        subtitle={`Ostatnie ${range} dni`}
+        title={t("stats.title")}
+        subtitle={t("stats.lastDays", { n: range })}
         right={
           streak > 0 ? (
             <div
@@ -177,14 +181,14 @@ function StatsPage() {
                 style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
               >
                 <ChevronLeft size={16} strokeWidth={1.8} />
-                Widok zbiorczy
+                {t("stats.combinedView")}
               </button>
               {(
                 [
-                  { key: "kcal", title: "Kalorie", unit: "kcal", color: "var(--ink)", goal: avgGoal.kcal, avg: avg.kcal },
-                  { key: "protein", title: "Białko", unit: "g", color: "var(--macro-protein)", goal: avgGoal.protein, avg: avg.protein },
-                  { key: "carbs", title: "Węglowodany", unit: "g", color: "var(--macro-carbs)", goal: avgGoal.carbs, avg: avg.carbs },
-                  { key: "fat", title: "Tłuszcz", unit: "g", color: "var(--macro-fat)", goal: avgGoal.fat, avg: avg.fat },
+                  { key: "kcal", title: t("stats.calories"), unit: "kcal", color: "var(--ink)", goal: avgGoal.kcal, avg: avg.kcal },
+                  { key: "protein", title: t("macro.protein"), unit: "g", color: "var(--macro-protein)", goal: avgGoal.protein, avg: avg.protein },
+                  { key: "carbs", title: t("macro.carbs"), unit: "g", color: "var(--macro-carbs)", goal: avgGoal.carbs, avg: avg.carbs },
+                  { key: "fat", title: t("macro.fat"), unit: "g", color: "var(--macro-fat)", goal: avgGoal.fat, avg: avg.fat },
                 ] as const
               ).map((m, idx) => (
                 <motion.div
@@ -242,6 +246,7 @@ function DeferredMount({
 }
 
 function Pills({ value, onChange }: { value: Range; onChange: (r: Range) => void }) {
+  const { t } = useTranslation();
   return (
     <div
       className="flex gap-1 rounded-full p-1"
@@ -260,7 +265,7 @@ function Pills({ value, onChange }: { value: Range; onChange: (r: Range) => void
               fontWeight: active ? 700 : 600,
             }}
           >
-            {r} dni
+            {t("stats.daysCount", { n: r })}
           </button>
         );
       })}
@@ -285,6 +290,7 @@ function CombinedChart({
   cycling: boolean;
   onTap: () => void;
 }) {
+  const { t } = useTranslation();
   const dailyKcal = days.map((d) => Math.round(d.totals.kcal));
   const scaleMax = Math.max(Math.max(...dailyKcal, 0), goalKcal) * 1.22 || 1;
   const goalTop = (1 - goalKcal / scaleMax) * 100;
@@ -312,13 +318,13 @@ function CombinedChart({
                   className="text-[11px] font-semibold"
                   style={{ color: "var(--muted-foreground)" }}
                 >
-                  Rozkład kalorii
+                  {t("stats.caloriesDistribution")}
                 </div>
                 <div
                   className="num-tight mt-0.5 text-[20px]"
                   style={{ fontWeight: 800, color: "var(--ink)" }}
                 >
-                  śr. {avgKcal} kcal
+                  {t("stats.avgShort")} {avgKcal} kcal
                 </div>
                 {avgKcal > 0 && (
                   <div
@@ -329,8 +335,8 @@ function CombinedChart({
                     }}
                   >
                     {onTarget
-                      ? "≈ na celu"
-                      : `${diff > 0 ? "+" : ""}${Math.round(diff)} vs cel`}
+                      ? t("stats.onTarget")
+                      : `${diff > 0 ? "+" : ""}${Math.round(diff)} ${t("stats.vsGoal")}`}
                   </div>
                 )}
               </div>
@@ -338,14 +344,14 @@ function CombinedChart({
                 className="num-tight text-right text-[11px]"
                 style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
               >
-                {cycling ? "śr. cel" : "cel"} {goalKcal} kcal
+                {cycling ? t("stats.avgGoalShort") : t("stats.goalShort")} {goalKcal} kcal
               </div>
             </div>
 
             <div className="mt-2 flex items-center gap-2.5">
-              <LegendDot color="var(--macro-protein)" label="Białko" />
-              <LegendDot color="var(--macro-carbs)" label="Węgle" />
-              <LegendDot color="var(--macro-fat)" label="Tłuszcz" />
+              <LegendDot color="var(--macro-protein)" label={t("macro.protein")} />
+              <LegendDot color="var(--macro-carbs)" label={t("macro.carbs")} />
+              <LegendDot color="var(--macro-fat)" label={t("macro.fat")} />
             </div>
           </>
         );
@@ -466,7 +472,7 @@ function CombinedChart({
         style={{ color: "var(--muted-foreground)", opacity: 0.7, fontWeight: 600 }}
       >
         <Hand size={12} strokeWidth={1.8} />
-        Dotknij, aby rozbić na osobne wykresy
+        {t("stats.tapToSplit")}
       </div>
     </motion.div>
   );
@@ -512,6 +518,7 @@ function SplitChartCard({
   values: { label: string; date: string; v: number; goal: number }[];
   onTap?: () => void;
 }) {
+  const { t } = useTranslation();
   const max = Math.max(Math.max(...values.map((d) => d.v), 0), goal) * 1.1 || 1;
   const goalTop = (1 - goal / max) * 100;
   const showLabels = range === 7;
@@ -556,7 +563,7 @@ function SplitChartCard({
             className="num-tight mt-0.5 text-[18px]"
             style={{ fontWeight: 800, color: "var(--ink)" }}
           >
-            śr. {Math.round(avg)} {unit}
+            {t("stats.avgShort")} {Math.round(avg)} {unit}
           </div>
           {avg > 0 && (
             <div
@@ -567,8 +574,8 @@ function SplitChartCard({
               }}
             >
               {onTarget
-                ? "≈ na celu"
-                : `${diff > 0 ? "+" : ""}${Math.round(diff)} vs cel`}
+                ? t("stats.onTarget")
+                : `${diff > 0 ? "+" : ""}${Math.round(diff)} ${t("stats.vsGoal")}`}
             </div>
           )}
         </div>
@@ -576,7 +583,7 @@ function SplitChartCard({
           className="num-tight text-right text-[11px]"
           style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
         >
-          {cycling ? "śr. cel" : "cel"} {goal} {unit}
+          {cycling ? t("stats.avgGoalShort") : t("stats.goalShort")} {goal} {unit}
         </div>
       </div>
 

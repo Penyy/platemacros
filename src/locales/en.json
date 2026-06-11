@@ -504,6 +504,38 @@
       "suggestion": "Suggestion",
       "other": "Other"
     }
+  },
+  "stats": {
+    "title": "Stats",
+    "metaTitle": "Plate — Stats",
+    "metaDescription": "Calorie and macro trends from the last few days.",
+    "lastDays": "Last {{n}} days",
+    "daysCount": "{{n}} days",
+    "period": {
+      "week": "Week",
+      "month": "Month",
+      "year": "Year"
+    },
+    "average": "Average",
+    "avgDaily": "Daily average",
+    "avgShort": "avg",
+    "calories": "Calories",
+    "macros": "Macros",
+    "consumed": "Consumed",
+    "goal": "Goal",
+    "goalShort": "goal",
+    "avgGoalShort": "avg goal",
+    "remaining": "Remaining",
+    "burned": "Burned",
+    "balance": "Balance",
+    "adherence": "Goal adherence",
+    "empty": "No data to show",
+    "weight": "Weight",
+    "caloriesDistribution": "Calorie distribution",
+    "onTarget": "≈ on target",
+    "vsGoal": "vs goal",
+    "combinedView": "Combined view",
+    "tapToSplit": "Tap to split into separate charts"
   }
 }
 
