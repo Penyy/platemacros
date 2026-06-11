@@ -550,13 +550,14 @@ function SplitChartCard({
   today: string;
   range: Range;
   cycling: boolean;
-  values: { label: string; date: string; v: number; goal: number }[];
+  values: { label: string; date: string; v: number; goal: number; isDayOff?: boolean }[];
   onTap?: () => void;
 }) {
   const { t } = useTranslation();
-  const max = Math.max(Math.max(...values.map((d) => d.v), 0), goal) * 1.1 || 1;
+  const max = Math.max(Math.max(...values.filter((d) => !d.isDayOff).map((d) => d.v), 0), goal) * 1.1 || 1;
   const goalTop = (1 - goal / max) * 100;
   const showLabels = range === 7;
+  const hasAnyDayOff = values.some((d) => d.isDayOff);
   const diff = avg - goal;
   const onTarget = goal > 0 && Math.abs(diff) <= goal * 0.02;
 
