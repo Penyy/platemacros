@@ -206,7 +206,7 @@ function guessMeal(): Meal {
 
 type PickMode = "quick" | "manual" | "search" | "compound" | "barcode" | "assistant";
 
-function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
+function MenuGrid({ onPick, date, onClose }: { onPick: (m: PickMode) => void; date: string; onClose: () => void }) {
   const { t } = useTranslation();
   const visibility = usePlate(
     (s) => s.profile.plus_menu_visibility ?? defaultPlusMenuVisibility,
