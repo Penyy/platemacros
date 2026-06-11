@@ -2,8 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, ChevronLeft, Hand } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { getDayGoals, sumEntries, usePlate, ymd } from "@/lib/store";
+import i18n from "@/lib/i18n";
 
 export const Route = createFileRoute("/stats")({
   head: () => ({
