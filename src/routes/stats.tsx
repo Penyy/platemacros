@@ -28,6 +28,7 @@ function StatsPage() {
   const locale = (i18n.language ?? "pl").startsWith("en") ? "en-US" : "pl-PL";
   const entries = usePlate((s) => s.entries);
   const profile = usePlate((s) => s.profile);
+  const dayOffs = usePlate((s) => s.dayOffs);
   const [range, setRange] = useState<Range>(7);
   const [view, setView] = useState<View>("combined");
   const savedScrollRef = useRef(0);
