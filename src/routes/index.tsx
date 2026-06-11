@@ -71,6 +71,9 @@ function TodayPage() {
   const entries = usePlate((s) => s.entries);
   const burnedMap = usePlate((s) => s.burned);
   const openAdd = usePlate((s) => s.openAdd);
+  const dayOffs = usePlate((s) => s.dayOffs);
+  const removeDayOff = usePlate((s) => s.removeDayOff);
+  const isDayOffSelected = dayOffs.has(selected);
 
   const shiftDay = (delta: number) => {
     const d = new Date(selected + "T00:00:00");
