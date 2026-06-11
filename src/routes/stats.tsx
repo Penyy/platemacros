@@ -107,44 +107,34 @@ function StatsPage() {
 
   return (
     <div className="pb-4">
-      {/* Custom header with streak */}
-      <div className="px-[18px] pt-[max(env(safe-area-inset-top),1rem)] pb-2 flex items-end justify-between">
-        <div>
-          <h1
-            className="text-[28px] leading-tight"
-            style={{ fontWeight: 800, color: "var(--ink)", fontFamily: "Manrope, sans-serif" }}
-          >
-            Statystyki
-          </h1>
-          <div
-            className="text-[13px] mt-0.5"
-            style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
-          >
-            Ostatnie {range} dni
-          </div>
-        </div>
-        {streak > 0 && (
-          <div
-            className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
-            style={{
-              background: "rgba(255,255,255,.035)",
-              border: "1px solid var(--hairline)",
-            }}
-          >
-            <Flame
-              size={14}
-              strokeWidth={1.8}
-              style={{ color: "var(--accent-yellow)", opacity: 0.8 }}
-            />
-            <span
-              className="num-tight text-[13px]"
-              style={{ fontWeight: 800, color: "var(--ink)" }}
+      <ScreenHeader
+        title="Statystyki"
+        subtitle={`Ostatnie ${range} dni`}
+        right={
+          streak > 0 ? (
+            <div
+              className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
+              style={{
+                background: "rgba(255,255,255,.035)",
+                border: "1px solid var(--hairline)",
+              }}
             >
-              {streak}
-            </span>
-          </div>
-        )}
-      </div>
+              <Flame
+                size={14}
+                strokeWidth={1.8}
+                style={{ color: "var(--accent-yellow)", opacity: 0.8 }}
+              />
+              <span
+                className="num-tight text-[13px]"
+                style={{ fontWeight: 800, color: "var(--ink)" }}
+              >
+                {streak}
+              </span>
+            </div>
+          ) : undefined
+        }
+      />
+
 
       <div className="px-[18px] space-y-3">
         <Pills value={range} onChange={setRange} />
