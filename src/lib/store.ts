@@ -337,7 +337,9 @@ export const usePlate = create<State>()((set, get) => ({
         burned[r.date] = Number(r.burned_kcal) || 0;
       }
 
-      set({ profile, entries, products, burned, hydrated: true });
+      const dayOffs = new Set<string>((dayOffRes.data ?? []).map((r) => r.date as string));
+
+      set({ profile, entries, products, burned, dayOffs, hydrated: true });
     } catch (err) {
       console.error("bootstrap failed", err);
       toast.message("Brak połączenia — pokazuję ostatnio załadowane dane.");
