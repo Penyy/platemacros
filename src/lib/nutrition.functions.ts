@@ -63,6 +63,11 @@ const MODELS_LABEL = ["gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-2.0-f
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const isRetryable = (s: number) => s === 429 || s === 503 || s === 502 || s === 504;
 
+interface GeminiBody {
+  contents: unknown;
+  generationConfig: Record<string, unknown>;
+}
+
 async function callGeminiWithFallback(models: string[], apiKey: string, body: GeminiBody): Promise<string> {
   let lastErr: Error | null = null;
   for (let i = 0; i < models.length; i++) {
