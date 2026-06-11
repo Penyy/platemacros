@@ -427,6 +427,7 @@ async function handleImagesPath(
     generationConfig: {
       responseMimeType: "application/json",
       temperature: 0.2,
+      maxOutputTokens: 2048,
       responseSchema,
     },
   };
