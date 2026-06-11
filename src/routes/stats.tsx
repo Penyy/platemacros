@@ -67,7 +67,7 @@ function StatsPage() {
       const dayEntries = entries.filter((e) => e.date === date);
       out.push({
         date,
-        label: d.toLocaleDateString("pl-PL", { weekday: "short" }).slice(0, 2),
+        label: d.toLocaleDateString(locale, { weekday: "short" }).slice(0, 2),
         totals: sumEntries(dayEntries),
         goals: getDayGoals(profile, date),
       });
