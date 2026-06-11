@@ -228,10 +228,11 @@ export const estimateMealFromPhoto = createServerFn({ method: "POST" })
       generationConfig: {
         responseMimeType: "application/json",
         temperature: 0.2,
+        maxOutputTokens: 2048,
       },
     };
 
-    const raw = await callGeminiWithFallback(apiKey, body);
+    const raw = await callGeminiWithFallback(MODELS, apiKey, body);
     if (!raw) throw new Error("AI_EMPTY");
 
     let parsed: unknown;
