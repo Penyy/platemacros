@@ -181,14 +181,14 @@ function StatsPage() {
                 style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
               >
                 <ChevronLeft size={16} strokeWidth={1.8} />
-                Widok zbiorczy
+                {t("stats.combinedView")}
               </button>
               {(
                 [
-                  { key: "kcal", title: "Kalorie", unit: "kcal", color: "var(--ink)", goal: avgGoal.kcal, avg: avg.kcal },
-                  { key: "protein", title: "Białko", unit: "g", color: "var(--macro-protein)", goal: avgGoal.protein, avg: avg.protein },
-                  { key: "carbs", title: "Węglowodany", unit: "g", color: "var(--macro-carbs)", goal: avgGoal.carbs, avg: avg.carbs },
-                  { key: "fat", title: "Tłuszcz", unit: "g", color: "var(--macro-fat)", goal: avgGoal.fat, avg: avg.fat },
+                  { key: "kcal", title: t("stats.calories"), unit: "kcal", color: "var(--ink)", goal: avgGoal.kcal, avg: avg.kcal },
+                  { key: "protein", title: t("macro.protein"), unit: "g", color: "var(--macro-protein)", goal: avgGoal.protein, avg: avg.protein },
+                  { key: "carbs", title: t("macro.carbs"), unit: "g", color: "var(--macro-carbs)", goal: avgGoal.carbs, avg: avg.carbs },
+                  { key: "fat", title: t("macro.fat"), unit: "g", color: "var(--macro-fat)", goal: avgGoal.fat, avg: avg.fat },
                 ] as const
               ).map((m, idx) => (
                 <motion.div
