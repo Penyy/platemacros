@@ -290,6 +290,7 @@ function CombinedChart({
   cycling: boolean;
   onTap: () => void;
 }) {
+  const { t } = useTranslation();
   const dailyKcal = days.map((d) => Math.round(d.totals.kcal));
   const scaleMax = Math.max(Math.max(...dailyKcal, 0), goalKcal) * 1.22 || 1;
   const goalTop = (1 - goalKcal / scaleMax) * 100;
