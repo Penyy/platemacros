@@ -47,8 +47,10 @@ export function BottomNav({ onAdd }: Props) {
         whileTap={{ scale: 0.9 }}
         onClick={onAdd}
         aria-label="Dodaj"
-        className="pointer-events-auto grid h-16 w-16 shrink-0 place-items-center rounded-full"
+        className="pointer-events-auto grid shrink-0 place-items-center rounded-full"
         style={{
+          width: 76,
+          height: 76,
           background: "var(--accent-yellow)",
           boxShadow:
             "0 10px 24px -6px color-mix(in oklab, var(--accent-yellow) 55%, transparent), inset 0 1px 0 rgba(255,255,255,0.35)",
@@ -60,10 +62,10 @@ export function BottomNav({ onAdd }: Props) {
             color: "var(--ink)",
             fontFamily: "Manrope, sans-serif",
             fontWeight: 800,
-            fontSize: 38,
+            fontSize: 45,
             lineHeight: 1,
             letterSpacing: "-0.04em",
-            marginTop: -3,
+            marginTop: -4,
           }}
         >
           +
