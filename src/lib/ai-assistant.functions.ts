@@ -511,7 +511,7 @@ async function handleTextPath(
   const body: Record<string, unknown> = {
     system_instruction: { parts: [{ text: dynamicSystem }] },
     contents,
-    generationConfig: { temperature: 0.2 },
+    generationConfig: { temperature: 0.2, maxOutputTokens: 2048 },
   };
   if (settings.allowAddEntries) {
     body.tools = TOOLS;
