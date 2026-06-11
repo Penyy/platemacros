@@ -721,6 +721,50 @@ export const usePlate = create<State>()((set, get) => ({
       });
   },
 
+  setDayOff: (date) => {
+    const uid = get().userId;
+    if (!canSetDayOff(get().dayOffs, date)) return;
+    set((s) => {
+      const next = new Set(s.dayOffs);
+      next.add(date);
+      return { dayOffs: next };
+    });
+    if (!uid) return;
+    void supabase
+      .from("day_offs")
+      .insert({ user_id: uid, date } as never)
+      .then(({ error }) => {
+        if (error) {
+          // revert
+          set((s) => {
+            const next = new Set(s.dayOffs);
+            next.delete(date);
+            return { dayOffs: next };
+          });
+          netToast(error);
+        }
+      });
+  },
+
+  removeDayOff: (date) => {
+    const uid = get().userId;
+    set((s) => {
+      const next = new Set(s.dayOffs);
+      next.delete(date);
+      return { dayOffs: next };
+    });
+    if (!uid) return;
+    void supabase
+      .from("day_offs")
+      .delete()
+      .eq("user_id", uid)
+      .eq("date", date)
+      .then(({ error }) => {
+        if (error) netToast(error);
+      });
+  },
+
+
   replaceAll: async (data) => {
     const uid = get().userId;
     set({
