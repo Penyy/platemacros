@@ -396,9 +396,9 @@ function CombinedChart({
                   </div>
                 )}
                 <motion.div
-                  className="w-full flex flex-col-reverse overflow-hidden"
+                  className="relative w-full flex flex-col-reverse overflow-hidden"
                   style={{
-                    borderRadius: "8px 8px 4px 4px",
+                    borderRadius: "9px 9px 5px 5px",
                   }}
                   initial={{ height: 0 }}
                   animate={{ height: `${h}%` }}
@@ -430,7 +430,24 @@ function CombinedChart({
                   ) : (
                     <div style={{ flex: 1, background: "var(--hairline)", opacity: 0.6 }} />
                   )}
+                  {/* Sheen top */}
+                  <div
+                    className="absolute inset-x-0 top-0 pointer-events-none"
+                    style={{
+                      height: "40%",
+                      background: "linear-gradient(180deg, rgba(255,255,255,.22), transparent)",
+                    }}
+                  />
+                  {/* Bottom darken */}
+                  <div
+                    className="absolute inset-x-0 bottom-0 pointer-events-none"
+                    style={{
+                      height: "40%",
+                      background: "linear-gradient(transparent, rgba(0,0,0,.2))",
+                    }}
+                  />
                 </motion.div>
+
               </div>
             );
           })}
