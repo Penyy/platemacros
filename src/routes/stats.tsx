@@ -637,6 +637,28 @@ function SplitChartCard({
           {values.map((d, i) => {
             const h = Math.min(100, (d.v / max) * 100);
             const isToday = d.date === today;
+            if (d.isDayOff) {
+              return (
+                <div
+                  key={i}
+                  className="relative flex-1 h-full flex flex-col justify-end items-center"
+                >
+                  <div
+                    className="grid place-items-center"
+                    style={{
+                      width: "60%",
+                      height: "55%",
+                      borderRadius: "9px 9px 5px 5px",
+                      border: `1px dashed ${color}`,
+                      background: "transparent",
+                      opacity: 0.55,
+                    }}
+                  >
+                    <Moon size={12} strokeWidth={1.6} style={{ color: "var(--muted-foreground)" }} />
+                  </div>
+                </div>
+              );
+            }
             return (
               <div
                 key={i}
