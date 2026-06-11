@@ -198,11 +198,15 @@ export function EditEntrySheet({ entry, onClose }: Props) {
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 320, damping: 32 }}
             className="fixed inset-x-0 z-50 mx-auto flex w-full max-w-[430px] flex-col"
-            style={{ bottom: "var(--kb-inset, 0px)" }}
+            style={{
+              bottom: "var(--kb-inset, 0px)",
+              maxHeight:
+                "calc(100dvh - var(--kb-inset, 0px) - env(safe-area-inset-top) - 12px)",
+            }}
           >
             <div
-              className="mx-2 mb-[max(env(safe-area-inset-bottom),1.25rem)] max-h-[92vh] overflow-y-auto rounded-t-[32px] rounded-b-[28px] bg-card p-6 pb-[max(env(safe-area-inset-bottom),1.5rem)]"
-              style={{ boxShadow: "var(--shadow-card)" }}
+              className="mx-2 mb-[max(env(safe-area-inset-bottom),1.25rem)] min-h-0 overflow-y-auto rounded-t-[32px] rounded-b-[28px] bg-card p-6 pb-[max(env(safe-area-inset-bottom),1.5rem)]"
+              style={{ boxShadow: "var(--shadow-card)", WebkitOverflowScrolling: "touch" }}
             >
               <div
                 className="mx-auto mb-4 h-1.5 w-10 rounded-full"
@@ -244,7 +248,10 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                 </CardField>
 
                 {/* Meal pills */}
-                <div className="flex flex-wrap gap-1.5">
+                <div
+                  className="flex gap-[2px] rounded-full p-1"
+                  style={{ background: "rgba(255,255,255,.05)", border: "1px solid var(--hairline)" }}
+                >
                   {MEALS.map((m) => {
                     const active = meal === m;
                     return (
@@ -252,11 +259,12 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                         key={m}
                         type="button"
                         onClick={() => setMeal(m)}
-                        className="rounded-full px-3.5 py-1.5 text-[12px] transition active:scale-[0.97]"
+                        className="flex-1 rounded-full py-2 text-[11.5px] transition active:scale-[0.97]"
                         style={{
-                          background: active ? "var(--ink)" : "var(--hairline)",
-                          color: active ? "var(--card)" : "var(--ink)",
+                          background: active ? "var(--ink)" : "transparent",
+                          color: active ? "var(--card)" : "var(--muted-foreground)",
                           fontWeight: 600,
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {t(`meal.${m}`)}
