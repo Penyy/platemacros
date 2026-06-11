@@ -518,6 +518,7 @@ function SplitChartCard({
   values: { label: string; date: string; v: number; goal: number }[];
   onTap?: () => void;
 }) {
+  const { t } = useTranslation();
   const max = Math.max(Math.max(...values.map((d) => d.v), 0), goal) * 1.1 || 1;
   const goalTop = (1 - goal / max) * 100;
   const showLabels = range === 7;
