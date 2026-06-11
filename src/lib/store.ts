@@ -245,6 +245,7 @@ export const usePlate = create<State>()((set, get) => ({
       entries: [],
       burned: {},
       products: [],
+      dayOffs: new Set<string>(),
       hydrated: false,
     }),
 
