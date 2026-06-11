@@ -472,7 +472,7 @@ function CombinedChart({
         style={{ color: "var(--muted-foreground)", opacity: 0.7, fontWeight: 600 }}
       >
         <Hand size={12} strokeWidth={1.8} />
-        Dotknij, aby rozbić na osobne wykresy
+        {t("stats.tapToSplit")}
       </div>
     </motion.div>
   );
