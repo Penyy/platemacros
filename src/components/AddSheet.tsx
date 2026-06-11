@@ -11,7 +11,9 @@ import {
   ArrowRight,
   X,
 } from "lucide-react";
-import { type Meal, type Product, usePlate, ymd, defaultPlusMenuVisibility, type PlusMenuItemId } from "@/lib/store";
+import { type Meal, type Product, usePlate, ymd, defaultPlusMenuVisibility, type PlusMenuItemId, canSetDayOff, dayOffInMonth, monthKey } from "@/lib/store";
+import { Moon } from "lucide-react";
+import i18n from "@/lib/i18n";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { CompoundMealFlow } from "./CompoundMealFlow";
