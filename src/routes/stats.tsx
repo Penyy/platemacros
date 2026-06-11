@@ -318,13 +318,13 @@ function CombinedChart({
                   className="text-[11px] font-semibold"
                   style={{ color: "var(--muted-foreground)" }}
                 >
-                  Rozkład kalorii
+                  {t("stats.caloriesDistribution")}
                 </div>
                 <div
                   className="num-tight mt-0.5 text-[20px]"
                   style={{ fontWeight: 800, color: "var(--ink)" }}
                 >
-                  śr. {avgKcal} kcal
+                  {t("stats.avgShort")} {avgKcal} kcal
                 </div>
                 {avgKcal > 0 && (
                   <div
@@ -335,8 +335,8 @@ function CombinedChart({
                     }}
                   >
                     {onTarget
-                      ? "≈ na celu"
-                      : `${diff > 0 ? "+" : ""}${Math.round(diff)} vs cel`}
+                      ? t("stats.onTarget")
+                      : `${diff > 0 ? "+" : ""}${Math.round(diff)} ${t("stats.vsGoal")}`}
                   </div>
                 )}
               </div>
@@ -344,14 +344,14 @@ function CombinedChart({
                 className="num-tight text-right text-[11px]"
                 style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
               >
-                {cycling ? "śr. cel" : "cel"} {goalKcal} kcal
+                {cycling ? t("stats.avgGoalShort") : t("stats.goalShort")} {goalKcal} kcal
               </div>
             </div>
 
             <div className="mt-2 flex items-center gap-2.5">
-              <LegendDot color="var(--macro-protein)" label="Białko" />
-              <LegendDot color="var(--macro-carbs)" label="Węgle" />
-              <LegendDot color="var(--macro-fat)" label="Tłuszcz" />
+              <LegendDot color="var(--macro-protein)" label={t("macro.protein")} />
+              <LegendDot color="var(--macro-carbs)" label={t("macro.carbs")} />
+              <LegendDot color="var(--macro-fat)" label={t("macro.fat")} />
             </div>
           </>
         );
