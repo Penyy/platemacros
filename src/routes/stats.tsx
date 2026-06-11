@@ -73,7 +73,7 @@ function StatsPage() {
       });
     }
     return out;
-  }, [entries, range, profile]);
+  }, [entries, range, profile, locale]);
 
   const today = ymd(new Date());
   const loggedDays = days.filter((d) => d.totals.kcal > 0).length;
