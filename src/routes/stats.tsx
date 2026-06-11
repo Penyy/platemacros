@@ -219,6 +219,7 @@ function StatsPage() {
                         date: d.date,
                         v: Math.round(d.totals[m.key as keyof typeof d.totals]),
                         goal: d.goals[m.key as keyof typeof d.goals],
+                        isDayOff: d.isDayOff,
                       }))}
                       onTap={goCombined}
                     />
