@@ -169,40 +169,47 @@ function TodayPage() {
         </div>
       </section>
 
-      {/* Light hero: kcal ring + macros */}
-      <section className="px-[18px]">
-        <HeroLight
-          consumed={Math.round(sum.kcal)}
-          goal={Math.max(1, Math.round(adjustedGoal))}
-          remaining={remaining}
-          burned={burned}
-          onEditBurned={() => setBurnedOpen(true)}
-          protein={{ cur: Math.round(sum.protein), goal: dayGoals.protein }}
-          carbs={{ cur: Math.round(sum.carbs), goal: dayGoals.carbs }}
-          fat={{ cur: Math.round(sum.fat), goal: dayGoals.fat }}
-        />
-      </section>
-
-
-      {/* Meals */}
-      <section className="space-y-3 px-[18px]">
-        {MEALS.map((m, i) => (
-          <motion.div
-            key={m}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.04 * i, duration: 0.3, ease: "easeOut" }}
-          >
-            <MealCard
-              meal={m}
-              date={selected}
-              entries={dayEntries.filter((e) => e.meal === m)}
-              prevDayHasEntries={missingPrev[m]}
-              onAdd={(meal) => openAdd(meal, selected)}
+      {/* Light hero: kcal ring + macros, or Day off card */}
+      {isDayOffSelected ? (
+        <section className="px-[18px]">
+          <DayOffHero onBack={() => removeDayOff(selected)} />
+        </section>
+      ) : (
+        <>
+          <section className="px-[18px]">
+            <HeroLight
+              consumed={Math.round(sum.kcal)}
+              goal={Math.max(1, Math.round(adjustedGoal))}
+              remaining={remaining}
+              burned={burned}
+              onEditBurned={() => setBurnedOpen(true)}
+              protein={{ cur: Math.round(sum.protein), goal: dayGoals.protein }}
+              carbs={{ cur: Math.round(sum.carbs), goal: dayGoals.carbs }}
+              fat={{ cur: Math.round(sum.fat), goal: dayGoals.fat }}
             />
-          </motion.div>
-        ))}
-      </section>
+          </section>
+
+          {/* Meals */}
+          <section className="space-y-3 px-[18px]">
+            {MEALS.map((m, i) => (
+              <motion.div
+                key={m}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.04 * i, duration: 0.3, ease: "easeOut" }}
+              >
+                <MealCard
+                  meal={m}
+                  date={selected}
+                  entries={dayEntries.filter((e) => e.meal === m)}
+                  prevDayHasEntries={missingPrev[m]}
+                  onAdd={(meal) => openAdd(meal, selected)}
+                />
+              </motion.div>
+            ))}
+          </section>
+        </>
+      )}
 
       <NotificationsSheet open={notifOpen} onOpenChange={setNotifOpen} />
       <BurnedEditSheet open={burnedOpen} date={selected} onOpenChange={setBurnedOpen} />
