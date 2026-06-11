@@ -25,10 +25,9 @@ export function BottomNav({ onAdd }: Props) {
       <nav
         className="pointer-events-auto grid flex-1 grid-cols-4 items-center rounded-[28px] px-2 py-1.5"
         style={{
-          background: "#17150F",
-          border: "1px solid rgba(255,255,255,0.08)",
-          boxShadow:
-            "0 10px 30px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)",
+          background: "var(--nav-bg)",
+          border: "1px solid var(--nav-border)",
+          boxShadow: "var(--nav-shadow)",
         }}
       >
         {TABS.map((tab) => (
@@ -90,7 +89,7 @@ function NavItem({
     <Link
       to={to}
       className="flex flex-col items-center justify-center gap-0.5 py-1"
-      style={{ color: active ? "var(--accent-yellow)" : "#8B867C" }}
+      style={{ color: active ? "var(--accent-yellow)" : "var(--muted-foreground)" }}
     >
       <span className="grid h-8 w-8 place-items-center">
         <Icon size={24} strokeWidth={2} />

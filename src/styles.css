@@ -55,6 +55,9 @@
   --light-gray: oklch(0.83 0.018 85);          /* #C9C3B6 */
   --cream: oklch(0.97 0.030 90);               /* #FBF4E2 plate card */
   --hero-bg: var(--cream);
+  --nav-bg: #FFFFFF;
+  --nav-border: var(--hairline);
+  --nav-shadow: var(--shadow-card);
 
   --accent-yellow: oklch(0.82 0.165 85);       /* #F4B500 */
   --accent-yellow-soft: oklch(0.86 0.155 90);  /* #F6C840 */
@@ -104,6 +107,9 @@
   --light-gray: #A39C8E;
   --cream: #211F19;                            /* hero/elevated card */
   --hero-bg: #26231A;                          /* hero card — warmer, lighter than page bg */
+  --nav-bg: #17150F;
+  --nav-border: rgba(255,255,255,0.08);
+  --nav-shadow: 0 10px 30px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
 
   --accent-yellow: #F4B500;
   --accent-yellow-soft: #F6C840;
