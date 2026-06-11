@@ -137,6 +137,7 @@ interface State {
   entries: LogEntry[];
   burned: Record<string, number>;
   products: Product[];
+  dayOffs: Set<string>;
   // ui
   addSheet: { open: boolean; meal?: Meal; date?: string };
   // ui actions
@@ -164,6 +165,8 @@ interface State {
   addProduct: (p: Omit<Product, "id" | "created_at">) => void;
   updateProduct: (id: string, p: Partial<Omit<Product, "id" | "created_at">>) => void;
   removeProduct: (id: string) => void;
+  setDayOff: (date: string) => void;
+  removeDayOff: (date: string) => void;
   replaceAll: (data: { profile: Profile; entries: LogEntry[]; burned?: Record<string, number>; products?: Product[] }) => Promise<void>;
 }
 
