@@ -288,7 +288,7 @@ function CombinedChart({
   cycling,
   onTap,
 }: {
-  days: { date: string; label: string; totals: ReturnType<typeof sumEntries> }[];
+  days: { date: string; label: string; totals: ReturnType<typeof sumEntries>; isDayOff?: boolean }[];
   today: string;
   range: Range;
   goalKcal: number;
@@ -297,10 +297,11 @@ function CombinedChart({
   onTap: () => void;
 }) {
   const { t } = useTranslation();
-  const dailyKcal = days.map((d) => Math.round(d.totals.kcal));
+  const dailyKcal = days.map((d) => (d.isDayOff ? 0 : Math.round(d.totals.kcal)));
   const scaleMax = Math.max(Math.max(...dailyKcal, 0), goalKcal) * 1.22 || 1;
   const goalTop = (1 - goalKcal / scaleMax) * 100;
   const showLabels = range === 7;
+  const hasAnyDayOff = days.some((d) => d.isDayOff);
 
   return (
     <motion.div
