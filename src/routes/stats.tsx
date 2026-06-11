@@ -385,6 +385,24 @@ function CombinedChart({
             const fK = d.totals.fat * 9;
             const macroSum = pK + cK + fK;
             const isToday = d.date === today;
+            if (d.isDayOff) {
+              return (
+                <div key={i} className="relative flex-1 h-full flex flex-col justify-end items-center">
+                  <div
+                    className="grid w-full place-items-center"
+                    style={{
+                      height: "55%",
+                      borderRadius: "9px 9px 5px 5px",
+                      border: "1px dashed var(--muted-foreground)",
+                      background: "transparent",
+                      opacity: 0.55,
+                    }}
+                  >
+                    <Moon size={12} strokeWidth={1.6} style={{ color: "var(--muted-foreground)" }} />
+                  </div>
+                </div>
+              );
+            }
             return (
               <div key={i} className="relative flex-1 h-full flex flex-col justify-end items-center">
                 {showLabels && kcal > 0 && (
@@ -456,6 +474,15 @@ function CombinedChart({
           })}
         </div>
       </div>
+
+      {hasAnyDayOff && (
+        <div
+          className="mt-2 text-center text-[10px]"
+          style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+        >
+          {t("dayoff.chartNote")}
+        </div>
+      )}
 
       {showLabels && (
         <div className="mt-1.5 flex gap-[3px]">
