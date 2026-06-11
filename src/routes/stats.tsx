@@ -740,8 +740,14 @@ function SplitChartCard({
         </div>
       )}
 
-
-
+      {hasAnyDayOff && (
+        <div
+          className="mt-2 text-center text-[10px]"
+          style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+        >
+          {t("dayoff.chartNote")}
+        </div>
+      )}
     </motion.div>
   );
 }
