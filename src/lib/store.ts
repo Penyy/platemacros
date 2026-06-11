@@ -137,6 +137,7 @@ interface State {
   entries: LogEntry[];
   burned: Record<string, number>;
   products: Product[];
+  dayOffs: Set<string>;
   // ui
   addSheet: { open: boolean; meal?: Meal; date?: string };
   // ui actions
@@ -164,6 +165,8 @@ interface State {
   addProduct: (p: Omit<Product, "id" | "created_at">) => void;
   updateProduct: (id: string, p: Partial<Omit<Product, "id" | "created_at">>) => void;
   removeProduct: (id: string) => void;
+  setDayOff: (date: string) => void;
+  removeDayOff: (date: string) => void;
   replaceAll: (data: { profile: Profile; entries: LogEntry[]; burned?: Record<string, number>; products?: Product[] }) => Promise<void>;
 }
 
@@ -220,6 +223,7 @@ export const usePlate = create<State>()((set, get) => ({
   entries: [],
   burned: {},
   products: [],
+  dayOffs: new Set<string>(),
   addSheet: { open: false },
 
   openAdd: (meal, date) => set({ addSheet: { open: true, meal, date } }),
@@ -241,6 +245,7 @@ export const usePlate = create<State>()((set, get) => ({
       entries: [],
       burned: {},
       products: [],
+      dayOffs: new Set<string>(),
       hydrated: false,
     }),
 
@@ -248,11 +253,12 @@ export const usePlate = create<State>()((set, get) => ({
     const uid = get().userId;
     if (!uid) return;
     try {
-      const [profRes, entRes, foodRes, burnRes] = await Promise.all([
+      const [profRes, entRes, foodRes, burnRes, dayOffRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
         supabase.from("food_entries").select("*").eq("user_id", uid).order("created_at"),
         supabase.from("foods").select("*").eq("user_id", uid).order("created_at"),
         supabase.from("daily_burned").select("date,burned_kcal").eq("user_id", uid),
+        supabase.from("day_offs").select("date").eq("user_id", uid),
       ]);
 
       const prof = profRes.data as (typeof profRes.data & {
@@ -331,7 +337,9 @@ export const usePlate = create<State>()((set, get) => ({
         burned[r.date] = Number(r.burned_kcal) || 0;
       }
 
-      set({ profile, entries, products, burned, hydrated: true });
+      const dayOffs = new Set<string>((dayOffRes.data ?? []).map((r) => r.date as string));
+
+      set({ profile, entries, products, burned, dayOffs, hydrated: true });
     } catch (err) {
       console.error("bootstrap failed", err);
       toast.message("Brak połączenia — pokazuję ostatnio załadowane dane.");
@@ -713,6 +721,50 @@ export const usePlate = create<State>()((set, get) => ({
       });
   },
 
+  setDayOff: (date) => {
+    const uid = get().userId;
+    if (!canSetDayOff(get().dayOffs, date)) return;
+    set((s) => {
+      const next = new Set(s.dayOffs);
+      next.add(date);
+      return { dayOffs: next };
+    });
+    if (!uid) return;
+    void supabase
+      .from("day_offs")
+      .insert({ user_id: uid, date } as never)
+      .then(({ error }) => {
+        if (error) {
+          // revert
+          set((s) => {
+            const next = new Set(s.dayOffs);
+            next.delete(date);
+            return { dayOffs: next };
+          });
+          netToast(error);
+        }
+      });
+  },
+
+  removeDayOff: (date) => {
+    const uid = get().userId;
+    set((s) => {
+      const next = new Set(s.dayOffs);
+      next.delete(date);
+      return { dayOffs: next };
+    });
+    if (!uid) return;
+    void supabase
+      .from("day_offs")
+      .delete()
+      .eq("user_id", uid)
+      .eq("date", date)
+      .then(({ error }) => {
+        if (error) netToast(error);
+      });
+  },
+
+
   replaceAll: async (data) => {
     const uid = get().userId;
     set({
@@ -854,6 +906,26 @@ export function ymd(d: Date) {
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
+
+export function monthKey(date: string): string {
+  return date.slice(0, 7);
+}
+
+export function isDayOff(dayOffs: Set<string>, date: string): boolean {
+  return dayOffs.has(date);
+}
+
+export function dayOffInMonth(dayOffs: Set<string>, date: string): string | null {
+  const mk = monthKey(date);
+  for (const d of dayOffs) if (d.slice(0, 7) === mk) return d;
+  return null;
+}
+
+export function canSetDayOff(dayOffs: Set<string>, date: string): boolean {
+  const existing = dayOffInMonth(dayOffs, date);
+  return existing === null || existing === date;
+}
+
 
 
 export function countMissingFromPrevDay(entries: LogEntry[], date: string, meal: Meal): number {

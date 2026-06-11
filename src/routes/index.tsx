@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Bell, User, Flame, ChevronLeft, ChevronRight } from "lucide-react";
+import { Bell, User, Flame, ChevronLeft, ChevronRight, Moon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { MealCard } from "@/components/MealCard";
 import { NotificationsSheet, startNotificationScheduler } from "@/components/NotificationsSheet";
@@ -71,6 +71,9 @@ function TodayPage() {
   const entries = usePlate((s) => s.entries);
   const burnedMap = usePlate((s) => s.burned);
   const openAdd = usePlate((s) => s.openAdd);
+  const dayOffs = usePlate((s) => s.dayOffs);
+  const removeDayOff = usePlate((s) => s.removeDayOff);
+  const isDayOffSelected = dayOffs.has(selected);
 
   const shiftDay = (delta: number) => {
     const d = new Date(selected + "T00:00:00");
@@ -166,40 +169,47 @@ function TodayPage() {
         </div>
       </section>
 
-      {/* Light hero: kcal ring + macros */}
-      <section className="px-[18px]">
-        <HeroLight
-          consumed={Math.round(sum.kcal)}
-          goal={Math.max(1, Math.round(adjustedGoal))}
-          remaining={remaining}
-          burned={burned}
-          onEditBurned={() => setBurnedOpen(true)}
-          protein={{ cur: Math.round(sum.protein), goal: dayGoals.protein }}
-          carbs={{ cur: Math.round(sum.carbs), goal: dayGoals.carbs }}
-          fat={{ cur: Math.round(sum.fat), goal: dayGoals.fat }}
-        />
-      </section>
-
-
-      {/* Meals */}
-      <section className="space-y-3 px-[18px]">
-        {MEALS.map((m, i) => (
-          <motion.div
-            key={m}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.04 * i, duration: 0.3, ease: "easeOut" }}
-          >
-            <MealCard
-              meal={m}
-              date={selected}
-              entries={dayEntries.filter((e) => e.meal === m)}
-              prevDayHasEntries={missingPrev[m]}
-              onAdd={(meal) => openAdd(meal, selected)}
+      {/* Light hero: kcal ring + macros, or Day off card */}
+      {isDayOffSelected ? (
+        <section className="px-[18px]">
+          <DayOffHero onBack={() => removeDayOff(selected)} />
+        </section>
+      ) : (
+        <>
+          <section className="px-[18px]">
+            <HeroLight
+              consumed={Math.round(sum.kcal)}
+              goal={Math.max(1, Math.round(adjustedGoal))}
+              remaining={remaining}
+              burned={burned}
+              onEditBurned={() => setBurnedOpen(true)}
+              protein={{ cur: Math.round(sum.protein), goal: dayGoals.protein }}
+              carbs={{ cur: Math.round(sum.carbs), goal: dayGoals.carbs }}
+              fat={{ cur: Math.round(sum.fat), goal: dayGoals.fat }}
             />
-          </motion.div>
-        ))}
-      </section>
+          </section>
+
+          {/* Meals */}
+          <section className="space-y-3 px-[18px]">
+            {MEALS.map((m, i) => (
+              <motion.div
+                key={m}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.04 * i, duration: 0.3, ease: "easeOut" }}
+              >
+                <MealCard
+                  meal={m}
+                  date={selected}
+                  entries={dayEntries.filter((e) => e.meal === m)}
+                  prevDayHasEntries={missingPrev[m]}
+                  onAdd={(meal) => openAdd(meal, selected)}
+                />
+              </motion.div>
+            ))}
+          </section>
+        </>
+      )}
 
       <NotificationsSheet open={notifOpen} onOpenChange={setNotifOpen} />
       <BurnedEditSheet open={burnedOpen} date={selected} onOpenChange={setBurnedOpen} />
@@ -210,6 +220,63 @@ function TodayPage() {
 
 
 /* ---------- Subcomponents ---------- */
+
+function DayOffHero({ onBack }: { onBack: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="flex flex-col items-center px-5 py-8 text-center"
+      style={{
+        background: "var(--hero-bg)",
+        borderRadius: 28,
+        color: "var(--ink)",
+        boxShadow: "var(--shadow-card)",
+      }}
+    >
+      <span
+        className="grid h-16 w-16 place-items-center rounded-full"
+        style={{
+          border: "2px solid var(--accent-yellow)",
+          color: "var(--accent-yellow)",
+        }}
+      >
+        <Moon size={28} strokeWidth={1.8} />
+      </span>
+      <h2
+        className="mt-3 text-[22px] leading-tight"
+        style={{ fontFamily: "Manrope, sans-serif", fontWeight: 800, letterSpacing: "-0.02em", color: "var(--ink)" }}
+      >
+        {t("dayoff.heroTitle")}
+      </h2>
+      <p
+        className="mt-2 max-w-[28ch] text-[13px] leading-snug"
+        style={{ color: "var(--muted-foreground)" }}
+      >
+        {t("dayoff.heroSubtitle")}
+      </p>
+      <button
+        type="button"
+        onClick={onBack}
+        className="mt-4 rounded-full px-4 py-2 text-[12.5px] active:scale-[0.98]"
+        style={{
+          border: "1px solid var(--hairline)",
+          color: "var(--ink)",
+          fontWeight: 600,
+          background: "transparent",
+        }}
+      >
+        {t("dayoff.back")}
+      </button>
+      <div className="mt-3 text-[10.5px]" style={{ color: "var(--muted-foreground)", opacity: 0.75 }}>
+        {t("dayoff.reset")}
+      </div>
+    </motion.div>
+  );
+}
+
 
 function Logo() {
   return (

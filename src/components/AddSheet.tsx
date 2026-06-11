@@ -11,7 +11,9 @@ import {
   ArrowRight,
   X,
 } from "lucide-react";
-import { type Meal, type Product, usePlate, ymd, defaultPlusMenuVisibility, type PlusMenuItemId } from "@/lib/store";
+import { type Meal, type Product, usePlate, ymd, defaultPlusMenuVisibility, type PlusMenuItemId, canSetDayOff, dayOffInMonth, monthKey } from "@/lib/store";
+import { Moon } from "lucide-react";
+import i18n from "@/lib/i18n";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { CompoundMealFlow } from "./CompoundMealFlow";
@@ -118,7 +120,7 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
 
 
               {mode === "menu" && (
-                <MenuGrid onPick={(m) => setMode(m)} />
+                <MenuGrid onPick={(m) => setMode(m)} date={date} onClose={close} />
               )}
               {mode === "quick" && (
                 <QuickForm
@@ -204,7 +206,7 @@ function guessMeal(): Meal {
 
 type PickMode = "quick" | "manual" | "search" | "compound" | "barcode" | "assistant";
 
-function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
+function MenuGrid({ onPick, date, onClose }: { onPick: (m: PickMode) => void; date: string; onClose: () => void }) {
   const { t } = useTranslation();
   const visibility = usePlate(
     (s) => s.profile.plus_menu_visibility ?? defaultPlusMenuVisibility,
@@ -314,7 +316,82 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
           })}
         </div>
       )}
+      <DayOffRow date={date} onClose={onClose} />
     </div>
+  );
+}
+
+function DayOffRow({ date, onClose }: { date: string; onClose: () => void }) {
+  const { t } = useTranslation();
+  const dayOffs = usePlate((s) => s.dayOffs);
+  const setDayOff = usePlate((s) => s.setDayOff);
+  const removeDayOff = usePlate((s) => s.removeDayOff);
+  const active = dayOffs.has(date);
+  const slotTaken = dayOffInMonth(dayOffs, date);
+  const canSet = canSetDayOff(dayOffs, date);
+  const locale = (i18n.language ?? "pl").startsWith("en") ? "en-US" : "pl-PL";
+  const monthName = new Intl.DateTimeFormat(locale, { month: "long" }).format(
+    new Date(monthKey(date) + "-01T00:00:00"),
+  );
+  const usedDateLabel = slotTaken
+    ? new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }).format(
+        new Date(slotTaken + "T00:00:00"),
+      )
+    : "";
+
+  const status = active
+    ? t("dayoff.active")
+    : canSet
+    ? t("dayoff.available", { month: monthName })
+    : t("dayoff.usedOn", { date: usedDateLabel });
+
+  const disabled = !active && !canSet;
+  const handle = () => {
+    if (disabled) return;
+    if (active) removeDayOff(date);
+    else setDayOff(date);
+    onClose();
+  };
+
+  return (
+    <>
+      <div className="mt-1 h-px w-full" style={{ background: "var(--hairline)" }} />
+      <button
+        type="button"
+        onClick={handle}
+        disabled={disabled}
+        className="flex w-full items-center gap-3 rounded-xl px-2 py-3 text-left transition active:scale-[0.99] disabled:cursor-not-allowed"
+        style={{
+          opacity: disabled ? 0.45 : 1,
+          background: active ? "color-mix(in oklab, var(--accent-yellow) 10%, transparent)" : "transparent",
+        }}
+      >
+        <span
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full"
+          style={{
+            border: "1px solid var(--hairline)",
+            color: active ? "var(--accent-yellow)" : "var(--muted-foreground)",
+          }}
+        >
+          <Moon size={18} strokeWidth={1.6} />
+        </span>
+        <span
+          className="flex-1 text-[14px]"
+          style={{ color: "var(--ink)", fontWeight: 600 }}
+        >
+          {t("dayoff.menu")}
+        </span>
+        <span
+          className="text-[11.5px]"
+          style={{
+            color: active ? "var(--accent-yellow)" : "var(--muted-foreground)",
+            fontWeight: 600,
+          }}
+        >
+          {status}
+        </span>
+      </button>
+    </>
   );
 }
 

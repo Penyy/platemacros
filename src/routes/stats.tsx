@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Flame, ChevronLeft, Hand } from "lucide-react";
+import { Flame, ChevronLeft, Hand, Moon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { getDayGoals, sumEntries, usePlate, ymd } from "@/lib/store";
@@ -28,6 +28,7 @@ function StatsPage() {
   const locale = (i18n.language ?? "pl").startsWith("en") ? "en-US" : "pl-PL";
   const entries = usePlate((s) => s.entries);
   const profile = usePlate((s) => s.profile);
+  const dayOffs = usePlate((s) => s.dayOffs);
   const [range, setRange] = useState<Range>(7);
   const [view, setView] = useState<View>("combined");
   const savedScrollRef = useRef(0);
@@ -58,6 +59,7 @@ function StatsPage() {
       label: string;
       totals: ReturnType<typeof sumEntries>;
       goals: ReturnType<typeof getDayGoals>;
+      isDayOff: boolean;
     }[] = [];
     const now = new Date();
     for (let i = range - 1; i >= 0; i--) {
@@ -70,25 +72,27 @@ function StatsPage() {
         label: d.toLocaleDateString(locale, { weekday: "short" }).slice(0, 2),
         totals: sumEntries(dayEntries),
         goals: getDayGoals(profile, date),
+        isDayOff: dayOffs.has(date),
       });
     }
     return out;
-  }, [entries, range, profile, locale]);
+  }, [entries, range, profile, locale, dayOffs]);
 
   const today = ymd(new Date());
-  const loggedDays = days.filter((d) => d.totals.kcal > 0).length;
+  const countable = days.filter((d) => !d.isDayOff && d.totals.kcal > 0);
+  const loggedDays = countable.length;
   const avg =
     loggedDays === 0
       ? { kcal: 0, protein: 0, carbs: 0, fat: 0 }
       : {
-          kcal: Math.round(days.reduce((s, d) => s + d.totals.kcal, 0) / loggedDays),
-          protein: Math.round(days.reduce((s, d) => s + d.totals.protein, 0) / loggedDays),
-          carbs: Math.round(days.reduce((s, d) => s + d.totals.carbs, 0) / loggedDays),
-          fat: Math.round(days.reduce((s, d) => s + d.totals.fat, 0) / loggedDays),
+          kcal: Math.round(countable.reduce((s, d) => s + d.totals.kcal, 0) / loggedDays),
+          protein: Math.round(countable.reduce((s, d) => s + d.totals.protein, 0) / loggedDays),
+          carbs: Math.round(countable.reduce((s, d) => s + d.totals.carbs, 0) / loggedDays),
+          fat: Math.round(countable.reduce((s, d) => s + d.totals.fat, 0) / loggedDays),
         };
 
   const avgGoal = useMemo(() => {
-    const logged = days.filter((d) => d.totals.kcal > 0);
+    const logged = days.filter((d) => !d.isDayOff && d.totals.kcal > 0);
     if (logged.length === 0) {
       const g = getDayGoals(profile, today);
       return { kcal: g.kcal, protein: g.protein, carbs: g.carbs, fat: g.fat };
@@ -105,6 +109,7 @@ function StatsPage() {
 
   let streak = 0;
   for (let i = days.length - 1; i >= 0; i--) {
+    if (days[i].isDayOff) continue;
     if (days[i].totals.kcal > 0) streak++;
     else break;
   }
@@ -213,6 +218,7 @@ function StatsPage() {
                         date: d.date,
                         v: Math.round(d.totals[m.key as keyof typeof d.totals]),
                         goal: d.goals[m.key as keyof typeof d.goals],
+                        isDayOff: d.isDayOff,
                       }))}
                       onTap={goCombined}
                     />
@@ -282,7 +288,7 @@ function CombinedChart({
   cycling,
   onTap,
 }: {
-  days: { date: string; label: string; totals: ReturnType<typeof sumEntries> }[];
+  days: { date: string; label: string; totals: ReturnType<typeof sumEntries>; isDayOff?: boolean }[];
   today: string;
   range: Range;
   goalKcal: number;
@@ -291,10 +297,11 @@ function CombinedChart({
   onTap: () => void;
 }) {
   const { t } = useTranslation();
-  const dailyKcal = days.map((d) => Math.round(d.totals.kcal));
+  const dailyKcal = days.map((d) => (d.isDayOff ? 0 : Math.round(d.totals.kcal)));
   const scaleMax = Math.max(Math.max(...dailyKcal, 0), goalKcal) * 1.22 || 1;
   const goalTop = (1 - goalKcal / scaleMax) * 100;
   const showLabels = range === 7;
+  const hasAnyDayOff = days.some((d) => d.isDayOff);
 
   return (
     <motion.div
@@ -378,6 +385,24 @@ function CombinedChart({
             const fK = d.totals.fat * 9;
             const macroSum = pK + cK + fK;
             const isToday = d.date === today;
+            if (d.isDayOff) {
+              return (
+                <div key={i} className="relative flex-1 h-full flex flex-col justify-end items-center">
+                  <div
+                    className="grid w-full place-items-center"
+                    style={{
+                      height: "55%",
+                      borderRadius: "9px 9px 5px 5px",
+                      border: "1px dashed var(--muted-foreground)",
+                      background: "transparent",
+                      opacity: 0.55,
+                    }}
+                  >
+                    <Moon size={12} strokeWidth={1.6} style={{ color: "var(--muted-foreground)" }} />
+                  </div>
+                </div>
+              );
+            }
             return (
               <div key={i} className="relative flex-1 h-full flex flex-col justify-end items-center">
                 {showLabels && kcal > 0 && (
@@ -450,6 +475,15 @@ function CombinedChart({
         </div>
       </div>
 
+      {hasAnyDayOff && (
+        <div
+          className="mt-2 text-center text-[10px]"
+          style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+        >
+          {t("dayoff.chartNote")}
+        </div>
+      )}
+
       {showLabels && (
         <div className="mt-1.5 flex gap-[3px]">
           {days.map((d, i) => (
@@ -515,13 +549,14 @@ function SplitChartCard({
   today: string;
   range: Range;
   cycling: boolean;
-  values: { label: string; date: string; v: number; goal: number }[];
+  values: { label: string; date: string; v: number; goal: number; isDayOff?: boolean }[];
   onTap?: () => void;
 }) {
   const { t } = useTranslation();
-  const max = Math.max(Math.max(...values.map((d) => d.v), 0), goal) * 1.1 || 1;
+  const max = Math.max(Math.max(...values.filter((d) => !d.isDayOff).map((d) => d.v), 0), goal) * 1.1 || 1;
   const goalTop = (1 - goal / max) * 100;
   const showLabels = range === 7;
+  const hasAnyDayOff = values.some((d) => d.isDayOff);
   const diff = avg - goal;
   const onTarget = goal > 0 && Math.abs(diff) <= goal * 0.02;
 
@@ -601,6 +636,28 @@ function SplitChartCard({
           {values.map((d, i) => {
             const h = Math.min(100, (d.v / max) * 100);
             const isToday = d.date === today;
+            if (d.isDayOff) {
+              return (
+                <div
+                  key={i}
+                  className="relative flex-1 h-full flex flex-col justify-end items-center"
+                >
+                  <div
+                    className="grid place-items-center"
+                    style={{
+                      width: "60%",
+                      height: "55%",
+                      borderRadius: "9px 9px 5px 5px",
+                      border: `1px dashed ${color}`,
+                      background: "transparent",
+                      opacity: 0.55,
+                    }}
+                  >
+                    <Moon size={12} strokeWidth={1.6} style={{ color: "var(--muted-foreground)" }} />
+                  </div>
+                </div>
+              );
+            }
             return (
               <div
                 key={i}
@@ -682,8 +739,14 @@ function SplitChartCard({
         </div>
       )}
 
-
-
+      {hasAnyDayOff && (
+        <div
+          className="mt-2 text-center text-[10px]"
+          style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+        >
+          {t("dayoff.chartNote")}
+        </div>
+      )}
     </motion.div>
   );
 }
