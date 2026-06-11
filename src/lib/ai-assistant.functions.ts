@@ -291,49 +291,55 @@ interface GeminiResponse {
   candidates?: Array<{ content?: { parts?: GeminiPart[] } }>;
 }
 
-const PRIMARY_MODEL = "gemini-3.5-flash";
-const FALLBACK_MODEL = "gemini-2.5-flash";
+// Centralna lista modeli — priorytet = kolejność. Każdy ma osobną pulę darmową,
+// więc fallback realnie sumuje limity. Aby włączyć 3.5 Flash, dodaj na początek.
+const MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash"];
 
-async function callGeminiModel(model: string, body: unknown, apiKey: string): Promise<{ resp?: GeminiResponse; unavailable?: boolean; error?: Error }> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
-  const maxAttempts = 4;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const isRetryable = (s: number) => s === 429 || s === 503 || s === 502 || s === 504;
+
+async function callGeminiWithFallback(
+  models: string[],
+  buildBody: (model: string) => unknown,
+  apiKey: string,
+): Promise<GeminiResponse> {
   let lastErr: Error | null = null;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (res.ok) return { resp: (await res.json()) as GeminiResponse };
-    const txt = await res.text().catch(() => "");
-    // Model availability errors -> signal fallback
-    if (res.status === 404 || (res.status === 400 && /model|not found|not supported|unavailable/i.test(txt))) {
-      return { unavailable: true, error: new Error(`AI_MODEL_UNAVAILABLE_${res.status}`) };
+  for (let i = 0; i < models.length; i++) {
+    const model = models[i];
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildBody(model)),
+      });
+      if (res.ok) return (await res.json()) as GeminiResponse;
+      const txt = await res.text().catch(() => "");
+      if (isRetryable(res.status) && i < models.length - 1) {
+        await sleep(300 + Math.random() * 300);
+        lastErr = new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`);
+        continue;
+      }
+      if (!isRetryable(res.status)) {
+        if (res.status === 402 || res.status === 403) throw new Error("AI_CREDITS");
+        throw new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`);
+      }
+      if (res.status === 429) lastErr = new Error("AI_RATE_LIMIT");
+      else if (res.status === 503) lastErr = new Error("AI_OVERLOADED");
+      else lastErr = new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`);
+    } catch (e) {
+      lastErr = e instanceof Error ? e : new Error(String(e));
+      if (i < models.length - 1) {
+        await sleep(300);
+        continue;
+      }
     }
-    if (res.status === 402 || res.status === 403) return { error: new Error("AI_CREDITS") };
-    const retriable = res.status === 429 || res.status === 503 || res.status === 502 || res.status === 504;
-    if (retriable && attempt < maxAttempts) {
-      const delay = 500 * 2 ** (attempt - 1) + Math.floor(Math.random() * 250);
-      await new Promise((r) => setTimeout(r, delay));
-      lastErr = new Error(`AI_HTTP_${res.status}`);
-      continue;
-    }
-    if (res.status === 429) return { error: new Error("AI_RATE_LIMIT") };
-    if (res.status === 503) return { error: new Error("AI_OVERLOADED") };
-    return { error: new Error(`AI_HTTP_${res.status}: ${txt.slice(0, 200)}`) };
   }
-  return { error: lastErr ?? new Error("AI_HTTP_UNKNOWN") };
+  throw lastErr ?? new Error("All Gemini models exhausted");
 }
 
 async function callGemini(body: unknown, apiKey: string): Promise<GeminiResponse> {
-  const primary = await callGeminiModel(PRIMARY_MODEL, body, apiKey);
-  if (primary.resp) return primary.resp;
-  if (primary.unavailable) {
-    const fb = await callGeminiModel(FALLBACK_MODEL, body, apiKey);
-    if (fb.resp) return fb.resp;
-    throw fb.error ?? new Error("AI_HTTP_UNKNOWN");
-  }
-  throw primary.error ?? new Error("AI_HTTP_UNKNOWN");
+  return callGeminiWithFallback(MODELS, () => body, apiKey);
 }
 
 // ============================================================
