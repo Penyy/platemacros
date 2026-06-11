@@ -112,8 +112,8 @@ function StatsPage() {
   return (
     <div className="pb-4">
       <ScreenHeader
-        title="Statystyki"
-        subtitle={`Ostatnie ${range} dni`}
+        title={t("stats.title")}
+        subtitle={t("stats.lastDays", { n: range })}
         right={
           streak > 0 ? (
             <div
