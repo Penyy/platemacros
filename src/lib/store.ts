@@ -223,6 +223,7 @@ export const usePlate = create<State>()((set, get) => ({
   entries: [],
   burned: {},
   products: [],
+  dayOffs: new Set<string>(),
   addSheet: { open: false },
 
   openAdd: (meal, date) => set({ addSheet: { open: true, meal, date } }),
