@@ -563,7 +563,7 @@ function SplitChartCard({
             className="num-tight mt-0.5 text-[18px]"
             style={{ fontWeight: 800, color: "var(--ink)" }}
           >
-            śr. {Math.round(avg)} {unit}
+            {t("stats.avgShort")} {Math.round(avg)} {unit}
           </div>
           {avg > 0 && (
             <div
@@ -574,8 +574,8 @@ function SplitChartCard({
               }}
             >
               {onTarget
-                ? "≈ na celu"
-                : `${diff > 0 ? "+" : ""}${Math.round(diff)} vs cel`}
+                ? t("stats.onTarget")
+                : `${diff > 0 ? "+" : ""}${Math.round(diff)} ${t("stats.vsGoal")}`}
             </div>
           )}
         </div>
@@ -583,7 +583,7 @@ function SplitChartCard({
           className="num-tight text-right text-[11px]"
           style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
         >
-          {cycling ? "śr. cel" : "cel"} {goal} {unit}
+          {cycling ? t("stats.avgGoalShort") : t("stats.goalShort")} {goal} {unit}
         </div>
       </div>
 
