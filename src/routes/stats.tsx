@@ -59,6 +59,7 @@ function StatsPage() {
       label: string;
       totals: ReturnType<typeof sumEntries>;
       goals: ReturnType<typeof getDayGoals>;
+      isDayOff: boolean;
     }[] = [];
     const now = new Date();
     for (let i = range - 1; i >= 0; i--) {
@@ -71,25 +72,28 @@ function StatsPage() {
         label: d.toLocaleDateString(locale, { weekday: "short" }).slice(0, 2),
         totals: sumEntries(dayEntries),
         goals: getDayGoals(profile, date),
+        isDayOff: dayOffs.has(date),
       });
     }
     return out;
-  }, [entries, range, profile, locale]);
+  }, [entries, range, profile, locale, dayOffs]);
 
   const today = ymd(new Date());
-  const loggedDays = days.filter((d) => d.totals.kcal > 0).length;
+  const hasAnyDayOff = days.some((d) => d.isDayOff);
+  const countable = days.filter((d) => !d.isDayOff && d.totals.kcal > 0);
+  const loggedDays = countable.length;
   const avg =
     loggedDays === 0
       ? { kcal: 0, protein: 0, carbs: 0, fat: 0 }
       : {
-          kcal: Math.round(days.reduce((s, d) => s + d.totals.kcal, 0) / loggedDays),
-          protein: Math.round(days.reduce((s, d) => s + d.totals.protein, 0) / loggedDays),
-          carbs: Math.round(days.reduce((s, d) => s + d.totals.carbs, 0) / loggedDays),
-          fat: Math.round(days.reduce((s, d) => s + d.totals.fat, 0) / loggedDays),
+          kcal: Math.round(countable.reduce((s, d) => s + d.totals.kcal, 0) / loggedDays),
+          protein: Math.round(countable.reduce((s, d) => s + d.totals.protein, 0) / loggedDays),
+          carbs: Math.round(countable.reduce((s, d) => s + d.totals.carbs, 0) / loggedDays),
+          fat: Math.round(countable.reduce((s, d) => s + d.totals.fat, 0) / loggedDays),
         };
 
   const avgGoal = useMemo(() => {
-    const logged = days.filter((d) => d.totals.kcal > 0);
+    const logged = days.filter((d) => !d.isDayOff && d.totals.kcal > 0);
     if (logged.length === 0) {
       const g = getDayGoals(profile, today);
       return { kcal: g.kcal, protein: g.protein, carbs: g.carbs, fat: g.fat };
@@ -106,6 +110,7 @@ function StatsPage() {
 
   let streak = 0;
   for (let i = days.length - 1; i >= 0; i--) {
+    if (days[i].isDayOff) continue;
     if (days[i].totals.kcal > 0) streak++;
     else break;
   }
