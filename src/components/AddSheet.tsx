@@ -120,7 +120,7 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
 
 
               {mode === "menu" && (
-                <MenuGrid onPick={(m) => setMode(m)} />
+                <MenuGrid onPick={(m) => setMode(m)} date={date} onClose={close} />
               )}
               {mode === "quick" && (
                 <QuickForm
