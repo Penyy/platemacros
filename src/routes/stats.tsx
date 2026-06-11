@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Flame, ChevronLeft, Hand } from "lucide-react";
+import { Flame, ChevronLeft, Hand, Moon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { getDayGoals, sumEntries, usePlate, ymd } from "@/lib/store";
