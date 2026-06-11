@@ -246,6 +246,7 @@ function DeferredMount({
 }
 
 function Pills({ value, onChange }: { value: Range; onChange: (r: Range) => void }) {
+  const { t } = useTranslation();
   return (
     <div
       className="flex gap-1 rounded-full p-1"
