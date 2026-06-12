@@ -500,3 +500,11 @@ function numOr(s: string, fallback: number) {
 function round1(n: number) {
   return Math.round(n * 10) / 10;
 }
+
+function canonicalizeName(name: string, t: (k: string) => string): string {
+  const trimmed = name.trim();
+  if (trimmed === QUICK_ENTRY_CANONICAL || trimmed === t("quick.defaultName").trim()) {
+    return QUICK_ENTRY_CANONICAL;
+  }
+  return trimmed;
+}
