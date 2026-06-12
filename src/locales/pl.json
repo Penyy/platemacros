@@ -153,6 +153,19 @@
       "macroC": "Węgl.",
       "macroF": "Tłuszcz",
       "submit": "Dodaj do dziennika"
+    },
+    "manual": {
+      "name": "Nazwa",
+      "namePlaceholder": "np. Kurczak grillowany",
+      "serving": "Porcja (g)",
+      "servings": "Ilość porcji",
+      "kcalPerServing": "Kalorie / porcję",
+      "fiber": "Błonnik (g)",
+      "sugars": "Cukry (g)",
+      "satFat": "Tł. nasyc. (g)",
+      "sodium": "Sód (mg)",
+      "complexHint": "w tym proste: {{simple}} g · złożone: {{complex}} g",
+      "total": "Razem"
     }
   },
   "ai": {
@@ -538,17 +551,6 @@
     "vsGoal": "vs cel",
     "combinedView": "Widok zbiorczy",
     "tapToSplit": "Dotknij, aby rozbić na osobne wykresy"
-  },
-  "dayoff": {
-    "menu": "Dzień wolny",
-    "available": "Dostępny w {{month}}",
-    "usedOn": "Wykorzystany {{date}}",
-    "active": "Aktywny",
-    "heroTitle": "Dzień wolny",
-    "heroSubtitle": "Dziś przerwa od liczenia. Ten dzień nie wlicza się do statystyk ani wykresów.",
-    "back": "Wróć do liczenia",
-    "reset": "Token odnawia się 1. dnia miesiąca",
-    "chartNote": "Dzień wolny — poza średnią"
   }
 }
 
