@@ -50,7 +50,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
 
   useEffect(() => {
     if (!entry) return;
-    setName(entry.name);
+    setName(displayEntryName(entry.name, t));
     setMeal(entry.meal);
     setGrams(entry.grams != null ? String(Math.round(entry.grams)) : "");
     setKcal(String(Math.round(entry.kcal)));
