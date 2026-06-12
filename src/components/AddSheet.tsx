@@ -225,7 +225,7 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
   let idx = 0;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2.5">
       {heroVisible && (
         <motion.button
           initial={{ opacity: 0, y: 8 }}
@@ -233,7 +233,7 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
           transition={{ duration: 0.32, delay: idx++ * 0.04, ease: [0.22, 1, 0.36, 1] }}
           whileTap={{ scale: 0.97 }}
           onClick={() => onPick("assistant")}
-          className="flex w-full items-center gap-4 rounded-[20px] p-4 text-left"
+          className="flex w-full items-center gap-3.5 rounded-[20px] p-3.5 text-left"
           style={{
             background:
               "radial-gradient(120% 140% at 90% 0%, rgba(244,181,0,.16), transparent 55%), linear-gradient(135deg, rgba(244,181,0,.10), rgba(244,181,0,.03))",
@@ -241,10 +241,10 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
           }}
         >
           <span
-            className="grid h-14 w-14 shrink-0 place-items-center rounded-full"
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-full"
             style={{ background: "var(--accent-yellow)", color: "#161616" }}
           >
-            <Sparkles size={26} strokeWidth={1.9} />
+            <Sparkles size={23} strokeWidth={1.9} />
           </span>
           <div className="min-w-0 flex-1">
             <div
@@ -265,7 +265,7 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
       )}
 
       {gridItems.length > 0 && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2.5">
           {gridItems.map((it, i) => {
             const Icon = it.icon;
             const spanFull = oddTail && i === gridItems.length - 1;
@@ -277,7 +277,7 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
                 transition={{ duration: 0.32, delay: (idx++) * 0.04, ease: [0.22, 1, 0.36, 1] }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => onPick(it.id)}
-                className="relative flex min-h-[128px] flex-col items-start justify-between gap-3 rounded-[20px] p-[18px] text-left"
+                className="relative flex min-h-[104px] flex-col items-start justify-between gap-2.5 rounded-[20px] p-3.5 text-left"
                 style={{
                   background: "var(--card)",
                   border: "1px solid var(--hairline)",
@@ -285,7 +285,7 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
                 }}
               >
                 <span
-                  className="grid h-[52px] w-[52px] place-items-center rounded-2xl"
+                  className="grid h-11 w-11 place-items-center rounded-2xl"
                   style={{
                     background:
                       "linear-gradient(180deg, rgba(255,255,255,.06), transparent), rgba(255,255,255,.05)",
@@ -293,7 +293,7 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
                     color: "var(--ink)",
                   }}
                 >
-                  <Icon size={24} strokeWidth={1.8} />
+                  <Icon size={22} strokeWidth={1.8} />
                 </span>
                 <div className="w-full">
                   <div
