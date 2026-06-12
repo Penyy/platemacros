@@ -143,7 +143,7 @@ function RootComponent() {
         <AppShell>
           <Outlet />
         </AppShell>
-        <Toaster position="bottom-center" offset={96} richColors closeButton={false} />
+        <Toaster position="bottom-center" offset="calc(env(safe-area-inset-bottom) + 120px)" closeButton={false} />
       </QueryClientProvider>
     </I18nextProvider>
   );
