@@ -11,9 +11,7 @@ import {
   ArrowRight,
   X,
 } from "lucide-react";
-import { type Meal, type Product, usePlate, ymd, defaultPlusMenuVisibility, type PlusMenuItemId, canSetDayOff, dayOffInMonth, monthKey } from "@/lib/store";
-import { Moon } from "lucide-react";
-import i18n from "@/lib/i18n";
+import { type Meal, type Product, usePlate, ymd, defaultPlusMenuVisibility, type PlusMenuItemId } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { CompoundMealFlow } from "./CompoundMealFlow";
@@ -120,7 +118,7 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
 
 
               {mode === "menu" && (
-                <MenuGrid onPick={(m) => setMode(m)} date={date} onClose={close} />
+                <MenuGrid onPick={(m) => setMode(m)} />
               )}
               {mode === "quick" && (
                 <QuickForm
@@ -206,7 +204,7 @@ function guessMeal(): Meal {
 
 type PickMode = "quick" | "manual" | "search" | "compound" | "barcode" | "assistant";
 
-function MenuGrid({ onPick, date, onClose }: { onPick: (m: PickMode) => void; date: string; onClose: () => void }) {
+function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
   const { t } = useTranslation();
   const visibility = usePlate(
     (s) => s.profile.plus_menu_visibility ?? defaultPlusMenuVisibility,
@@ -316,82 +314,7 @@ function MenuGrid({ onPick, date, onClose }: { onPick: (m: PickMode) => void; da
           })}
         </div>
       )}
-      <DayOffRow date={date} onClose={onClose} />
     </div>
-  );
-}
-
-function DayOffRow({ date, onClose }: { date: string; onClose: () => void }) {
-  const { t } = useTranslation();
-  const dayOffs = usePlate((s) => s.dayOffs);
-  const setDayOff = usePlate((s) => s.setDayOff);
-  const removeDayOff = usePlate((s) => s.removeDayOff);
-  const active = dayOffs.has(date);
-  const slotTaken = dayOffInMonth(dayOffs, date);
-  const canSet = canSetDayOff(dayOffs, date);
-  const locale = (i18n.language ?? "pl").startsWith("en") ? "en-US" : "pl-PL";
-  const monthName = new Intl.DateTimeFormat(locale, { month: "long" }).format(
-    new Date(monthKey(date) + "-01T00:00:00"),
-  );
-  const usedDateLabel = slotTaken
-    ? new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }).format(
-        new Date(slotTaken + "T00:00:00"),
-      )
-    : "";
-
-  const status = active
-    ? t("dayoff.active")
-    : canSet
-    ? t("dayoff.available", { month: monthName })
-    : t("dayoff.usedOn", { date: usedDateLabel });
-
-  const disabled = !active && !canSet;
-  const handle = () => {
-    if (disabled) return;
-    if (active) removeDayOff(date);
-    else setDayOff(date);
-    onClose();
-  };
-
-  return (
-    <>
-      <div className="mt-1 h-px w-full" style={{ background: "var(--hairline)" }} />
-      <button
-        type="button"
-        onClick={handle}
-        disabled={disabled}
-        className="flex w-full items-center gap-3 rounded-xl px-2 py-3 text-left transition active:scale-[0.99] disabled:cursor-not-allowed"
-        style={{
-          opacity: disabled ? 0.45 : 1,
-          background: active ? "color-mix(in oklab, var(--accent-yellow) 10%, transparent)" : "transparent",
-        }}
-      >
-        <span
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-full"
-          style={{
-            border: "1px solid var(--hairline)",
-            color: active ? "var(--accent-yellow)" : "var(--muted-foreground)",
-          }}
-        >
-          <Moon size={18} strokeWidth={1.6} />
-        </span>
-        <span
-          className="flex-1 text-[14px]"
-          style={{ color: "var(--ink)", fontWeight: 600 }}
-        >
-          {t("dayoff.menu")}
-        </span>
-        <span
-          className="text-[11.5px]"
-          style={{
-            color: active ? "var(--accent-yellow)" : "var(--muted-foreground)",
-            fontWeight: 600,
-          }}
-        >
-          {status}
-        </span>
-      </button>
-    </>
   );
 }
 
@@ -565,6 +488,7 @@ function ManualForm({
   setMeal: (m: Meal) => void;
   onSubmit: (p: FormPayload) => void;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [portion, setPortion] = useState("100");
   const [count, setCount] = useState("1");
@@ -631,18 +555,18 @@ function ManualForm({
       }}
     >
       <MealPicker meal={meal} setMeal={setMeal} />
-      <Field label="Nazwa">
+      <Field label={t("add.manual.name")}>
         <input
           autoFocus
           className={inputCls}
           maxLength={80}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="np. Kurczak grillowany"
+          placeholder={t("add.manual.namePlaceholder")}
         />
       </Field>
       <div className="grid grid-cols-2 gap-2">
-        <Field label="Porcja (g)">
+        <Field label={t("add.manual.serving")}>
           <input
             className={inputCls}
             inputMode="decimal"
@@ -650,7 +574,7 @@ function ManualForm({
             onChange={(e) => setPortion(e.target.value.replace(",", "."))}
           />
         </Field>
-        <Field label="Ilość porcji">
+        <Field label={t("add.manual.servings")}>
           <input
             className={inputCls}
             inputMode="decimal"
@@ -659,47 +583,43 @@ function ManualForm({
           />
         </Field>
       </div>
-      <Field label="Kalorie / porcję">
-        <input
-          className={inputCls}
-          inputMode="decimal"
-          value={kcal}
-          onChange={(e) => setKcal(e.target.value.replace(",", "."))}
-        />
-      </Field>
+
+      {/* Calories — hero gold card (Quick entry style) */}
+      <div
+        className="rounded-2xl bg-card p-4"
+        style={{
+          border: "2px solid var(--accent-yellow)",
+          boxShadow: "var(--shadow-card)",
+        }}
+      >
+        <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+          {t("add.manual.kcalPerServing")}
+        </div>
+        <div className="mt-1 flex items-baseline gap-2">
+          <input
+            className="num-tight w-full bg-transparent text-[40px] font-extrabold leading-none tracking-tight outline-none placeholder:text-foreground/20"
+            inputMode="decimal"
+            value={kcal}
+            onChange={(e) => setKcal(e.target.value.replace(",", "."))}
+            placeholder="0"
+          />
+          <span className="text-[13px] font-semibold text-muted-foreground">kcal</span>
+        </div>
+      </div>
+
+      {/* Macros — same dot cards as Quick entry */}
       <div className="grid grid-cols-3 gap-2">
-        <Field label="B / porcję">
-          <input
-            className={inputCls}
-            inputMode="decimal"
-            value={p}
-            onChange={(e) => setP(e.target.value.replace(",", "."))}
-          />
-        </Field>
-        <Field label="W / porcję">
-          <input
-            className={inputCls}
-            inputMode="decimal"
-            value={c}
-            onChange={(e) => setC(e.target.value.replace(",", "."))}
-          />
-        </Field>
-        <Field label="T / porcję">
-          <input
-            className={inputCls}
-            inputMode="decimal"
-            value={f}
-            onChange={(e) => setF(e.target.value.replace(",", "."))}
-          />
-        </Field>
+        <MacroField color="var(--macro-protein)" label={t("add.quick.macroP")} value={p} onChange={setP} />
+        <MacroField color="var(--macro-carbs)" label={t("add.quick.macroC")} value={c} onChange={setC} />
+        <MacroField color="var(--macro-fat)" label={t("add.quick.macroF")} value={f} onChange={setF} />
       </div>
       {complex != null && (
         <div className="px-1 text-[11px] text-muted-foreground">
-          w tym proste: {sugarsV} g · złożone: {complex} g
+          {t("add.manual.complexHint", { simple: sugarsV, complex })}
         </div>
       )}
       <div className="grid grid-cols-2 gap-2">
-        <Field label="Błonnik (g)">
+        <Field label={t("add.manual.fiber")}>
           <input
             className={inputCls}
             inputMode="decimal"
@@ -707,7 +627,7 @@ function ManualForm({
             onChange={(e) => setFiber(e.target.value.replace(",", "."))}
           />
         </Field>
-        <Field label="Cukry (g)">
+        <Field label={t("add.manual.sugars")}>
           <input
             className={inputCls}
             inputMode="decimal"
@@ -715,7 +635,7 @@ function ManualForm({
             onChange={(e) => setSugars(e.target.value.replace(",", "."))}
           />
         </Field>
-        <Field label="Tł. nasyc. (g)">
+        <Field label={t("add.manual.satFat")}>
           <input
             className={inputCls}
             inputMode="decimal"
@@ -723,7 +643,7 @@ function ManualForm({
             onChange={(e) => setSatFat(e.target.value.replace(",", "."))}
           />
         </Field>
-        <Field label="Sód (mg)">
+        <Field label={t("add.manual.sodium")}>
           <input
             className={inputCls}
             inputMode="decimal"
@@ -735,18 +655,18 @@ function ManualForm({
       {valid && (
         <div className="rounded-2xl bg-foreground/5 p-3 num-tight">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            Razem
+            {t("add.manual.total")}
           </div>
           <div className="mt-0.5 text-sm">
             <span className="text-lg font-bold">{Math.round(total.kcal)}</span> kcal ·{" "}
             {Math.round(totalGrams)} g
           </div>
           <div className="text-xs text-muted-foreground">
-            B {Math.round(total.p)} · W {Math.round(total.c)} · T {Math.round(total.f)}
+            {t("macro.short.protein")} {Math.round(total.p)} · {t("macro.short.carbs")} {Math.round(total.c)} · {t("macro.short.fat")} {Math.round(total.f)}
           </div>
         </div>
       )}
-      <SubmitButton disabled={!valid}>Dodaj do dziennika</SubmitButton>
+      <SubmitButton disabled={!valid}>{t("add.quick.submit")}</SubmitButton>
     </form>
   );
 }
