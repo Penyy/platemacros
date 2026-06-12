@@ -57,7 +57,8 @@ function TodayPage() {
     d.setDate(d.getDate() + 1);
     return ymd(d);
   }, []);
-  const [selected, setSelected] = useState<string>(today);
+  const selected = usePlate((s) => s.selectedDate);
+  const setSelected = usePlate((s) => s.setSelectedDate);
   const [calOpen, setCalOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [burnedOpen, setBurnedOpen] = useState(false);
