@@ -17,6 +17,7 @@
     "copied_one": "Copied {{count}} item",
     "copied_other": "Copied {{count}} items",
     "deletedMeal": "Deleted {{meal}}",
+    "deletedItem": "Deleted {{name}}",
     "noMealToCopy": "No meal to copy"
   },
   "products": {
