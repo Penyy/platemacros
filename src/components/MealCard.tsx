@@ -31,7 +31,7 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
 
   const handleDelete = (entry: LogEntry) => {
     remove(entry.id);
-    toast(t("snackbar.deletedMeal", { meal: displayEntryName(entry.name, t) }), {
+    toast(t("snackbar.deletedItem", { name: displayEntryName(entry.name, t) }), {
       duration: 5000,
       action: {
         label: t("common.undo"),
