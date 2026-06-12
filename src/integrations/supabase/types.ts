@@ -104,6 +104,7 @@ export type Database = {
           protein: number
           saturated_fat_g: number | null
           sodium_mg: number | null
+          source: string | null
           sub_items: Json | null
           sugars_g: number | null
           user_id: string
@@ -122,6 +123,7 @@ export type Database = {
           protein?: number
           saturated_fat_g?: number | null
           sodium_mg?: number | null
+          source?: string | null
           sub_items?: Json | null
           sugars_g?: number | null
           user_id: string
@@ -140,6 +142,7 @@ export type Database = {
           protein?: number
           saturated_fat_g?: number | null
           sodium_mg?: number | null
+          source?: string | null
           sub_items?: Json | null
           sugars_g?: number | null
           user_id?: string
