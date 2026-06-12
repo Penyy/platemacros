@@ -151,6 +151,19 @@
       "macroC": "Carbs",
       "macroF": "Fat",
       "submit": "Add to diary"
+    },
+    "manual": {
+      "name": "Name",
+      "namePlaceholder": "e.g. Grilled chicken",
+      "serving": "Serving (g)",
+      "servings": "Servings",
+      "kcalPerServing": "Calories / serving",
+      "fiber": "Fiber (g)",
+      "sugars": "Sugars (g)",
+      "satFat": "Sat. fat (g)",
+      "sodium": "Sodium (mg)",
+      "complexHint": "incl. simple: {{simple}} g · complex: {{complex}} g",
+      "total": "Total"
     }
   },
   "ai": {
@@ -536,17 +549,6 @@
     "vsGoal": "vs goal",
     "combinedView": "Combined view",
     "tapToSplit": "Tap to split into separate charts"
-  },
-  "dayoff": {
-    "menu": "Day off",
-    "available": "Available in {{month}}",
-    "usedOn": "Used {{date}}",
-    "active": "Active",
-    "heroTitle": "Day off",
-    "heroSubtitle": "Taking a break from tracking today. This day isn't counted in your stats or charts.",
-    "back": "Back to tracking",
-    "reset": "Token renews on the 1st of the month",
-    "chartNote": "Day off — excluded from average"
   }
 }
 
