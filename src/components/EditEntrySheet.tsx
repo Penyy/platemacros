@@ -235,7 +235,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                 </button>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {/* Name */}
                 <CardField label={t("item.name")}>
                   <input
@@ -345,10 +345,10 @@ export function EditEntrySheet({ entry, onClose }: Props) {
 
                 {/* Extras (optional) */}
                 <div className="grid grid-cols-2 gap-2">
-                  <NumCard label={t("item.fiber")} unit="g" value={fiber} onChange={(v) => { setFiber(v); rebase("fiber", v); }} />
-                  <NumCard label={t("item.sugars")} unit="g" value={sugars} onChange={(v) => { setSugars(v); rebase("sugars", v); }} />
-                  <NumCard label={t("item.satFatShort")} unit="g" value={satFat} onChange={(v) => { setSatFat(v); rebase("satFat", v); }} />
-                  <NumCard label={t("item.sodium")} unit="mg" value={sodium} onChange={(v) => { setSodium(v); rebase("sodium", v); }} />
+                  <SmallNumCard label={t("item.fiber")} unit="g" value={fiber} onChange={(v) => { setFiber(v); rebase("fiber", v); }} />
+                  <SmallNumCard label={t("item.sugars")} unit="g" value={sugars} onChange={(v) => { setSugars(v); rebase("sugars", v); }} />
+                  <SmallNumCard label={t("item.satFatShort")} unit="g" value={satFat} onChange={(v) => { setSatFat(v); rebase("satFat", v); }} />
+                  <SmallNumCard label={t("item.sodium")} unit="mg" value={sodium} onChange={(v) => { setSodium(v); rebase("sodium", v); }} />
                 </div>
 
 
@@ -436,7 +436,7 @@ function NumCard({
 }) {
   return (
     <label
-      className="block min-w-0 rounded-2xl bg-card p-3"
+      className="flex h-full min-w-0 flex-col justify-between rounded-2xl bg-card p-3"
       style={{
         border: hero ? "2px solid var(--accent-yellow)" : "1px solid var(--hairline)",
         boxShadow: "var(--shadow-card)",
@@ -472,6 +472,52 @@ function NumCard({
         />
         <span
           className="text-[11px]"
+          style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
+        >
+          {unit}
+        </span>
+      </div>
+    </label>
+  );
+}
+
+function SmallNumCard({
+  label,
+  unit,
+  value,
+  onChange,
+}: {
+  label: string;
+  unit: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="block min-w-0">
+      <span
+        className="mb-1.5 block truncate text-[10px] uppercase tracking-wider"
+        style={{ color: "var(--muted-foreground)", fontWeight: 700 }}
+      >
+        {label}
+      </span>
+      <div
+        className="flex items-baseline rounded-[13px] px-3 py-2"
+        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--hairline)" }}
+      >
+        <input
+          inputMode="decimal"
+          value={value}
+          onChange={(e) => onChange(e.target.value.replace(",", "."))}
+          onFocus={(e) => {
+            onFocusScroll(e);
+            e.currentTarget.select();
+          }}
+          placeholder="0"
+          className="num-tight w-full min-w-0 bg-transparent text-[15px] leading-none outline-none placeholder:text-foreground/20"
+          style={{ fontWeight: 700, color: "var(--ink)" }}
+        />
+        <span
+          className="ml-auto pl-2 text-[11px]"
           style={{ color: "var(--muted-foreground)", fontWeight: 600 }}
         >
           {unit}
