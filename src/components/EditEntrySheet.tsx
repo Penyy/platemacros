@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { type LogEntry, type Meal, usePlate } from "@/lib/store";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
+import { QUICK_ENTRY_CANONICAL, displayEntryName } from "@/lib/utils";
 
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
