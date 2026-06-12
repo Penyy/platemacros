@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, Trash2, RotateCcw } from "lucide-react";
+import { Plus, Trash2, RotateCcw, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { EditEntrySheet } from "./EditEntrySheet";
@@ -370,6 +370,16 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2">
             <span className="truncate text-[16px] font-bold tracking-tight">{displayEntryName(e.name, t)}</span>
+            {e.source === "ai" ? (
+              <span
+                className="inline-flex shrink-0 items-center justify-center self-center rounded-full"
+                style={{ width: 16, height: 16, background: "rgba(244,181,0,.14)", color: "var(--accent-yellow)" }}
+                aria-label="PlateAI"
+                title="PlateAI"
+              >
+                <Sparkles size={10} strokeWidth={2} />
+              </span>
+            ) : null}
             {e.grams ? (
               <span className="num-tight shrink-0 text-[12px] font-semibold text-muted-foreground">
                 {Math.round(e.grams)} g
