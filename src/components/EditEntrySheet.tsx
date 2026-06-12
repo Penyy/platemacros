@@ -143,7 +143,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
   const saveToLibrary = () => {
     if (!entry) return;
     const g = grams.trim() === "" ? undefined : numOr(grams, entry.grams ?? 0);
-    const finalName = name.trim() || entry.name;
+    const finalName = canonicalizeName(name.trim() || entry.name, t);
     const finalKcal = numOr(kcal, entry.kcal);
     const finalProtein = numOr(protein, entry.protein);
     const finalCarbs = numOr(carbs, entry.carbs);
