@@ -138,11 +138,13 @@ interface State {
   burned: Record<string, number>;
   products: Product[];
   dayOffs: Set<string>;
+  selectedDate: string;
   // ui
   addSheet: { open: boolean; meal?: Meal; date?: string };
   // ui actions
   openAdd: (meal?: Meal, date?: string) => void;
   closeAdd: () => void;
+  setSelectedDate: (date: string) => void;
   // auth actions
   setAuth: (userId: string | null) => void;
   setOnline: (v: boolean) => void;
@@ -224,10 +226,12 @@ export const usePlate = create<State>()((set, get) => ({
   burned: {},
   products: [],
   dayOffs: new Set<string>(),
+  selectedDate: ymd(new Date()),
   addSheet: { open: false },
 
-  openAdd: (meal, date) => set({ addSheet: { open: true, meal, date } }),
+  openAdd: (meal, date) => set((s) => ({ addSheet: { open: true, meal, date: date ?? s.selectedDate } })),
   closeAdd: () => set((s) => ({ addSheet: { ...s.addSheet, open: false } })),
+  setSelectedDate: (date) => set({ selectedDate: date }),
 
   setAuth: (userId) => {
     set({ userId, authReady: true });
@@ -246,6 +250,7 @@ export const usePlate = create<State>()((set, get) => ({
       burned: {},
       products: [],
       dayOffs: new Set<string>(),
+      selectedDate: ymd(new Date()),
       hydrated: false,
     }),
 
