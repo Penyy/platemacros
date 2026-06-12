@@ -22,6 +22,7 @@ export interface LogEntry {
   sodium_mg?: number | null;
   created_at: number;
   sub_items?: unknown;
+  source?: string | null;
 }
 
 
@@ -138,13 +139,11 @@ interface State {
   burned: Record<string, number>;
   products: Product[];
   dayOffs: Set<string>;
-  selectedDate: string;
   // ui
   addSheet: { open: boolean; meal?: Meal; date?: string };
   // ui actions
   openAdd: (meal?: Meal, date?: string) => void;
   closeAdd: () => void;
-  setSelectedDate: (date: string) => void;
   // auth actions
   setAuth: (userId: string | null) => void;
   setOnline: (v: boolean) => void;
@@ -226,12 +225,10 @@ export const usePlate = create<State>()((set, get) => ({
   burned: {},
   products: [],
   dayOffs: new Set<string>(),
-  selectedDate: ymd(new Date()),
   addSheet: { open: false },
 
-  openAdd: (meal, date) => set((s) => ({ addSheet: { open: true, meal, date: date ?? s.selectedDate } })),
+  openAdd: (meal, date) => set({ addSheet: { open: true, meal, date } }),
   closeAdd: () => set((s) => ({ addSheet: { ...s.addSheet, open: false } })),
-  setSelectedDate: (date) => set({ selectedDate: date }),
 
   setAuth: (userId) => {
     set({ userId, authReady: true });
@@ -250,7 +247,6 @@ export const usePlate = create<State>()((set, get) => ({
       burned: {},
       products: [],
       dayOffs: new Set<string>(),
-      selectedDate: ymd(new Date()),
       hydrated: false,
     }),
 
@@ -316,6 +312,7 @@ export const usePlate = create<State>()((set, get) => ({
           sodium_mg: numOrNull(r.sodium_mg),
           created_at: r.created_at ? new Date(r.created_at as string).getTime() : Date.now(),
           sub_items: r.sub_items ?? undefined,
+          source: (r.source as string | null) ?? null,
         };
       });
 
@@ -539,6 +536,7 @@ export const usePlate = create<State>()((set, get) => ({
         saturated_fat_g: e.saturated_fat_g ?? null,
         sodium_mg: e.sodium_mg ?? null,
         sub_items: (e.sub_items ?? null) as Json,
+        source: e.source ?? null,
       } as never)
       .then(({ error }) => {
         if (error) netToast(error);
@@ -814,6 +812,7 @@ export const usePlate = create<State>()((set, get) => ({
             carbs: e.carbs,
             fat: e.fat,
             sub_items: (e.sub_items ?? null) as Json,
+            source: e.source ?? null,
           }))
         );
       }
