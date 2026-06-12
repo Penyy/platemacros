@@ -320,7 +320,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
         for (const a of result.actions) {
           addEntry({
             date: targetDate,
-            meal: a.meal, name: a.name,
+            meal: a.meal, name: a.name, source: "ai",
             grams: a.grams ?? undefined,
             kcal: a.kcal, protein: a.protein, carbs: a.carbs, fat: a.fat,
           });
@@ -395,6 +395,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
         date: targetDate,
         meal,
         name: dishName || "Posiłek",
+        source: "ai",
         grams: Math.round(total.grams) || undefined,
         kcal: Math.round(total.kcal),
         protein: Math.round(total.protein * 10) / 10,
@@ -407,6 +408,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
           date: targetDate,
           meal,
           name: it.name,
+          source: "ai",
           grams: Math.round(it.grams) || undefined,
           kcal: Math.round(it.kcal),
           protein: Math.round(it.protein * 10) / 10,
