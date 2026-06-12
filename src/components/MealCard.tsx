@@ -369,7 +369,7 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2">
-            <span className="truncate text-[16px] font-bold tracking-tight">{e.name}</span>
+            <span className="truncate text-[16px] font-bold tracking-tight">{displayEntryName(e.name, t)}</span>
             {e.grams ? (
               <span className="num-tight shrink-0 text-[12px] font-semibold text-muted-foreground">
                 {Math.round(e.grams)} g
