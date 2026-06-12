@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { type LogEntry, type Meal, usePlate } from "@/lib/store";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
+import { QUICK_ENTRY_CANONICAL, displayEntryName } from "@/lib/utils";
 
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
@@ -49,7 +50,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
 
   useEffect(() => {
     if (!entry) return;
-    setName(entry.name);
+    setName(displayEntryName(entry.name, t));
     setMeal(entry.meal);
     setGrams(entry.grams != null ? String(Math.round(entry.grams)) : "");
     setKcal(String(Math.round(entry.kcal)));
@@ -118,7 +119,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
   const save = () => {
     if (!entry) return;
     const g = grams.trim() === "" ? undefined : numOr(grams, entry.grams ?? 0);
-    const finalName = name.trim() || entry.name;
+    const finalName = canonicalizeName(name.trim() || entry.name, t);
     const finalKcal = numOr(kcal, entry.kcal);
     const finalProtein = numOr(protein, entry.protein);
     const finalCarbs = numOr(carbs, entry.carbs);
@@ -142,7 +143,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
   const saveToLibrary = () => {
     if (!entry) return;
     const g = grams.trim() === "" ? undefined : numOr(grams, entry.grams ?? 0);
-    const finalName = name.trim() || entry.name;
+    const finalName = canonicalizeName(name.trim() || entry.name, t);
     const finalKcal = numOr(kcal, entry.kcal);
     const finalProtein = numOr(protein, entry.protein);
     const finalCarbs = numOr(carbs, entry.carbs);
@@ -498,4 +499,12 @@ function numOr(s: string, fallback: number) {
 
 function round1(n: number) {
   return Math.round(n * 10) / 10;
+}
+
+function canonicalizeName(name: string, t: (k: string) => string): string {
+  const trimmed = name.trim();
+  if (trimmed === QUICK_ENTRY_CANONICAL || trimmed === t("quick.defaultName").trim()) {
+    return QUICK_ENTRY_CANONICAL;
+  }
+  return trimmed;
 }

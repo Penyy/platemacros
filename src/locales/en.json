@@ -1,4 +1,7 @@
 {
+  "quick": {
+    "defaultName": "Quick entry"
+  },
   "common": {
     "cancel": "Cancel",
     "save": "Save",

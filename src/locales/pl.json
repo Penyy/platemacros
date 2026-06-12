@@ -1,4 +1,7 @@
 {
+  "quick": {
+    "defaultName": "Szybki wpis"
+  },
   "common": {
     "cancel": "Anuluj",
     "save": "Zapisz",

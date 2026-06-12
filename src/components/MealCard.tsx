@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { EditEntrySheet } from "./EditEntrySheet";
 import { type LogEntry, type Meal, sumEntries, usePlate } from "@/lib/store";
+import { displayEntryName } from "@/lib/utils";
 
 interface Props {
   meal: Meal;
@@ -30,7 +31,7 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
 
   const handleDelete = (entry: LogEntry) => {
     remove(entry.id);
-    toast(t("snackbar.deletedMeal", { meal: entry.name }), {
+    toast(t("snackbar.deletedMeal", { meal: displayEntryName(entry.name, t) }), {
       duration: 5000,
       action: {
         label: t("common.undo"),
@@ -368,7 +369,7 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2">
-            <span className="truncate text-[16px] font-bold tracking-tight">{e.name}</span>
+            <span className="truncate text-[16px] font-bold tracking-tight">{displayEntryName(e.name, t)}</span>
             {e.grams ? (
               <span className="num-tight shrink-0 text-[12px] font-semibold text-muted-foreground">
                 {Math.round(e.grams)} g
