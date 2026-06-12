@@ -1,0 +1,1 @@
+alter table public.food_entries add column if not exists source text;
