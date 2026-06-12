@@ -10,8 +10,9 @@ import {
   Sparkles,
   ArrowRight,
   X,
+  Moon,
 } from "lucide-react";
-import { type Meal, type Product, usePlate, ymd, defaultPlusMenuVisibility, type PlusMenuItemId } from "@/lib/store";
+import { type Meal, type Product, usePlate, ymd, defaultPlusMenuVisibility, type PlusMenuItemId, isDayOff, canSetDayOff, dayOffInMonth } from "@/lib/store";
 import { ScanLabelFlow } from "./ScanLabelFlow";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { CompoundMealFlow } from "./CompoundMealFlow";
@@ -118,7 +119,7 @@ export function AddSheet({ open, onClose, defaultMeal, date }: Props) {
 
 
               {mode === "menu" && (
-                <MenuGrid onPick={(m) => setMode(m)} />
+                <MenuGrid onPick={(m) => setMode(m)} date={date} onClose={onClose} />
               )}
               {mode === "quick" && (
                 <QuickForm
@@ -204,8 +205,18 @@ function guessMeal(): Meal {
 
 type PickMode = "quick" | "manual" | "search" | "compound" | "barcode" | "assistant";
 
-function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
-  const { t } = useTranslation();
+function MenuGrid({ onPick, date, onClose }: { onPick: (m: PickMode) => void; date: string; onClose: () => void }) {
+  const { t, i18n } = useTranslation();
+  const dayOffs = usePlate((s) => s.dayOffs);
+  const setDayOff = usePlate((s) => s.setDayOff);
+  const removeDayOff = usePlate((s) => s.removeDayOff);
+  const isOff = isDayOff(dayOffs, date);
+  const blocked = !isOff && !canSetDayOff(dayOffs, date);
+  const usedDate = dayOffInMonth(dayOffs, date);
+  const dayOffLocale = i18n.language === "en" ? "en-US" : "pl-PL";
+  const usedShort = usedDate
+    ? new Intl.DateTimeFormat(dayOffLocale, { day: "numeric", month: "short" }).format(new Date(usedDate + "T00:00:00"))
+    : "";
   const visibility = usePlate(
     (s) => s.profile.plus_menu_visibility ?? defaultPlusMenuVisibility,
   );
@@ -314,6 +325,26 @@ function MenuGrid({ onPick }: { onPick: (m: PickMode) => void }) {
           })}
         </div>
       )}
+
+      <div style={{ height: 1, background: "var(--hairline)", margin: "6px 4px 2px" }} />
+      <button
+        type="button"
+        disabled={blocked}
+        onClick={() => {
+          if (blocked) return;
+          if (isOff) removeDayOff(date);
+          else setDayOff(date);
+          onClose();
+        }}
+        className="flex w-full items-center gap-2.5 px-1.5 py-2.5 text-left active:scale-[0.99]"
+        style={{ background: "transparent", opacity: blocked ? 0.45 : 1 }}
+      >
+        <Moon size={18} strokeWidth={1.8} style={{ color: isOff ? "var(--accent-yellow)" : "var(--muted-foreground)" }} />
+        <span style={{ fontWeight: 700, fontSize: 13.5, color: "var(--ink)" }}>{t("dayoff.menu")}</span>
+        <span className="ml-auto" style={{ fontSize: 12, fontWeight: 600, color: "var(--muted-foreground)" }}>
+          {isOff ? t("dayoff.active") : blocked ? t("dayoff.usedOn", { date: usedShort }) : t("dayoff.available")}
+        </span>
+      </button>
     </div>
   );
 }
