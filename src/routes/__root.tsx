@@ -143,9 +143,8 @@ function RootComponent() {
         <AppShell>
           <Outlet />
         </AppShell>
-        <Toaster position="bottom-center" offset="calc(env(safe-area-inset-bottom) + 130px)" mobileOffset="calc(env(safe-area-inset-bottom) + 130px)" closeButton={false} />
+        <Toaster position="bottom-center" offset={{ bottom: "calc(env(safe-area-inset-bottom) + 130px)" }} mobileOffset={{ bottom: "calc(env(safe-area-inset-bottom) + 130px)" }} closeButton={false} />
       </QueryClientProvider>
     </I18nextProvider>
   );
 }
-
