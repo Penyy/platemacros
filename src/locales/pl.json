@@ -19,6 +19,7 @@
     "copied_many": "Skopiowano {{count}} pozycji",
     "copied_other": "Skopiowano {{count}} pozycji",
     "deletedMeal": "Usunięto {{meal}}",
+    "deletedItem": "Usunięto {{name}}",
     "noMealToCopy": "Brak posiłku do skopiowania"
   },
   "products": {
