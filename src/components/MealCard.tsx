@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { EditEntrySheet } from "./EditEntrySheet";
 import { type LogEntry, type Meal, sumEntries, usePlate } from "@/lib/store";
+import { displayEntryName } from "@/lib/utils";
 
 interface Props {
   meal: Meal;
