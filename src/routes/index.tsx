@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Bell, User, Flame, ChevronLeft, ChevronRight, Moon } from "lucide-react";
@@ -114,7 +114,14 @@ function TodayPage() {
           <IconCircle aria-label={t("a11y.notifications")} onClick={() => setNotifOpen(true)}>
             <Bell size={20} strokeWidth={2} />
           </IconCircle>
-          <LinkCircle to="/profile" aria-label={t("a11y.profile")}><User size={20} strokeWidth={2} /></LinkCircle>
+          <Link
+            to="/profile"
+            aria-label={t("a11y.profile")}
+            className="grid h-10 w-10 place-items-center rounded-full bg-card text-foreground"
+            style={{ boxShadow: "var(--shadow-card)" }}
+          >
+            <User size={20} strokeWidth={2} />
+          </Link>
         </div>
 
 
@@ -319,19 +326,6 @@ function IconCircle({
   );
 }
 
-
-function LinkCircle({ to, children, ...rest }: { to: string; children: React.ReactNode; "aria-label"?: string }) {
-  return (
-    <a
-      href={to}
-      {...rest}
-      className="grid h-10 w-10 place-items-center rounded-full bg-card text-foreground"
-      style={{ boxShadow: "var(--shadow-card)" }}
-    >
-      {children}
-    </a>
-  );
-}
 
 function HeroLight({
   consumed,
