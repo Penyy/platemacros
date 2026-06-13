@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Trash2, RotateCcw, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { EditEntrySheet } from "./EditEntrySheet";
 import { type LogEntry, type Meal, sumEntries, usePlate } from "@/lib/store";
 import { displayEntryName } from "@/lib/utils";
 
@@ -11,17 +10,17 @@ interface Props {
   meal: Meal;
   entries: LogEntry[];
   onAdd: (m: Meal) => void;
+  onEdit: (entry: LogEntry) => void;
   date: string;
   prevDayHasEntries?: boolean;
 }
 
-function MealCardBase({ meal, entries, onAdd, date, prevDayHasEntries }: Props) {
+function MealCardBase({ meal, entries, onAdd, onEdit, date, prevDayHasEntries }: Props) {
   const { t } = useTranslation();
   const sum = sumEntries(entries);
   const remove = usePlate((s) => s.removeEntry);
   const addEntry = usePlate((s) => s.addEntry);
   const repeatMeal = usePlate((s) => s.repeatMealFromPrevDay);
-  const [editing, setEditing] = useState<LogEntry | null>(null);
 
   const handleRepeat = () => {
     const n = repeatMeal(date, meal);
@@ -106,7 +105,7 @@ function MealCardBase({ meal, entries, onAdd, date, prevDayHasEntries }: Props) 
                   key={e.id}
                   entry={e}
                   onDelete={() => handleDelete(e)}
-                  onTap={() => setEditing(e)}
+                  onTap={() => onEdit(e)}
                 />
               ))}
             </AnimatePresence>
@@ -127,8 +126,6 @@ function MealCardBase({ meal, entries, onAdd, date, prevDayHasEntries }: Props) 
           <Plus size={16} strokeWidth={2} /> {t("card.addMeal")}
         </button>
       )}
-
-      <EditEntrySheet entry={editing} onClose={() => setEditing(null)} />
     </motion.div>
   );
 }

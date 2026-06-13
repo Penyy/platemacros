@@ -4,11 +4,13 @@ import { motion } from "framer-motion";
 import { Bell, User, Flame, ChevronLeft, ChevronRight, Moon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { MealCard } from "@/components/MealCard";
+import { EditEntrySheet } from "@/components/EditEntrySheet";
 import { NotificationsSheet, startNotificationScheduler } from "@/components/NotificationsSheet";
 import { BurnedEditSheet } from "@/components/BurnedEditSheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import {
+  type LogEntry,
   type Meal,
   countMissingFromPrevDay,
   getDayGoals,
@@ -62,6 +64,7 @@ function TodayPage() {
   const [calOpen, setCalOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [burnedOpen, setBurnedOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<LogEntry | null>(null);
 
   useEffect(() => {
     startNotificationScheduler();
@@ -112,6 +115,9 @@ function TodayPage() {
     (meal: Meal) => openAdd(meal, selected),
     [openAdd, selected]
   );
+  // One edit sheet for the whole screen (rendered below). MealCards request an
+  // edit via this stable handler instead of each mounting their own sheet.
+  const onEdit = useCallback((e: LogEntry) => setEditingEntry(e), []);
   const sum = useMemo(() => sumEntries(dayEntries), [dayEntries]);
   const dayGoals = useMemo(() => getDayGoals(profile, selected), [profile, selected]);
   const burned = Math.round(burnedMap[selected] ?? 0);
@@ -231,6 +237,7 @@ function TodayPage() {
                   entries={entriesByMeal[m]}
                   prevDayHasEntries={missingPrev[m]}
                   onAdd={handleAdd}
+                  onEdit={onEdit}
                 />
               </motion.div>
             ))}
@@ -240,6 +247,7 @@ function TodayPage() {
 
       <NotificationsSheet open={notifOpen} onOpenChange={setNotifOpen} />
       <BurnedEditSheet open={burnedOpen} date={selected} onOpenChange={setBurnedOpen} />
+      <EditEntrySheet entry={editingEntry} onClose={() => setEditingEntry(null)} />
     </div>
   );
 }
