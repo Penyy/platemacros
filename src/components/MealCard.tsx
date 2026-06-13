@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Trash2, RotateCcw, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -15,7 +15,7 @@ interface Props {
   prevDayHasEntries?: boolean;
 }
 
-export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Props) {
+function MealCardBase({ meal, entries, onAdd, date, prevDayHasEntries }: Props) {
   const { t } = useTranslation();
   const sum = sumEntries(entries);
   const remove = usePlate((s) => s.removeEntry);
@@ -132,6 +132,11 @@ export function MealCard({ meal, entries, onAdd, date, prevDayHasEntries }: Prop
     </motion.div>
   );
 }
+
+// Memoized: with stable `entries` (grouped once in index.tsx) and a stable
+// `onAdd`, a card only re-renders when its own meal's data actually changes,
+// not on every unrelated state change on the Today screen.
+export const MealCard = memo(MealCardBase);
 
 function MacroPill({ color, label, value }: { color: string; label: string; value: number }) {
   return (

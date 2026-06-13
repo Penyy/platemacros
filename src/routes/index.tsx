@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Bell, User, Flame, ChevronLeft, ChevronRight, Moon } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -93,6 +93,25 @@ function TodayPage() {
     }
     return out;
   }, [entries, selected]);
+  // Group the day's entries by meal once so each MealCard receives a stable
+  // array reference. Previously `dayEntries.filter(...)` ran inline in the
+  // render, producing a fresh array per meal on every render — that defeated
+  // MealCard's memoization and re-rendered all five cards on any unrelated
+  // state change (e.g. opening the notifications sheet).
+  const entriesByMeal = useMemo(() => {
+    const out = {} as Record<Meal, typeof dayEntries>;
+    for (const m of MEALS) out[m] = [];
+    for (const e of dayEntries) {
+      const bucket = out[e.meal];
+      if (bucket) bucket.push(e);
+    }
+    return out;
+  }, [dayEntries]);
+  // Stable handler so a fresh closure per render doesn't break MealCard's memo.
+  const handleAdd = useCallback(
+    (meal: Meal) => openAdd(meal, selected),
+    [openAdd, selected]
+  );
   const sum = useMemo(() => sumEntries(dayEntries), [dayEntries]);
   const dayGoals = useMemo(() => getDayGoals(profile, selected), [profile, selected]);
   const burned = Math.round(burnedMap[selected] ?? 0);
@@ -209,9 +228,9 @@ function TodayPage() {
                 <MealCard
                   meal={m}
                   date={selected}
-                  entries={dayEntries.filter((e) => e.meal === m)}
+                  entries={entriesByMeal[m]}
                   prevDayHasEntries={missingPrev[m]}
-                  onAdd={(meal) => openAdd(meal, selected)}
+                  onAdd={handleAdd}
                 />
               </motion.div>
             ))}
