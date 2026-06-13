@@ -235,10 +235,18 @@ export const usePlate = create<State>()((set, get) => ({
   setSelectedDate: (date) => set({ selectedDate: date }),
 
   setAuth: (userId) => {
+    const prevUserId = get().userId;
     set({ userId, authReady: true });
     if (userId) {
-      void get().bootstrap();
-    } else {
+      // Only (re)load from the cloud when the signed-in user actually changes.
+      // Supabase fires onAuthStateChange on INITIAL_SESSION, on every token
+      // refresh (~hourly) and on tab refocus, and getSession() resolves too —
+      // without this guard each of those would trigger a full 5-table refetch
+      // of every row.
+      if (userId !== prevUserId) {
+        void get().bootstrap();
+      }
+    } else if (prevUserId !== null) {
       get().clearLocal();
     }
   },
