@@ -16,6 +16,20 @@
   "sync": {
     "pending": "Niezsynchronizowane zmiany: {{count}}"
   },
+  "login": {
+    "tagline": "Licznik kalorii i makro.",
+    "email": "E-mail",
+    "password": "Hasło",
+    "working": "Chwila…",
+    "createAccount": "Załóż konto",
+    "signIn": "Zaloguj się",
+    "signUp": "Zarejestruj się",
+    "noAccount": "Nie masz konta?",
+    "haveAccount": "Masz już konto?",
+    "disclaimer": "Konto służy tylko do synchronizacji i kopii zapasowej Twoich danych między urządzeniami. Bez reklam, bez spamu.",
+    "accountCreated": "Konto utworzone",
+    "tryAgain": "Spróbuj ponownie"
+  },
   "common": {
     "cancel": "Anuluj",
     "save": "Zapisz",

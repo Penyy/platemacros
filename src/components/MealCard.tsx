@@ -165,6 +165,7 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
   const [dx, setDx] = useState(0);
   const [armed, setArmed] = useState(false);
   const [animating, setAnimating] = useState(true);
+  const [rowWidth, setRowWidth] = useState(0);
   const dxRef = useRef(0);
 
   const g = useRef({
@@ -324,7 +325,14 @@ function SwipeRow({ entry: e, onDelete, onTap }: { entry: LogEntry; onDelete: ()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const max = rowRef.current?.offsetWidth ?? 1;
+  // Measure the row once after mount so the swipe progress (red panel +
+  // trash icon) uses a real width instead of reading offsetWidth during
+  // render, which made the first swipe jump from a max of 1px.
+  useEffect(() => {
+    if (rowRef.current) setRowWidth(rowRef.current.offsetWidth);
+  }, []);
+
+  const max = rowWidth || 1;
   const progress = Math.min(1, -dx / Math.max(1, max * 0.5));
 
   return (

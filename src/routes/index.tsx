@@ -379,6 +379,7 @@ function HeroLight({
   const cx = size / 2;
   const cy = size / 2;
   const pct = Math.max(0, Math.min(1, consumed / goal));
+  const isOver = consumed > goal;
   const startAngle = -135;
   const totalArc = 270;
   const trackPath = describeArc(cx, cy, r, startAngle, startAngle + totalArc);
@@ -416,8 +417,12 @@ function HeroLight({
             pathLength={1}
             strokeDasharray={`${pct} 1`}
             style={{
+              stroke: isOver
+                ? "color-mix(in oklab, var(--accent-yellow) 65%, #D9521E)"
+                : "var(--accent-yellow)",
               strokeDashoffset: 0,
-              transition: "stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)",
+              transition:
+                "stroke 0.4s ease, stroke-dasharray 0.65s cubic-bezier(0.22,1,0.36,1)",
             }}
           />
         </svg>
@@ -435,8 +440,10 @@ function HeroLight({
           <div
             className="mt-3 rounded-full px-3 py-1 text-[11px] font-semibold"
             style={{
-              background: "color-mix(in oklab, var(--ink) 8%, transparent)",
-              color: "var(--ink)",
+              background: isOver
+                ? "color-mix(in oklab, #D9521E 14%, transparent)"
+                : "color-mix(in oklab, var(--ink) 8%, transparent)",
+              color: isOver ? "#D9521E" : "var(--ink)",
             }}
           >
             {consumed > goal

@@ -16,6 +16,20 @@
   "sync": {
     "pending": "Unsynced changes: {{count}}"
   },
+  "login": {
+    "tagline": "Calorie & macro tracker.",
+    "email": "Email",
+    "password": "Password",
+    "working": "Working…",
+    "createAccount": "Create account",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "noAccount": "No account?",
+    "haveAccount": "Already have an account?",
+    "disclaimer": "Your account is only used to sync and back up your data across your devices. No ads, no spam.",
+    "accountCreated": "Account created",
+    "tryAgain": "Please try again"
+  },
   "common": {
     "cancel": "Cancel",
     "save": "Save",

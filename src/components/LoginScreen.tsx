@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function LoginScreen() {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +23,7 @@ export function LoginScreen() {
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast.success("Account created");
+        toast.success(t("login.accountCreated"));
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -30,7 +32,7 @@ export function LoginScreen() {
         if (error) throw error;
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Please try again";
+      const msg = err instanceof Error ? err.message : t("login.tryAgain");
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -76,7 +78,7 @@ export function LoginScreen() {
             className="mt-3.5 text-[14.5px] font-semibold tracking-[-0.01em]"
             style={{ color: "var(--muted-foreground)" }}
           >
-            Calorie &amp; macro tracker.
+            {t("login.tagline")}
           </div>
         </div>
 
@@ -92,7 +94,7 @@ export function LoginScreen() {
             style={{ border: "1px solid var(--hairline)" }}
           >
             <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-              E-mail
+              {t("login.email")}
             </div>
             <input
               type="email"
@@ -111,7 +113,7 @@ export function LoginScreen() {
             style={{ border: "1px solid var(--hairline)" }}
           >
             <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-              Password
+              {t("login.password")}
             </div>
             <input
               type="password"
@@ -132,10 +134,10 @@ export function LoginScreen() {
             className="mt-1 w-full rounded-[18px] bg-primary px-4 py-4 text-[15px] font-extrabold tracking-[-0.01em] text-primary-foreground active:opacity-90 disabled:opacity-60"
           >
             {loading
-              ? "Working…"
+              ? t("login.working")
               : mode === "signup"
-                ? "Create account"
-                : "Sign in"}
+                ? t("login.createAccount")
+                : t("login.signIn")}
           </button>
         </form>
 
@@ -151,8 +153,7 @@ export function LoginScreen() {
             className="text-[11.5px] font-medium leading-relaxed"
             style={{ color: "var(--muted-foreground)" }}
           >
-            Your account is only used to sync and back up your data across your
-            devices. No ads, no spam.
+            {t("login.disclaimer")}
           </p>
         </div>
 
@@ -165,16 +166,16 @@ export function LoginScreen() {
         >
           {mode === "login" ? (
             <>
-              No account?{" "}
+              {t("login.noAccount")}{" "}
               <span style={{ color: "var(--accent-yellow)", fontWeight: 800 }}>
-                Sign up
+                {t("login.signUp")}
               </span>
             </>
           ) : (
             <>
-              Already have an account?{" "}
+              {t("login.haveAccount")}{" "}
               <span style={{ color: "var(--accent-yellow)", fontWeight: 800 }}>
-                Sign in
+                {t("login.signIn")}
               </span>
             </>
           )}
