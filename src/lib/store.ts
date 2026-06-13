@@ -824,6 +824,10 @@ export const usePlate = create<State>()((set, get) => ({
             protein: e.protein,
             carbs: e.carbs,
             fat: e.fat,
+            fiber_g: e.fiber_g ?? null,
+            sugars_g: e.sugars_g ?? null,
+            saturated_fat_g: e.saturated_fat_g ?? null,
+            sodium_mg: e.sodium_mg ?? null,
             sub_items: (e.sub_items ?? null) as Json,
             source: e.source ?? null,
           }))
@@ -839,6 +843,10 @@ export const usePlate = create<State>()((set, get) => ({
             protein_100: p.protein,
             carbs_100: p.carbs,
             fat_100: p.fat,
+            fiber_g: p.fiber_g ?? null,
+            sugars_g: p.sugars_g ?? null,
+            saturated_fat_g: p.saturated_fat_g ?? null,
+            sodium_mg: p.sodium_mg ?? null,
           }))
         );
       }

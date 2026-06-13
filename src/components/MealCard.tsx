@@ -44,7 +44,12 @@ function MealCardBase({ meal, entries, onAdd, onEdit, date, prevDayHasEntries }:
             protein: entry.protein,
             carbs: entry.carbs,
             fat: entry.fat,
+            fiber_g: entry.fiber_g,
+            sugars_g: entry.sugars_g,
+            saturated_fat_g: entry.saturated_fat_g,
+            sodium_mg: entry.sodium_mg,
             sub_items: entry.sub_items,
+            source: entry.source,
           });
         },
       },
