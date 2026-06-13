@@ -419,10 +419,12 @@ function CombinedChart({
                 <motion.div
                   className="relative w-full flex flex-col-reverse overflow-hidden"
                   style={{
+                    height: `${h}%`,
+                    transformOrigin: "bottom",
                     borderRadius: "9px 9px 5px 5px",
                   }}
-                  initial={{ height: 0 }}
-                  animate={{ height: `${h}%` }}
+                  initial={{ scaleY: 0 }}
+                  animate={{ scaleY: 1 }}
                   transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: i * 0.02 }}
                 >
                   {macroSum > 0 ? (
@@ -689,12 +691,14 @@ function SplitChartCard({
                   className="relative overflow-hidden"
                   style={{
                     width: "60%",
+                    height: `${h}%`,
+                    transformOrigin: "bottom",
                     background: color,
                     borderRadius: "9px 9px 5px 5px",
                     opacity: isToday || !isAnyToday(values, today) && i === values.length - 1 ? 1 : 0.8,
                   }}
-                  initial={{ height: 0 }}
-                  animate={{ height: `${h}%` }}
+                  initial={{ scaleY: 0 }}
+                  animate={{ scaleY: 1 }}
                   transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: i * 0.02 }}
                 >
                   {/* Sheen top */}
