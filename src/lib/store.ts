@@ -133,6 +133,7 @@ interface State {
   authReady: boolean;
   online: boolean;
   hydrated: boolean;
+  pendingWrites: number;
   // data
   profile: Profile;
   entries: LogEntry[];
@@ -197,6 +198,87 @@ function netToast(err: unknown) {
   }
 }
 
+function clampNum(n: number, min: number, max: number) {
+  return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : min;
+}
+
+// --- Sync outbox --------------------------------------------------------
+// Optimistic writes were previously fire-and-forget: a failed write only
+// showed a toast and was lost, and the next bootstrap could overwrite local
+// changes that hadn't synced. The outbox keeps each write and retries it (on
+// reconnect and on a timer) until it succeeds, and exposes a pending count.
+type WriteTask = { id: string; run: () => PromiseLike<{ error: unknown }> };
+const outbox: WriteTask[] = [];
+let flushing = false;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+function updatePending() {
+  usePlate.setState({ pendingWrites: outbox.length });
+}
+
+function isNetworkError(err: unknown) {
+  const msg = err instanceof Error ? err.message : String(err ?? "");
+  return (
+    (typeof navigator !== "undefined" && !navigator.onLine) ||
+    /network|fetch|failed to fetch|load failed|timeout/i.test(msg)
+  );
+}
+
+function scheduleFlush() {
+  if (retryTimer) return;
+  retryTimer = setTimeout(() => {
+    retryTimer = null;
+    void flushOutbox();
+  }, 15000);
+}
+
+async function flushOutbox(): Promise<void> {
+  if (flushing || outbox.length === 0) return;
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    scheduleFlush();
+    return;
+  }
+  flushing = true;
+  try {
+    while (outbox.length > 0) {
+      const task = outbox[0];
+      let error: unknown = null;
+      try {
+        const res = await task.run();
+        error = res?.error ?? null;
+      } catch (err) {
+        error = err;
+      }
+      if (error) {
+        if (isNetworkError(error)) {
+          // transient — keep the queue intact and retry later
+          scheduleFlush();
+          break;
+        }
+        // permanent (constraint/auth) — surface it and drop so it can't block
+        // everything queued behind it forever
+        netToast(error);
+      }
+      outbox.shift();
+      updatePending();
+    }
+  } finally {
+    flushing = false;
+  }
+}
+
+function enqueueWrite(run: () => PromiseLike<{ error: unknown }>) {
+  outbox.push({ id: newId(), run });
+  updatePending();
+  void flushOutbox();
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("online", () => {
+    void flushOutbox();
+  });
+}
+
 function persistAssistantBlob(get: () => State) {
   const uid = get().userId;
   if (!uid) return;
@@ -222,6 +304,7 @@ export const usePlate = create<State>()((set, get) => ({
   authReady: false,
   online: typeof navigator !== "undefined" ? navigator.onLine : true,
   hydrated: false,
+  pendingWrites: 0,
   profile: defaultProfile,
   entries: [],
   burned: {},
@@ -252,7 +335,8 @@ export const usePlate = create<State>()((set, get) => ({
   },
   setOnline: (v) => set({ online: v }),
 
-  clearLocal: () =>
+  clearLocal: () => {
+    outbox.length = 0;
     set({
       profile: defaultProfile,
       entries: [],
@@ -261,11 +345,16 @@ export const usePlate = create<State>()((set, get) => ({
       dayOffs: new Set<string>(),
       selectedDate: ymd(new Date()),
       hydrated: false,
-    }),
+      pendingWrites: 0,
+    });
+  },
 
   bootstrap: async () => {
     const uid = get().userId;
     if (!uid) return;
+    // Push any queued local writes first, so a refetch can't overwrite
+    // changes that haven't synced yet.
+    await flushOutbox();
     try {
       const [profRes, entRes, foodRes, burnRes, dayOffRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
@@ -528,32 +617,47 @@ export const usePlate = create<State>()((set, get) => ({
     const uid = get().userId;
     const id = newId();
     const created_at = Date.now();
-    const entry: LogEntry = { ...e, id, created_at };
+    const entry: LogEntry = {
+      ...e,
+      id,
+      created_at,
+      grams: e.grams == null ? e.grams : clampNum(e.grams, 0, 5000),
+      kcal: clampNum(e.kcal, 0, 5000),
+      protein: clampNum(e.protein, 0, 500),
+      carbs: clampNum(e.carbs, 0, 500),
+      fat: clampNum(e.fat, 0, 500),
+      fiber_g: e.fiber_g == null ? e.fiber_g : clampNum(e.fiber_g, 0, 500),
+      sugars_g: e.sugars_g == null ? e.sugars_g : clampNum(e.sugars_g, 0, 500),
+      saturated_fat_g: e.saturated_fat_g == null ? e.saturated_fat_g : clampNum(e.saturated_fat_g, 0, 500),
+      sodium_mg: e.sodium_mg == null ? e.sodium_mg : clampNum(e.sodium_mg, 0, 100000),
+    };
     set((s) => ({ entries: [...s.entries, entry] }));
     if (!uid) return;
-    void supabase
-      .from("food_entries")
-      .insert({
-        id,
-        user_id: uid,
-        date: e.date,
-        meal: e.meal,
-        name: e.name,
-        grams: e.grams ?? null,
-        kcal: e.kcal,
-        protein: e.protein,
-        carbs: e.carbs,
-        fat: e.fat,
-        fiber_g: e.fiber_g ?? null,
-        sugars_g: e.sugars_g ?? null,
-        saturated_fat_g: e.saturated_fat_g ?? null,
-        sodium_mg: e.sodium_mg ?? null,
-        sub_items: (e.sub_items ?? null) as Json,
-        source: e.source ?? null,
-      } as never)
-      .then(({ error }) => {
-        if (error) netToast(error);
-      });
+    enqueueWrite(() =>
+      supabase
+        .from("food_entries")
+        .upsert(
+          {
+            id,
+            user_id: uid,
+            date: entry.date,
+            meal: entry.meal,
+            name: entry.name,
+            grams: entry.grams ?? null,
+            kcal: entry.kcal,
+            protein: entry.protein,
+            carbs: entry.carbs,
+            fat: entry.fat,
+            fiber_g: entry.fiber_g ?? null,
+            sugars_g: entry.sugars_g ?? null,
+            saturated_fat_g: entry.saturated_fat_g ?? null,
+            sodium_mg: entry.sodium_mg ?? null,
+            sub_items: (entry.sub_items ?? null) as Json,
+            source: entry.source ?? null,
+          } as never,
+          { onConflict: "id" }
+        )
+    );
   },
 
 
@@ -578,28 +682,26 @@ export const usePlate = create<State>()((set, get) => ({
     if (patch.sodium_mg !== undefined) dbPatch.sodium_mg = patch.sodium_mg ?? null;
     if (patch.sub_items !== undefined) dbPatch.sub_items = (patch.sub_items ?? null) as Json;
 
-    void supabase
-      .from("food_entries")
-      .update(dbPatch as never)
-      .eq("id", id)
-      .eq("user_id", uid)
-      .then(({ error }) => {
-        if (error) netToast(error);
-      });
+    enqueueWrite(() =>
+      supabase
+        .from("food_entries")
+        .update(dbPatch as never)
+        .eq("id", id)
+        .eq("user_id", uid)
+    );
   },
 
   removeEntry: (id) => {
     set((s) => ({ entries: s.entries.filter((x) => x.id !== id) }));
     const uid = get().userId;
     if (!uid) return;
-    void supabase
-      .from("food_entries")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", uid)
-      .then(({ error }) => {
-        if (error) netToast(error);
-      });
+    enqueueWrite(() =>
+      supabase
+        .from("food_entries")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", uid)
+    );
   },
 
   repeatMealFromPrevDay: (date, meal) => {
@@ -640,32 +742,31 @@ export const usePlate = create<State>()((set, get) => ({
     }));
     set((s) => ({ entries: [...s.entries, ...clones] }));
     if (uid) {
-      void supabase
-        .from("food_entries")
-        .insert(
-          clones.map((c) => ({
-            id: c.id,
-            user_id: uid,
-            date: c.date,
-            meal: c.meal,
-            name: c.name,
-            grams: c.grams ?? null,
-            kcal: c.kcal,
-            protein: c.protein,
-            carbs: c.carbs,
-            fat: c.fat,
-            fiber_g: c.fiber_g ?? null,
-            sugars_g: c.sugars_g ?? null,
-            saturated_fat_g: c.saturated_fat_g ?? null,
-            sodium_mg: c.sodium_mg ?? null,
-            sub_items: (c.sub_items ?? null) as Json,
-            source: c.source ?? null,
-          })) as never
-
-        )
-        .then(({ error }) => {
-          if (error) netToast(error);
-        });
+      enqueueWrite(() =>
+        supabase
+          .from("food_entries")
+          .upsert(
+            clones.map((c) => ({
+              id: c.id,
+              user_id: uid,
+              date: c.date,
+              meal: c.meal,
+              name: c.name,
+              grams: c.grams ?? null,
+              kcal: c.kcal,
+              protein: c.protein,
+              carbs: c.carbs,
+              fat: c.fat,
+              fiber_g: c.fiber_g ?? null,
+              sugars_g: c.sugars_g ?? null,
+              saturated_fat_g: c.saturated_fat_g ?? null,
+              sodium_mg: c.sodium_mg ?? null,
+              sub_items: (c.sub_items ?? null) as Json,
+              source: c.source ?? null,
+            })) as never,
+            { onConflict: "id" }
+          )
+      );
     }
     return clones.length;
   },
@@ -674,26 +775,41 @@ export const usePlate = create<State>()((set, get) => ({
     const uid = get().userId;
     const id = newId();
     const created_at = Date.now();
-    set((s) => ({ products: [...s.products, { ...p, id, created_at }] }));
+    const product: Product = {
+      ...p,
+      id,
+      created_at,
+      kcal: clampNum(p.kcal, 0, 5000),
+      protein: clampNum(p.protein, 0, 500),
+      carbs: clampNum(p.carbs, 0, 500),
+      fat: clampNum(p.fat, 0, 500),
+      fiber_g: p.fiber_g == null ? p.fiber_g : clampNum(p.fiber_g, 0, 500),
+      sugars_g: p.sugars_g == null ? p.sugars_g : clampNum(p.sugars_g, 0, 500),
+      saturated_fat_g: p.saturated_fat_g == null ? p.saturated_fat_g : clampNum(p.saturated_fat_g, 0, 500),
+      sodium_mg: p.sodium_mg == null ? p.sodium_mg : clampNum(p.sodium_mg, 0, 100000),
+    };
+    set((s) => ({ products: [...s.products, product] }));
     if (!uid) return;
-    void supabase
-      .from("foods")
-      .insert({
-        id,
-        user_id: uid,
-        name: p.name,
-        kcal_100: p.kcal,
-        protein_100: p.protein,
-        carbs_100: p.carbs,
-        fat_100: p.fat,
-        fiber_g: p.fiber_g ?? null,
-        sugars_g: p.sugars_g ?? null,
-        saturated_fat_g: p.saturated_fat_g ?? null,
-        sodium_mg: p.sodium_mg ?? null,
-      } as never)
-      .then(({ error }) => {
-        if (error) netToast(error);
-      });
+    enqueueWrite(() =>
+      supabase
+        .from("foods")
+        .upsert(
+          {
+            id,
+            user_id: uid,
+            name: product.name,
+            kcal_100: product.kcal,
+            protein_100: product.protein,
+            carbs_100: product.carbs,
+            fat_100: product.fat,
+            fiber_g: product.fiber_g ?? null,
+            sugars_g: product.sugars_g ?? null,
+            saturated_fat_g: product.saturated_fat_g ?? null,
+            sodium_mg: product.sodium_mg ?? null,
+          } as never,
+          { onConflict: "id" }
+        )
+    );
   },
 
 
@@ -714,28 +830,26 @@ export const usePlate = create<State>()((set, get) => ({
     if (p.saturated_fat_g !== undefined) dbPatch.saturated_fat_g = p.saturated_fat_g ?? null;
     if (p.sodium_mg !== undefined) dbPatch.sodium_mg = p.sodium_mg ?? null;
 
-    void supabase
-      .from("foods")
-      .update(dbPatch as never)
-      .eq("id", id)
-      .eq("user_id", uid)
-      .then(({ error }) => {
-        if (error) netToast(error);
-      });
+    enqueueWrite(() =>
+      supabase
+        .from("foods")
+        .update(dbPatch as never)
+        .eq("id", id)
+        .eq("user_id", uid)
+    );
   },
 
   removeProduct: (id) => {
     set((s) => ({ products: s.products.filter((x) => x.id !== id) }));
     const uid = get().userId;
     if (!uid) return;
-    void supabase
-      .from("foods")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", uid)
-      .then(({ error }) => {
-        if (error) netToast(error);
-      });
+    enqueueWrite(() =>
+      supabase
+        .from("foods")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", uid)
+    );
   },
 
   setDayOff: (date) => {

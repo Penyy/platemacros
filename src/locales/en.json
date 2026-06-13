@@ -13,6 +13,9 @@
   "quick": {
     "defaultName": "Quick entry"
   },
+  "sync": {
+    "pending": "Unsynced changes: {{count}}"
+  },
   "common": {
     "cancel": "Cancel",
     "save": "Save",

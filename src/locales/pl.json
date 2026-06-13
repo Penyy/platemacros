@@ -13,6 +13,9 @@
   "quick": {
     "defaultName": "Szybki wpis"
   },
+  "sync": {
+    "pending": "Niezsynchronizowane zmiany: {{count}}"
+  },
   "common": {
     "cancel": "Anuluj",
     "save": "Zapisz",

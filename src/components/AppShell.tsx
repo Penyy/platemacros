@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { BottomNav } from "./BottomNav";
 import { AddSheet } from "./AddSheet";
 import { LoginScreen } from "./LoginScreen";
@@ -16,8 +17,10 @@ export function AppShell({ children }: Props) {
   const userId = usePlate((s) => s.userId);
   const authReady = usePlate((s) => s.authReady);
   const online = usePlate((s) => s.online);
+  const pendingWrites = usePlate((s) => s.pendingWrites);
   const setAuth = usePlate((s) => s.setAuth);
   const setOnline = usePlate((s) => s.setOnline);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -79,6 +82,14 @@ export function AppShell({ children }: Props) {
       {!online && (
         <div className="sticky top-0 z-50 bg-amber-500/90 px-4 py-1.5 text-center text-xs font-semibold text-black">
           Brak połączenia — zmiany zostaną zsynchronizowane po powrocie online.
+        </div>
+      )}
+      {online && pendingWrites > 0 && (
+        <div
+          className="sticky top-0 z-40 px-4 py-1 text-center text-[11px] font-semibold text-muted-foreground"
+          style={{ background: "var(--muted)" }}
+        >
+          {t("sync.pending", { count: pendingWrites })}
         </div>
       )}
       <div className="mx-auto flex min-h-screen w-full max-w-[430px] flex-col">
