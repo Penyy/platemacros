@@ -118,12 +118,12 @@ export function EditEntrySheet({ entry, onClose }: Props) {
 
   const save = () => {
     if (!entry) return;
-    const g = grams.trim() === "" ? undefined : numOr(grams, entry.grams ?? 0);
+    const g = grams.trim() === "" ? undefined : clamp(numOr(grams, entry.grams ?? 0), 0, 5000);
     const finalName = canonicalizeName(name.trim() || entry.name, t);
-    const finalKcal = numOr(kcal, entry.kcal);
-    const finalProtein = numOr(protein, entry.protein);
-    const finalCarbs = numOr(carbs, entry.carbs);
-    const finalFat = numOr(fat, entry.fat);
+    const finalKcal = clamp(numOr(kcal, entry.kcal), 0, 5000);
+    const finalProtein = clamp(numOr(protein, entry.protein), 0, 500);
+    const finalCarbs = clamp(numOr(carbs, entry.carbs), 0, 500);
+    const finalFat = clamp(numOr(fat, entry.fat), 0, 500);
     updateEntry(entry.id, {
       name: finalName,
       meal,
@@ -132,28 +132,28 @@ export function EditEntrySheet({ entry, onClose }: Props) {
       protein: finalProtein,
       carbs: finalCarbs,
       fat: finalFat,
-      fiber_g: optNum(fiber),
-      sugars_g: optNum(sugars),
-      saturated_fat_g: optNum(satFat),
-      sodium_mg: optNum(sodium),
+      fiber_g: clampNull(optNum(fiber), 0, 500),
+      sugars_g: clampNull(optNum(sugars), 0, 500),
+      saturated_fat_g: clampNull(optNum(satFat), 0, 500),
+      sodium_mg: clampNull(optNum(sodium), 0, 100000),
     });
     onClose();
   };
 
   const saveToLibrary = () => {
     if (!entry) return;
-    const g = grams.trim() === "" ? undefined : numOr(grams, entry.grams ?? 0);
+    const g = grams.trim() === "" ? undefined : clamp(numOr(grams, entry.grams ?? 0), 0, 5000);
     const finalName = canonicalizeName(name.trim() || entry.name, t);
-    const finalKcal = numOr(kcal, entry.kcal);
-    const finalProtein = numOr(protein, entry.protein);
-    const finalCarbs = numOr(carbs, entry.carbs);
-    const finalFat = numOr(fat, entry.fat);
+    const finalKcal = clamp(numOr(kcal, entry.kcal), 0, 5000);
+    const finalProtein = clamp(numOr(protein, entry.protein), 0, 500);
+    const finalCarbs = clamp(numOr(carbs, entry.carbs), 0, 500);
+    const finalFat = clamp(numOr(fat, entry.fat), 0, 500);
     const hasGrams = g !== undefined && g > 0;
     const factor = hasGrams ? 100 / (g as number) : 1;
-    const fiberV = optNum(fiber);
-    const sugarsV = optNum(sugars);
-    const satV = optNum(satFat);
-    const sodV = optNum(sodium);
+    const fiberV = clampNull(optNum(fiber), 0, 500);
+    const sugarsV = clampNull(optNum(sugars), 0, 500);
+    const satV = clampNull(optNum(satFat), 0, 500);
+    const sodV = clampNull(optNum(sodium), 0, 100000);
     const macros = {
       kcal: round1(finalKcal * factor),
       protein: round1(finalProtein * factor),
@@ -286,6 +286,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                       rebase("kcal", v);
                     }}
                     hero
+                    zeroOnBlur
                   />
                 </div>
                 {entry?.grams != null && entry.grams > 0 && (
@@ -308,6 +309,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                       rebase("protein", v);
                     }}
                     dot="var(--macro-protein)"
+                    zeroOnBlur
                   />
                   <NumCard
                     label={t("macro.carbs")}
@@ -318,6 +320,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                       rebase("carbs", v);
                     }}
                     dot="var(--macro-carbs, var(--accent-yellow))"
+                    zeroOnBlur
                   />
                   <NumCard
                     label={t("macro.fat")}
@@ -328,6 +331,7 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                       rebase("fat", v);
                     }}
                     dot="var(--macro-fat, #6FB4E8)"
+                    zeroOnBlur
                   />
                 </div>
 
@@ -426,6 +430,7 @@ function NumCard({
   onChange,
   dot,
   hero,
+  zeroOnBlur,
 }: {
   label: string;
   unit: string;
@@ -433,6 +438,7 @@ function NumCard({
   onChange: (v: string) => void;
   dot?: string;
   hero?: boolean;
+  zeroOnBlur?: boolean;
 }) {
   return (
     <label
@@ -460,6 +466,9 @@ function NumCard({
           inputMode="decimal"
           value={value}
           onChange={(e) => onChange(e.target.value.replace(",", "."))}
+          onBlur={() => {
+            if (zeroOnBlur && value.trim() === "") onChange("0");
+          }}
           onFocus={(e) => {
             onFocusScroll(e);
             e.currentTarget.select();
@@ -541,6 +550,16 @@ function onFocusScroll(e: React.FocusEvent<HTMLElement>) {
 function numOr(s: string, fallback: number) {
   const n = Number(s);
   return Number.isFinite(n) ? n : fallback;
+}
+
+// Bound manually entered values to sane ranges (mirrors the AI path's Zod
+// clamps) so a typo like "50000 g" can't be stored and wreck the chart scale.
+function clamp(n: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, n));
+}
+
+function clampNull(n: number | null, min: number, max: number) {
+  return n == null ? null : clamp(n, min, max);
 }
 
 function round1(n: number) {

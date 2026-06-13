@@ -659,6 +659,7 @@ export const usePlate = create<State>()((set, get) => ({
             saturated_fat_g: c.saturated_fat_g ?? null,
             sodium_mg: c.sodium_mg ?? null,
             sub_items: (c.sub_items ?? null) as Json,
+            source: c.source ?? null,
           })) as never
 
         )
