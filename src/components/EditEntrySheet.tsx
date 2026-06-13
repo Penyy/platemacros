@@ -48,8 +48,12 @@ export function EditEntrySheet({ entry, onClose }: Props) {
     sodium: number | null;
   }>(null);
 
+  // True once the user edits the name, so a language switch won't overwrite it.
+  const nameEditedRef = useRef(false);
+
   useEffect(() => {
     if (!entry) return;
+    nameEditedRef.current = false;
     setName(displayEntryName(entry.name, t));
     setMeal(entry.meal);
     setGrams(entry.grams != null ? String(Math.round(entry.grams)) : "");
@@ -77,6 +81,13 @@ export function EditEntrySheet({ entry, onClose }: Props) {
         }
       : null;
   }, [entry]);
+
+  // Re-localize the auto-generated quick-entry name when the UI language
+  // changes — but only if the user hasn't edited the name (don't clobber it).
+  useEffect(() => {
+    if (!entry || nameEditedRef.current) return;
+    setName(displayEntryName(entry.name, t));
+  }, [t, entry]);
 
 
 
@@ -240,7 +251,10 @@ export function EditEntrySheet({ entry, onClose }: Props) {
                 <CardField label={t("item.name")}>
                   <input
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      nameEditedRef.current = true;
+                    }}
                     onFocus={onFocusScroll}
                     placeholder={t("item.namePlaceholder")}
                     className="w-full bg-transparent text-[17px] leading-tight outline-none placeholder:text-foreground/30"
