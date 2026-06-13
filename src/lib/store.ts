@@ -3,6 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
+// IMPORTANT: these are the *stored* meal keys (persisted in food_entries.meal),
+// so they must NOT be renamed without a migration of existing rows. The key
+// names are historical and do NOT read like their labels:
+//   second_breakfast -> "Lunch" / "Brunch"  (late-morning meal)
+//   lunch            -> "Obiad" / "Lunch"    (midday main meal)
+// Always derive the user-facing label from i18n — t(`meal.${m}`) — never from
+// the key text. (MEAL_LABEL below is a non-React fallback for the same data.)
 export type Meal = "breakfast" | "second_breakfast" | "lunch" | "dinner" | "snack";
 export type Theme = "light" | "dark" | "system";
 

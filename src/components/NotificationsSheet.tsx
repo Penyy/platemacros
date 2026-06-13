@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
-import { type Meal, MEAL_LABEL } from "@/lib/store";
+import { type Meal } from "@/lib/store";
 
 
 export interface MealNotifSettings {
@@ -49,6 +51,7 @@ export function NotificationsSheet({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<MealNotifSettings>(() => loadNotifSettings());
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">(
     typeof Notification === "undefined" ? "unsupported" : Notification.permission,
@@ -129,7 +132,7 @@ export function NotificationsSheet({
             {MEALS.map((m) => (
               <div key={m} className="flex items-center justify-between px-4 py-3">
                 <span className="text-[14px]" style={{ color: "var(--ink)", fontWeight: 500 }}>
-                  {MEAL_LABEL[m]}
+                  {t(`meal.${m}`)}
                 </span>
                 <input
                   type="time"
@@ -190,7 +193,7 @@ export function startNotificationScheduler() {
           fired.add(key);
           try {
             new Notification("Plate — czas na posiłek", {
-              body: MEAL_LABEL[m],
+              body: i18n.t(`meal.${m}`),
               icon: "/icon-180.png",
             });
           } catch {

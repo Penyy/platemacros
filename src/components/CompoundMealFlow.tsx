@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { useRef, useState } from "react";
 import { Camera, Loader2, Plus, Trash2, RotateCcw } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { scanNutritionLabel, type NutritionLabel } from "@/lib/nutrition.functions";
-import { type Meal, MEAL_LABEL } from "@/lib/store";
+import { type Meal } from "@/lib/store";
 
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
@@ -56,6 +57,7 @@ async function shrinkImage(file: File, maxDim = 1600, quality = 0.85): Promise<s
 }
 
 export function CompoundMealFlow({ meal, setMeal, onSubmit }: Props) {
+  const { t } = useTranslation();
   const fileRef = useRef<HTMLInputElement>(null);
   const [phase, setPhase] = useState<Phase>("list");
   const [items, setItems] = useState<Ingredient[]>([]);
@@ -312,7 +314,7 @@ export function CompoundMealFlow({ meal, setMeal, onSubmit }: Props) {
                   meal === m ? "bg-primary text-primary-foreground" : "text-muted-foreground"
                 }`}
               >
-                {MEAL_LABEL[m]}
+                {t(`meal.${m}`)}
               </button>
             ))}
           </div>

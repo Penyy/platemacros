@@ -49,50 +49,50 @@
 :root {
   --radius: 1rem;
 
-  /* Ink / paper system */
-  --ink: oklch(0.20 0.005 80);                 /* #1A1A18 */
-  --hairline: oklch(0.93 0.012 85);            /* #EFEBE1 */
-  --light-gray: oklch(0.83 0.018 85);          /* #C9C3B6 */
-  --cream: oklch(0.97 0.030 90);               /* #FBF4E2 plate card */
+  /* Ink / paper system — authored in HEX to match the dark theme format */
+  --ink: #1A1A18;
+  --hairline: #EFEBE1;
+  --light-gray: #C9C3B6;
+  --cream: #FBF4E2;                            /* plate card */
   --hero-bg: var(--cream);
   --nav-bg: #FFFFFF;
   --nav-border: var(--hairline);
   --nav-shadow: var(--shadow-card);
 
-  --accent-yellow: oklch(0.82 0.165 85);       /* #F4B500 */
-  --accent-yellow-soft: oklch(0.86 0.155 90);  /* #F6C840 */
+  --accent-yellow: #F4B500;
+  --accent-yellow-soft: #F6C840;
 
-  --background: oklch(0.985 0.006 85);         /* #FCFBF8 */
+  --background: #FCFBF8;
   --foreground: var(--ink);
 
-  --card: oklch(1 0 0);
+  --card: #FFFFFF;
   --card-foreground: var(--ink);
 
-  --muted: oklch(0.96 0.008 85);
-  --muted-foreground: oklch(0.66 0.016 80);    /* #9E988C */
+  --muted: #F4F1EC;
+  --muted-foreground: #9E988C;
 
-  --accent: oklch(0.95 0.012 85);
+  --accent: #F2EEE6;
   --accent-foreground: var(--ink);
 
-  --primary: oklch(0.20 0.005 80);             /* ink */
-  --primary-foreground: oklch(0.99 0 0);
+  --primary: #1A1A18;                          /* ink */
+  --primary-foreground: #FCFCFC;
 
   --border: var(--hairline);
-  --ring: oklch(0.5 0.01 85);
+  --ring: #66635D;
 
   /* Macros */
   --macro-protein: #E15B4C;
   --macro-carbs: #EF8B2C;
   --macro-fat: #5C8AA6;
   --protein: var(--macro-protein);
-  --protein-soft: oklch(0.5 0.01 80);
+  --protein-soft: #66635D;
   --carbs: var(--macro-carbs);
   --carbs-soft: var(--accent-yellow-soft);
   --fat: var(--macro-fat);
-  --fat-soft: oklch(0.88 0.013 85);
+  --fat-soft: #DBD7CE;
 
-  --glass: oklch(1 0 0 / 0.78);
-  --glass-border: oklch(1 0 0 / 0.6);
+  --glass: rgba(255,255,255,0.78);
+  --glass-border: rgba(255,255,255,0.6);
 
   --shadow-card: 0 12px 30px rgba(60, 48, 20, 0.06),
                  0 2px 8px rgba(60, 48, 20, 0.035);
