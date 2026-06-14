@@ -4,6 +4,7 @@ import { Camera, Image as ImageIcon, Loader2, MessageCircle, Mic, Send, Sparkles
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { getAppLanguage } from "@/lib/i18n";
 import {
   askAssistant,
   type AssistantResult,
@@ -122,11 +123,11 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
   };
 
 
-  const getLang = (): "pl" | "en" => {
-    if (typeof window === "undefined") return "pl";
-    const v = window.localStorage.getItem("app_language");
-    return v === "en" ? "en" : "pl";
-  };
+  // Always derive from the live UI language (i18n), not localStorage — the
+  // stored key is only written on an explicit switch, so a navigator-default
+  // language (e.g. English) would otherwise fall back to Polish here, breaking
+  // both voice transcription and the assistant's response language.
+  const getLang = (): "pl" | "en" => getAppLanguage();
 
   // ── Speech recognition (Web Speech API) ──
   const [listening, setListening] = useState(false);
@@ -161,8 +162,7 @@ export function AssistantFlow({ defaultMeal, date }: Props) {
     }
     try {
       const rec = new SR();
-      const appLang = (typeof window !== "undefined" && window.localStorage.getItem("app_language")) || "pl";
-      rec.lang = appLang === "en" ? "en-US" : "pl-PL";
+      rec.lang = getLang() === "en" ? "en-US" : "pl-PL";
       rec.interimResults = true;
       rec.continuous = true;
       baseInputRef.current = input ? input.trimEnd() + " " : "";
