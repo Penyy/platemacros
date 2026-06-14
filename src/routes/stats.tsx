@@ -1,10 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Flame, ChevronLeft, Hand, Moon } from "lucide-react";
+import { Flame, ChevronLeft, Hand, Moon, CalendarDays, ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ScreenHeader } from "@/components/ScreenHeader";
-import { getDayGoals, sumEntries, usePlate, ymd } from "@/lib/store";
+import {
+  getDayGoals,
+  getWeekBalance,
+  sumEntries,
+  usePlate,
+  ymd,
+  type WeekBalance,
+} from "@/lib/store";
 import i18n from "@/lib/i18n";
 
 export const Route = createFileRoute("/stats")({
@@ -79,6 +86,10 @@ function StatsPage() {
   }, [entries, range, profile, locale, dayOffs]);
 
   const today = ymd(new Date());
+  const weekBalance = useMemo(
+    () => getWeekBalance(entries, profile, dayOffs, today),
+    [entries, profile, dayOffs, today]
+  );
   const countable = days.filter((d) => !d.isDayOff && d.totals.kcal > 0);
   const loggedDays = countable.length;
   const avg =
@@ -156,8 +167,10 @@ function StatsPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.25 }}
+              className="space-y-3"
               style={{ willChange: "transform, opacity" }}
             >
+              <WeekBalanceBar data={weekBalance} />
               <DeferredMount placeholderMinHeight={260}>
                 <CombinedChart
                   days={days}
@@ -275,6 +288,113 @@ function Pills({ value, onChange }: { value: Range; onChange: (r: Range) => void
           </button>
         );
       })}
+    </div>
+  );
+}
+
+function WeekBalanceBar({ data }: { data: WeekBalance }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const { balance, consumed, goal, daysCounted } = data;
+  const has = daysCounted > 0;
+  const over = has && balance > 0;
+  const onTarget = has && balance === 0;
+  const valueColor = over
+    ? "#D9521E"
+    : onTarget || !has
+      ? "var(--ink)"
+      : "var(--muted-foreground)";
+  const valueText = !has
+    ? t("week.empty")
+    : over
+      ? `+${balance} ${t("week.over")}`
+      : onTarget
+        ? t("week.onTarget")
+        : `${Math.abs(balance)} ${t("week.under")}`;
+  return (
+    <div
+      className="rounded-[16px] overflow-hidden"
+      style={{
+        background: over
+          ? "color-mix(in oklab, #D9521E 6%, var(--card))"
+          : "var(--card)",
+        border: "0.5px solid var(--hairline)",
+      }}
+    >
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between gap-2.5 px-3.5 py-3 active:scale-[0.99] transition"
+        aria-expanded={open}
+      >
+        <span
+          className="flex items-center gap-2"
+          style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)" }}
+        >
+          <CalendarDays
+            size={16}
+            strokeWidth={1.8}
+            style={{ color: "var(--muted-foreground)" }}
+          />
+          {t("week.title")}
+          <ChevronDown
+            size={14}
+            strokeWidth={2}
+            style={{
+              color: "var(--muted-foreground)",
+              transform: open ? "rotate(180deg)" : "none",
+              transition: "transform 0.2s",
+            }}
+          />
+        </span>
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: valueColor,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {valueText}
+        </span>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            style={{ overflow: "hidden" }}
+          >
+            <div
+              className="px-3.5 pt-2.5 pb-3.5"
+              style={{ borderTop: "0.5px solid var(--hairline)" }}
+            >
+              <p
+                style={{
+                  fontSize: 13,
+                  lineHeight: 1.5,
+                  color: "var(--muted-foreground)",
+                }}
+              >
+                {t("week.info")}
+              </p>
+              {has && (
+                <p
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "var(--ink)",
+                    marginTop: 8,
+                  }}
+                >
+                  {t("week.thisWeek", { consumed, goal })}
+                </p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

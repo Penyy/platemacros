@@ -1147,6 +1147,48 @@ export function sumEntries(entries: LogEntry[]) {
   );
 }
 
+export interface WeekBalance {
+  balance: number; // consumed - goal over counted days; + = over, - = under
+  consumed: number;
+  goal: number;
+  daysCounted: number;
+}
+
+// Rolling weekly calorie balance for the Mon–Sun week containing refDate.
+// Counts only elapsed days (Mon..refDate) that are logged and not days off —
+// the same rule the Stats averages use — so forgotten days don't skew it.
+export function getWeekBalance(
+  entries: LogEntry[],
+  profile: Profile,
+  dayOffs: Set<string>,
+  refDateStr: string
+): WeekBalance {
+  const wd = weekdayIndex(refDateStr); // 0=Mon ... 6=Sun
+  const ref = new Date(refDateStr + "T00:00:00");
+  const monday = new Date(ref);
+  monday.setDate(ref.getDate() - wd);
+  let consumed = 0;
+  let goal = 0;
+  let daysCounted = 0;
+  for (let i = 0; i <= wd; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const date = ymd(d);
+    if (dayOffs.has(date)) continue;
+    const tot = sumEntries(entries.filter((e) => e.date === date));
+    if (tot.kcal <= 0) continue;
+    consumed += tot.kcal;
+    goal += getDayGoals(profile, date).kcal;
+    daysCounted++;
+  }
+  return {
+    balance: Math.round(consumed - goal),
+    consumed: Math.round(consumed),
+    goal: Math.round(goal),
+    daysCounted,
+  };
+}
+
 // =====================================================================
 // Legacy localStorage migration helper
 // =====================================================================

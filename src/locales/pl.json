@@ -30,6 +30,15 @@
     "accountCreated": "Konto utworzone",
     "tryAgain": "Spróbuj ponownie"
   },
+  "week": {
+    "title": "Bilans tygodnia",
+    "over": "nad celem",
+    "under": "w zapasie",
+    "onTarget": "na celu",
+    "empty": "brak wpisów w tym tygodniu",
+    "thisWeek": "Ten tydzień: {{consumed}} / {{goal}} kcal",
+    "info": "Organizm rozlicza energię w skali tygodnia, nie jednego dnia. Ten wskaźnik sumuje Twoje kalorie w tym tygodniu względem celu — liczy tylko dni z wpisami (dni wolne pomija). Dzisiejsze +200 kcal możesz odrobić jutrzejszym −200. Reset w poniedziałek."
+  },
   "common": {
     "cancel": "Anuluj",
     "save": "Zapisz",

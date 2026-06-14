@@ -30,6 +30,15 @@
     "accountCreated": "Account created",
     "tryAgain": "Please try again"
   },
+  "week": {
+    "title": "Weekly balance",
+    "over": "over target",
+    "under": "in reserve",
+    "onTarget": "on target",
+    "empty": "no entries this week yet",
+    "thisWeek": "This week: {{consumed}} / {{goal}} kcal",
+    "info": "Your body balances energy over a week, not a single day. This sums your calories this week versus your goal — counting only days with entries (days off are skipped). Today's +200 can be offset by tomorrow's −200. Resets on Monday."
+  },
   "common": {
     "cancel": "Cancel",
     "save": "Save",
