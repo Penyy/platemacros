@@ -62,6 +62,7 @@ export interface AssistantSettings {
   allowAddEntries: boolean;
   defaultMeal: AssistantDefaultMeal;
   responseLength: AssistantResponseLength;
+  scanFit: boolean;
 }
 
 export const defaultAssistantSettings: AssistantSettings = {
@@ -69,6 +70,7 @@ export const defaultAssistantSettings: AssistantSettings = {
   allowAddEntries: true,
   defaultMeal: "auto",
   responseLength: "short",
+  scanFit: true,
 };
 
 export type PlusMenuItemId =

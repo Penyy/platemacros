@@ -446,6 +446,10 @@
     "toast": {
       "migrateOk": "Data has been moved to the cloud.",
       "migrateErr": "Failed to move data."
+    },
+    "scanFit": {
+      "label": "Fit check on scan",
+      "note": "After scanning a barcode, show how it fits the rest of your day and suggest a better swap."
     }
   },
   "profile": {
@@ -620,5 +624,21 @@
     "weightSaved": "Weight saved",
     "weightInvalid": "Enter a weight 20–400 kg",
     "disclaimer": "The coach gives rough guidance from your entries, not medical advice. Weight is stored on this device."
+  },
+  "scanFit": {
+    "level": {
+      "great": "Great fit for the rest of your day",
+      "ok": "Fits the rest of your day",
+      "poor": "Poor fit for the rest of your day"
+    },
+    "reasonFitsProtein": "Fits your kcal and covers {{add}} g of your {{gap}} g protein gap.",
+    "reasonOver": "+{{over}} kcal over what is left · ~{{grams}} g would fit.",
+    "reasonOverFull": "Daily budget already used up — that is an extra {{over}} kcal.",
+    "reasonLowProtein": "Fits your kcal, but adds only {{add}} g of your {{gap}} g protein gap.",
+    "reasonFits": "Fits within what you have left today.",
+    "reasonNoGoal": "Set a daily goal to see the fit.",
+    "swapLabel": "Better match from your list",
+    "swapDensity": "{{p}} g protein / 100 g · {{k}} kcal",
+    "swapUse": "Add"
   }
 }

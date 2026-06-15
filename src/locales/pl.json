@@ -448,6 +448,10 @@
     "toast": {
       "migrateOk": "Dane zostały przeniesione do chmury.",
       "migrateErr": "Nie udało się przenieść danych."
+    },
+    "scanFit": {
+      "label": "Dopasowanie przy skanie",
+      "note": "Po zeskanowaniu kodu pokazuj ocenę dopasowania do reszty dnia i podpowiedź lepszego zamiennika."
     }
   },
   "profile": {
@@ -622,5 +626,21 @@
     "weightSaved": "Zapisano wagę",
     "weightInvalid": "Podaj wagę 20–400 kg",
     "disclaimer": "Trener to wskazówki orientacyjne na podstawie Twoich wpisów, nie porada medyczna. Wagę zapisujemy na tym urządzeniu."
+  },
+  "scanFit": {
+    "level": {
+      "great": "Świetnie pasuje na resztę dnia",
+      "ok": "Pasuje na resztę dnia",
+      "poor": "Słabo pasuje na resztę dnia"
+    },
+    "reasonFitsProtein": "Mieści się w kcal i domyka {{add}} g z brakujących {{gap}} g białka.",
+    "reasonOver": "+{{over}} kcal ponad to, co Ci zostało · ~{{grams}} g się zmieści.",
+    "reasonOverFull": "Dzienny budżet już wyczerpany — to dodatkowe {{over}} kcal.",
+    "reasonLowProtein": "Mieści się w kcal, ale białka dorzuca tylko {{add}} g z brakujących {{gap}} g.",
+    "reasonFits": "Mieści się w tym, co Ci zostało dziś.",
+    "reasonNoGoal": "Ustaw cel dzienny, by zobaczyć dopasowanie.",
+    "swapLabel": "Lepiej pasuje z Twojej listy",
+    "swapDensity": "{{p}} g białka / 100 g · {{k}} kcal",
+    "swapUse": "Dodaj"
   }
 }

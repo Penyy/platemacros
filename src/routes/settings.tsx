@@ -313,6 +313,15 @@ function SettingsPage() {
               onCheckedChange={(v) => setIncludeBurned(v)}
             />
           </RowWithSub>
+          <RowWithSub
+            label={t("settings.scanFit.label")}
+            subtitle={t("settings.scanFit.note")}
+          >
+            <AccentSwitch
+              checked={assistant.scanFit ?? true}
+              onCheckedChange={(v) => setAssistant({ scanFit: v })}
+            />
+          </RowWithSub>
         </Section>
       </motion.div>
 

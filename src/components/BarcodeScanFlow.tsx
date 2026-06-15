@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, RotateCcw, ScanLine, Image as ImageIcon, Flashlight, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { type Meal, usePlate } from "@/lib/store";
+import { type Meal, type Product, getDayGoals, sumEntries, usePlate } from "@/lib/store";
+import { computeFit, pickSwap, type FitReason } from "@/lib/scanFit";
 
 const MEALS: Meal[] = ["breakfast", "second_breakfast", "lunch", "dinner", "snack"];
 
@@ -188,6 +189,23 @@ function buildHints(lib: LibMod) {
   return hints;
 }
 
+// Build an OFFProduct shell from a saved library product (macros are per 100 g).
+function offFromProduct(p: Product): OFFProduct {
+  return {
+    name: p.name,
+    kcal: p.kcal,
+    protein: p.protein,
+    carbs: p.carbs,
+    fat: p.fat,
+    fiber_g: p.fiber_g ?? null,
+    sugars_g: p.sugars_g ?? null,
+    saturated_fat_g: p.saturated_fat_g ?? null,
+    sodium_mg: p.sodium_mg ?? null,
+    servingGrams: null,
+    servingValues: null,
+  };
+}
+
 export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
   const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -209,6 +227,32 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
   const [torchOn, setTorchOn] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
   const addProduct = usePlate((s) => s.addProduct);
+  const profile = usePlate((s) => s.profile);
+  const entries = usePlate((s) => s.entries);
+  const products = usePlate((s) => s.products);
+  const selectedDate = usePlate((s) => s.selectedDate);
+  const scanFitEnabled = usePlate((s) => s.profile.assistant?.scanFit ?? true);
+
+  const remaining = useMemo(() => {
+    const goal = getDayGoals(profile, selectedDate);
+    const consumed = sumEntries(entries.filter((e) => e.date === selectedDate));
+    return {
+      kcal: goal.kcal - consumed.kcal,
+      protein: goal.protein - consumed.protein,
+      carbs: goal.carbs - consumed.carbs,
+      fat: goal.fat - consumed.fat,
+      goalKcal: goal.kcal,
+    };
+  }, [profile, entries, selectedDate]);
+
+  // Swap = make the suggested library product the active one in the same grams
+  // selector (no instant log) — the user sets exact grams, then taps Add.
+  const switchToProduct = (p: Product) => {
+    setProduct(offFromProduct(p));
+    setUsePortion(false);
+    setGrams("100");
+    setSaveToLib(false);
+  };
 
   const stopScanner = () => {
     try {
@@ -648,6 +692,34 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
       ? Math.max(0, round1(totals.carbs - extras.sugars_g))
       : null;
   const valid = product.name.trim().length > 0 && g > 0;
+
+  const fit = scanFitEnabled && valid ? computeFit(totals, remaining, g) : null;
+  const swap = fit ? pickSwap(totals, remaining, products, product.name, fit.level) : null;
+  const fitDot =
+    fit?.level === "great"
+      ? "#639922"
+      : fit?.level === "ok"
+        ? "#EF9F27"
+        : fit?.level === "poor"
+          ? "#D85A30"
+          : "var(--muted-foreground)";
+  const reasonText = (r: FitReason): string => {
+    switch (r.kind) {
+      case "fits_protein":
+        return t("scanFit.reasonFitsProtein", { add: r.proteinAdd, gap: r.proteinGap });
+      case "over_kcal":
+        return r.gramsThatFit && r.gramsThatFit > 0
+          ? t("scanFit.reasonOver", { over: r.overBy, grams: r.gramsThatFit })
+          : t("scanFit.reasonOverFull", { over: r.overBy });
+      case "low_protein":
+        return t("scanFit.reasonLowProtein", { add: r.proteinAdd, gap: r.proteinGap });
+      case "fits_neutral":
+        return t("scanFit.reasonFits");
+      case "no_goal":
+        return t("scanFit.reasonNoGoal");
+    }
+  };
+
   const updatePer100 = (
     key: "kcal" | "protein" | "carbs" | "fat" | "fiber_g" | "sugars_g" | "saturated_fat_g" | "sodium_mg",
     value: string,
@@ -788,6 +860,46 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
               {extras.fiber_g != null && <>{t("scan.totalsFiber", { n: extras.fiber_g })}</>}
               {extras.saturated_fat_g != null && <>{t("scan.totalsSat", { n: extras.saturated_fat_g })}</>}
               {extras.sodium_mg != null && <>{t("scan.totalsSodium", { n: extras.sodium_mg })}</>}
+            </div>
+          )}
+        </div>
+      )}
+
+      {fit && fit.level === "none" && (
+        <p className="px-1 text-[11px] text-muted-foreground">{reasonText(fit.reason)}</p>
+      )}
+      {fit && fit.level !== "none" && (
+        <div className="space-y-2 rounded-2xl bg-foreground/5 p-3">
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-full"
+              style={{ background: fitDot }}
+              aria-hidden="true"
+            />
+            <span className="text-sm font-semibold">{t(`scanFit.level.${fit.level}`)}</span>
+          </div>
+          <p className="text-xs leading-relaxed text-muted-foreground">{reasonText(fit.reason)}</p>
+          {swap && (
+            <div className="flex items-center gap-2 rounded-xl bg-background/60 p-2.5">
+              <span
+                className="inline-block h-2 w-2 shrink-0 rounded-full"
+                style={{ background: "#639922" }}
+                aria-hidden="true"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="text-[11px] text-muted-foreground">{t("scanFit.swapLabel")}</div>
+                <div className="truncate text-sm font-semibold">{swap.product.name}</div>
+                <div className="text-[11px] text-muted-foreground">
+                  {t("scanFit.swapDensity", { p: swap.proteinPer100, k: swap.kcalPer100 })}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => switchToProduct(swap.product)}
+                className="shrink-0 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground active:scale-95"
+              >
+                {t("scanFit.swapUse")}
+              </button>
             </div>
           )}
         </div>
