@@ -116,7 +116,8 @@
     "profile": "Profil",
     "addItem": "Dodaj pozycję",
     "repeatYesterday": "Powtórz z wczoraj",
-    "releaseToDelete": "Puść aby usunąć"
+    "releaseToDelete": "Puść aby usunąć",
+    "coach": "Trener"
   },
   "meal": {
     "breakfast": "Śniadanie",
@@ -449,7 +450,6 @@
       "migrateErr": "Nie udało się przenieść danych."
     }
   },
-
   "profile": {
     "title": "Profil",
     "metaTitle": "Plate — Profil",
@@ -471,7 +471,9 @@
       "very_high": "Trening 2× dziennie / praca fizyczna"
     },
     "needMore": "Uzupełnij wiek, wzrost i wagę, aby obliczyć sugerowane cele.",
-    "editLater": "Możesz je później ręcznie edytować w Ustawieniach."
+    "editLater": "Możesz je później ręcznie edytować w Ustawieniach.",
+    "remindersLabel": "Przypomnienia",
+    "remindersValue": "Powiadomienia o posiłkach"
   },
   "goals": {
     "title": "Cele",
@@ -592,7 +594,33 @@
     "vsGoal": "vs cel",
     "combinedView": "Widok zbiorczy",
     "tapToSplit": "Dotknij, aby rozbić na osobne wykresy"
+  },
+  "coach": {
+    "title": "Trener",
+    "subtitle": "Twój tydzień w liczbach i jedna konkretna rada.",
+    "reviewTitle": "Przegląd",
+    "generate": "Generuj przegląd",
+    "refresh": "Odśwież",
+    "analyzing": "Analizuję Twoje dane…",
+    "needMore": "Zaloguj co najmniej 3 dni jedzenia, a przygotuję przegląd i konkretną radę.",
+    "aiNote": "Na podstawie Twoich danych",
+    "fallbackNote": "Orientacyjnie (AI chwilowo niedostępne)",
+    "insightsTitle": "W liczbach (14 dni)",
+    "avgIntake": "Średnie spożycie",
+    "goalShort": "cel",
+    "weekBalanceLabel": "Bilans tygodnia",
+    "proteinLabel": "Białko (trafienia)",
+    "weekendLabel": "Weekend vs dni robocze",
+    "realTdeeLabel": "Realne TDEE (z danych)",
+    "planGoalShort": "cel z apki",
+    "daysLoggedLabel": "Zalogowane dni",
+    "weightTitle": "Waga",
+    "noWeight": "Brak wpisów wagi — dodaj pierwszy, by trener wyliczył Twoje realne TDEE.",
+    "kgPerWeek": "kg/tydz",
+    "weightPlaceholder": "np. 82,5",
+    "saveWeight": "Zapisz",
+    "weightSaved": "Zapisano wagę",
+    "weightInvalid": "Podaj wagę 20–400 kg",
+    "disclaimer": "Trener to wskazówki orientacyjne na podstawie Twoich wpisów, nie porada medyczna. Wagę zapisujemy na tym urządzeniu."
   }
 }
-
-

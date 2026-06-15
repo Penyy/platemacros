@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Bell, User, Flame, ChevronLeft, ChevronRight, Moon } from "lucide-react";
+import { Dumbbell, User, Flame, ChevronLeft, ChevronRight, Moon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { MealCard } from "@/components/MealCard";
 import { EditEntrySheet } from "@/components/EditEntrySheet";
-import { NotificationsSheet, startNotificationScheduler } from "@/components/NotificationsSheet";
+import { startNotificationScheduler } from "@/components/NotificationsSheet";
 import { BurnedEditSheet } from "@/components/BurnedEditSheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -62,7 +62,6 @@ function TodayPage() {
   const selected = usePlate((s) => s.selectedDate);
   const setSelected = usePlate((s) => s.setSelectedDate);
   const [calOpen, setCalOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
   const [burnedOpen, setBurnedOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<LogEntry | null>(null);
 
@@ -136,9 +135,14 @@ function TodayPage() {
       <header className="flex items-center justify-between px-[18px] pt-[max(env(safe-area-inset-top),1rem)]">
         <Logo />
         <div className="flex items-center gap-2">
-          <IconCircle aria-label={t("a11y.notifications")} onClick={() => setNotifOpen(true)}>
-            <Bell size={20} strokeWidth={2} />
-          </IconCircle>
+          <Link
+            to="/coach"
+            aria-label={t("a11y.coach")}
+            className="grid h-10 w-10 place-items-center rounded-full bg-card text-foreground"
+            style={{ boxShadow: "var(--shadow-card)" }}
+          >
+            <Dumbbell size={20} strokeWidth={2} />
+          </Link>
           <Link
             to="/profile"
             aria-label={t("a11y.profile")}
@@ -245,7 +249,6 @@ function TodayPage() {
         </>
       )}
 
-      <NotificationsSheet open={notifOpen} onOpenChange={setNotifOpen} />
       <BurnedEditSheet open={burnedOpen} date={selected} onOpenChange={setBurnedOpen} />
       <EditEntrySheet entry={editingEntry} onClose={() => setEditingEntry(null)} />
     </div>

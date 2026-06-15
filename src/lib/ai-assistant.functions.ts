@@ -589,3 +589,91 @@ export const askAssistant = createServerFn({ method: "POST" })
     };
     return handleTextPath(data.message, data.history ?? [], data.dayContext, apiKey, settings, lang);
   });
+
+// ============================================================
+// Coach review (proactive weekly coaching)
+// ============================================================
+// Numbers are computed client-side (src/lib/coach.ts); this only turns the
+// pre-computed facts into a short, natural coaching note. No raw logs are sent.
+
+const CoachFactsSchema = z.object({
+  goalKind: z.enum(["cut", "maintain", "bulk"]),
+  planTDEE: z.number(),
+  planGoalKcal: z.number(),
+  windowDays: z.number(),
+  daysLogged: z.number(),
+  avgIntake: z.number(),
+  avgGoal: z.number(),
+  weekBalance: z.number(),
+  proteinGoal: z.number(),
+  proteinAvg: z.number(),
+  proteinHitRate: z.number(),
+  weekdayAvg: z.number().nullable(),
+  weekendAvg: z.number().nullable(),
+  weekendDelta: z.number().nullable(),
+  weightLatest: z.number().nullable(),
+  weightDeltaKg: z.number().nullable(),
+  weightPerWeek: z.number().nullable(),
+  realTDEE: z.number().nullable(),
+  hasEnoughForReview: z.boolean(),
+});
+
+const CoachInputSchema = z.object({
+  facts: CoachFactsSchema,
+  lang: z.enum(["pl", "en"]).optional(),
+});
+
+const GOAL_PL: Record<string, string> = {
+  cut: "redukcja",
+  maintain: "utrzymanie",
+  bulk: "budowa masy",
+};
+
+const COACH_SYSTEM = `Jesteś trenerem żywieniowym w aplikacji Plate. Dostajesz POLICZONE statystyki użytkownika z ostatnich dni (nie surowe dane). Twoje zadanie to krótki, proaktywny przegląd jak od dobrego trenera.
+ZASADY:
+- Zacznij od JEDNEGO zdania oceny: jak poszło względem celu.
+- Potem podaj 1-2 KONKRETNE, wykonalne rady dopasowane do celu i liczb. Każda to konkret (co zrobić), nie ogólnik.
+- Jeśli podano "realne TDEE" i różni się o ≥150 kcal od celu z kalkulatora, możesz zasugerować korektę celu z konkretną liczbą.
+- Używaj WYŁĄCZNIE podanych liczb. Nie zmyślaj danych. Jeśli czegoś nie podano (np. brak wagi/TDEE), nie komentuj braku.
+- Ton ciepły, konkretny, szczery. Zero ogólników typu "jedz zdrowo", "pij wodę".
+- 3-6 zdań łącznie. Zwykły tekst, bez list i bez markdown.`;
+
+function buildCoachFactsText(f: z.infer<typeof CoachFactsSchema>): string {
+  const lines: string[] = [];
+  lines.push(`Cel: ${GOAL_PL[f.goalKind] ?? f.goalKind}.`);
+  lines.push(`Cel dzienny (apka): ${f.planGoalKcal} kcal. TDEE z kalkulatora: ${f.planTDEE} kcal.`);
+  lines.push(`Okno analizy: ${f.windowDays} dni, zalogowanych dni: ${f.daysLogged}.`);
+  lines.push(`Średnie spożycie: ${f.avgIntake} kcal/dzień przy średnim celu ${f.avgGoal} kcal.`);
+  lines.push(`Bilans bieżącego tygodnia: ${f.weekBalance >= 0 ? "+" : ""}${f.weekBalance} kcal.`);
+  lines.push(`Białko: średnio ${f.proteinAvg} g/dzień, cel ${f.proteinGoal} g, trafione w ${Math.round(f.proteinHitRate * 100)}% dni.`);
+  if (f.weekendDelta != null)
+    lines.push(`Weekendy vs dni robocze: ${f.weekendDelta >= 0 ? "+" : ""}${f.weekendDelta} kcal (weekend ${f.weekendAvg}, dni robocze ${f.weekdayAvg}).`);
+  if (f.weightLatest != null) lines.push(`Ostatnia waga: ${f.weightLatest} kg.`);
+  if (f.weightPerWeek != null) lines.push(`Trend wagi: ${f.weightPerWeek >= 0 ? "+" : ""}${f.weightPerWeek} kg/tydzień.`);
+  if (f.realTDEE != null) lines.push(`Szacowane REALNE TDEE z danych (spożycie + zmiana wagi): ${f.realTDEE} kcal.`);
+  return "STATYSTYKI:\n" + lines.join("\n");
+}
+
+export const coachReview = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => CoachInputSchema.parse(input))
+  .handler(async ({ data }): Promise<{ text: string }> => {
+    const apiKey = getApiKey();
+    const lang: Lang = data.lang ?? "pl";
+    const body = {
+      system_instruction: {
+        parts: [{ text: `${COACH_SYSTEM}\n\n${languageAddendum(lang)}` }],
+      },
+      contents: [
+        { role: "user", parts: [{ text: buildCoachFactsText(data.facts) }] },
+      ],
+      generationConfig: { temperature: 0.5, maxOutputTokens: 700 },
+    };
+    const resp = await callGemini(body, apiKey);
+    const parts = resp.candidates?.[0]?.content?.parts ?? [];
+    const text = parts
+      .map((p) => p.text ?? "")
+      .join(" ")
+      .trim();
+    if (!text) throw new Error("AI_EMPTY");
+    return { text };
+  });

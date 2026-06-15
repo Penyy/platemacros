@@ -114,7 +114,8 @@
     "profile": "Profile",
     "addItem": "Add item",
     "repeatYesterday": "Repeat from yesterday",
-    "releaseToDelete": "Release to delete"
+    "releaseToDelete": "Release to delete",
+    "coach": "Coach"
   },
   "meal": {
     "breakfast": "Breakfast",
@@ -447,7 +448,6 @@
       "migrateErr": "Failed to move data."
     }
   },
-
   "profile": {
     "title": "Profile",
     "metaTitle": "Plate — Profile",
@@ -469,7 +469,9 @@
       "very_high": "2× a day training / physical job"
     },
     "needMore": "Fill in age, height and weight to compute suggested goals.",
-    "editLater": "You can edit them later in Settings."
+    "editLater": "You can edit them later in Settings.",
+    "remindersLabel": "Reminders",
+    "remindersValue": "Meal notifications"
   },
   "goals": {
     "title": "Goals",
@@ -590,7 +592,33 @@
     "vsGoal": "vs goal",
     "combinedView": "Combined view",
     "tapToSplit": "Tap to split into separate charts"
+  },
+  "coach": {
+    "title": "Coach",
+    "subtitle": "Your week in numbers and one concrete tip.",
+    "reviewTitle": "Review",
+    "generate": "Generate review",
+    "refresh": "Refresh",
+    "analyzing": "Analyzing your data…",
+    "needMore": "Log at least 3 days of food and I will prepare a review and a concrete tip.",
+    "aiNote": "Based on your data",
+    "fallbackNote": "Estimate (AI temporarily unavailable)",
+    "insightsTitle": "By the numbers (14 days)",
+    "avgIntake": "Average intake",
+    "goalShort": "goal",
+    "weekBalanceLabel": "Weekly balance",
+    "proteinLabel": "Protein (hit rate)",
+    "weekendLabel": "Weekend vs weekdays",
+    "realTdeeLabel": "Real TDEE (from data)",
+    "planGoalShort": "app goal",
+    "daysLoggedLabel": "Days logged",
+    "weightTitle": "Weight",
+    "noWeight": "No weight entries — add the first so the coach can estimate your real TDEE.",
+    "kgPerWeek": "kg/wk",
+    "weightPlaceholder": "e.g. 82.5",
+    "saveWeight": "Save",
+    "weightSaved": "Weight saved",
+    "weightInvalid": "Enter a weight 20–400 kg",
+    "disclaimer": "The coach gives rough guidance from your entries, not medical advice. Weight is stored on this device."
   }
 }
-
-

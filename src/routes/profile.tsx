@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { ChevronRight, Pencil, ShoppingBag } from "lucide-react";
+import { ChevronRight, Pencil, ShoppingBag, Bell } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
+import { NotificationsSheet } from "@/components/NotificationsSheet";
 import {
   type Activity,
   type GoalKind,
@@ -66,6 +67,7 @@ function ProfilePage() {
   const p = usePlate((s) => s.profile);
   const setBody = usePlate((s) => s.setBody);
   const setGoals = usePlate((s) => s.setGoals);
+  const [notifOpen, setNotifOpen] = useState(false);
   const anim = (i: number) => ({
     initial: { opacity: 0, y: 8 },
     animate: { opacity: 1, y: 0 },
@@ -158,6 +160,29 @@ function ProfilePage() {
               </div>
               <ChevronRight size={18} style={{ color: "var(--muted-foreground)" }} />
             </Link>
+          </motion.div>
+          <motion.div {...anim(1)}>
+            <button
+              onClick={() => setNotifOpen(true)}
+              className="flex w-full items-center gap-3 p-3 text-left active:scale-[0.99]"
+              style={CARD}
+            >
+              <div
+                className="grid h-10 w-10 place-items-center rounded-xl"
+                style={{ background: "color-mix(in oklab, var(--ink) 6%, transparent)", color: "var(--ink)" }}
+              >
+                <Bell size={18} strokeWidth={2} />
+              </div>
+              <div className="flex-1">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: "var(--muted-foreground)" }}>
+                  {t("profile.remindersLabel")}
+                </div>
+                <div className="mt-0.5 text-[15px]" style={{ fontWeight: 700, color: "var(--ink)" }}>
+                  {t("profile.remindersValue")}
+                </div>
+              </div>
+              <ChevronRight size={18} style={{ color: "var(--muted-foreground)" }} />
+            </button>
           </motion.div>
         </section>
 
@@ -259,6 +284,7 @@ function ProfilePage() {
           </motion.div>
         </section>
       </div>
+      <NotificationsSheet open={notifOpen} onOpenChange={setNotifOpen} />
     </div>
   );
 }
