@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion, useAnimationControls, useReducedMotion } from "framer-motion";
 import { Dumbbell, User, Flame, ChevronLeft, ChevronRight, Moon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { isOnTarget } from "@/lib/macroTarget";
 import { MealCard } from "@/components/MealCard";
 import { EditEntrySheet } from "@/components/EditEntrySheet";
 import { startNotificationScheduler } from "@/components/NotificationsSheet";
@@ -388,6 +389,23 @@ function HeroLight({
   const trackPath = describeArc(cx, cy, r, startAngle, startAngle + totalArc);
 
   const { t } = useTranslation();
+  const reduceMotion = useReducedMotion();
+  const ringControls = useAnimationControls();
+  const kcalHit = goal > 0 && consumed >= goal;
+  const prevKcalHit = useRef(kcalHit);
+  useEffect(() => {
+    if (kcalHit && !prevKcalHit.current && !reduceMotion) {
+      ringControls.start({
+        filter: [
+          "drop-shadow(0 0 0px rgba(244,181,0,0))",
+          "drop-shadow(0 0 7px rgba(244,181,0,0.85))",
+          "drop-shadow(0 0 0px rgba(244,181,0,0))",
+        ],
+        transition: { duration: 0.9, ease: "easeOut" },
+      });
+    }
+    prevKcalHit.current = kcalHit;
+  }, [kcalHit, reduceMotion, ringControls]);
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -411,7 +429,7 @@ function HeroLight({
             strokeWidth={stroke}
             strokeLinecap="round"
           />
-          <path
+          <motion.path
             d={trackPath}
             fill="none"
             stroke="var(--accent-yellow)"
@@ -419,6 +437,7 @@ function HeroLight({
             strokeLinecap="round"
             pathLength={1}
             strokeDasharray={`${pct} 1`}
+            animate={ringControls}
             style={{
               stroke: isOver
                 ? "color-mix(in oklab, var(--accent-yellow) 65%, #D9521E)"
@@ -472,9 +491,9 @@ function HeroLight({
 
       {/* Macros — three slim bars */}
       <div className="mt-4 space-y-3">
-        <LightMacroRow label={t("macro.protein")} cur={protein.cur} goal={protein.goal} color="var(--macro-protein)" />
-        <LightMacroRow label={t("macro.carbs")} cur={carbs.cur} goal={carbs.goal} color="var(--macro-carbs)" />
-        <LightMacroRow label={t("macro.fat")} cur={fat.cur} goal={fat.goal} color="var(--macro-fat)" />
+        <LightMacroRow label={t("macro.protein")} cur={protein.cur} goal={protein.goal} color="var(--macro-protein)" hit={isOnTarget("protein", protein.cur, protein.goal)} glowRgb="225,91,76" />
+        <LightMacroRow label={t("macro.carbs")} cur={carbs.cur} goal={carbs.goal} color="var(--macro-carbs)" hit={isOnTarget("carbs", carbs.cur, carbs.goal)} glowRgb="239,139,44" />
+        <LightMacroRow label={t("macro.fat")} cur={fat.cur} goal={fat.goal} color="var(--macro-fat)" hit={isOnTarget("fat", fat.cur, fat.goal)} glowRgb="92,138,166" />
       </div>
     </motion.div>
   );
@@ -486,13 +505,33 @@ function LightMacroRow({
   cur,
   goal,
   color,
+  hit,
+  glowRgb,
 }: {
   label: string;
   cur: number;
   goal: number;
   color: string;
+  hit: boolean;
+  glowRgb: string;
 }) {
   const pct = Math.max(0, Math.min(1, goal > 0 ? cur / goal : 0));
+  const reduceMotion = useReducedMotion();
+  const controls = useAnimationControls();
+  const prevHit = useRef(hit);
+  useEffect(() => {
+    if (hit && !prevHit.current && !reduceMotion) {
+      controls.start({
+        boxShadow: [
+          `0 0 0 0 rgba(${glowRgb},0)`,
+          `0 0 11px 1px rgba(${glowRgb},0.55)`,
+          `0 0 0 0 rgba(${glowRgb},0)`,
+        ],
+        transition: { duration: 0.85, ease: "easeOut" },
+      });
+    }
+    prevHit.current = hit;
+  }, [hit, reduceMotion, controls, glowRgb]);
   return (
     <div>
       <div className="flex items-baseline justify-between">
@@ -504,9 +543,10 @@ function LightMacroRow({
           <span style={{ color: "var(--muted-foreground)" }}> / {goal} g</span>
         </span>
       </div>
-      <div
+      <motion.div
         className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full"
         style={{ background: "var(--hairline)" }}
+        animate={controls}
       >
         <motion.div
           className="h-full rounded-full"
@@ -515,7 +555,7 @@ function LightMacroRow({
           transition={{ duration: 0.6, ease: "easeOut" }}
           style={{ background: color }}
         />
-      </div>
+      </motion.div>
     </div>
   );
 }

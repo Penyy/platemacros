@@ -597,7 +597,20 @@
     "onTarget": "≈ na celu",
     "vsGoal": "vs cel",
     "combinedView": "Widok zbiorczy",
-    "tapToSplit": "Dotknij, aby rozbić na osobne wykresy"
+    "tapToSplit": "Dotknij, aby rozbić na osobne wykresy",
+    "streak": {
+      "a11y": "Pokaż statystyki serii",
+      "onTargetLabel": "Seria w celu",
+      "loggingLabel": "Seria logowania",
+      "daysUnit": "{{n}} dni",
+      "record": "rekord {{n}}",
+      "hitsTitle": "Trafienia w cel — ostatnie 14 dni",
+      "historyTitle": "Ostatnie 14 dni",
+      "legendTarget": "w celu",
+      "legendLogged": "zalogowane",
+      "legendOff": "dzień wolny",
+      "note": "Dni wolne nie zrywają serii."
+    }
   },
   "coach": {
     "title": "Trener",

@@ -595,7 +595,20 @@
     "onTarget": "≈ on target",
     "vsGoal": "vs goal",
     "combinedView": "Combined view",
-    "tapToSplit": "Tap to split into separate charts"
+    "tapToSplit": "Tap to split into separate charts",
+    "streak": {
+      "a11y": "Show streak stats",
+      "onTargetLabel": "On-target streak",
+      "loggingLabel": "Logging streak",
+      "daysUnit": "{{n}} days",
+      "record": "best {{n}}",
+      "hitsTitle": "On target — last 14 days",
+      "historyTitle": "Last 14 days",
+      "legendTarget": "on target",
+      "legendLogged": "logged",
+      "legendOff": "day off",
+      "note": "Days off do not break the streak."
+    }
   },
   "coach": {
     "title": "Coach",

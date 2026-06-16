@@ -13,6 +13,7 @@ import {
   type WeekBalance,
 } from "@/lib/store";
 import i18n from "@/lib/i18n";
+import { isOnTarget, isPerfectMacroDay } from "@/lib/macroTarget";
 
 export const Route = createFileRoute("/stats")({
   head: () => ({
@@ -117,13 +118,100 @@ function StatsPage() {
   }, [days, profile, today]);
 
   const cycling = !!profile.weekly_targets_enabled;
+  const [streakOpen, setStreakOpen] = useState(false);
 
-  let streak = 0;
-  for (let i = days.length - 1; i >= 0; i--) {
-    if (days[i].isDayOff) continue;
-    if (days[i].totals.kcal > 0) streak++;
-    else break;
-  }
+  const streakData = useMemo(() => {
+    const WINDOW = 90;
+    const entriesByDate = new Map<string, typeof entries>();
+    for (const e of entries) {
+      const list = entriesByDate.get(e.date);
+      if (list) list.push(e);
+      else entriesByDate.set(e.date, [e]);
+    }
+    const base = new Date(today + "T00:00:00");
+    type D = {
+      date: string;
+      logged: boolean;
+      onTarget: boolean;
+      isDayOff: boolean;
+      totals: ReturnType<typeof sumEntries>;
+      goals: ReturnType<typeof getDayGoals>;
+    };
+    const arr: D[] = [];
+    for (let k = 0; k < WINDOW; k++) {
+      const d = new Date(base);
+      d.setDate(base.getDate() - k);
+      const date = ymd(d);
+      const totals = sumEntries(entriesByDate.get(date) ?? []);
+      const goals = getDayGoals(profile, date);
+      const isDayOff = dayOffs.has(date);
+      const logged = totals.kcal > 0;
+      const onTarget = !isDayOff && logged && isPerfectMacroDay(totals, goals);
+      arr.push({ date, logged, onTarget, isDayOff, totals, goals });
+    }
+    // Current streak — lenient about an in-progress today (doesn't break it).
+    const currentRun = (key: "logged" | "onTarget") => {
+      let n = 0;
+      for (let k = 0; k < arr.length; k++) {
+        const d = arr[k];
+        if (d.isDayOff) continue;
+        if (d[key]) n++;
+        else {
+          if (k === 0) continue;
+          break;
+        }
+      }
+      return n;
+    };
+    // Best streak in the window — days off are neutral skips, not breaks.
+    const record = (key: "logged" | "onTarget") => {
+      let best = 0;
+      let run = 0;
+      for (let k = arr.length - 1; k >= 0; k--) {
+        const d = arr[k];
+        if (d.isDayOff) continue;
+        if (d[key]) {
+          run++;
+          if (run > best) best = run;
+        } else run = 0;
+      }
+      return best;
+    };
+    const last14 = arr.slice(0, 14);
+    const loggedNonOff = last14.filter((d) => d.logged && !d.isDayOff);
+    const macroPct = (kind: "protein" | "carbs" | "fat") => {
+      if (loggedNonOff.length === 0) return null;
+      const hits = loggedNonOff.filter((d) =>
+        isOnTarget(kind, d.totals[kind], d.goals[kind])
+      ).length;
+      return Math.round((hits / loggedNonOff.length) * 100);
+    };
+    const history = last14
+      .slice()
+      .reverse()
+      .map((d) => ({
+        date: d.date,
+        kind: d.isDayOff
+          ? "off"
+          : d.onTarget
+            ? "target"
+            : d.logged
+              ? "logged"
+              : "empty",
+      }));
+    return {
+      loggingStreak: currentRun("logged"),
+      onTargetStreak: currentRun("onTarget"),
+      loggingRecord: record("logged"),
+      onTargetRecord: record("onTarget"),
+      proteinPct: macroPct("protein"),
+      carbsPct: macroPct("carbs"),
+      fatPct: macroPct("fat"),
+      history,
+    };
+  }, [entries, profile, dayOffs, today]);
+
+  const streak = streakData.loggingStreak;
 
   return (
     <div className="pb-4">
@@ -132,8 +220,11 @@ function StatsPage() {
         subtitle={t("stats.lastDays", { n: range })}
         right={
           streak > 0 ? (
-            <div
-              className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
+            <button
+              type="button"
+              onClick={() => setStreakOpen((o) => !o)}
+              aria-label={t("stats.streak.a11y")}
+              className="flex items-center gap-1.5 rounded-full px-2.5 py-1 active:scale-95"
               style={{
                 background: "rgba(255,255,255,.035)",
                 border: "1px solid var(--hairline)",
@@ -150,13 +241,36 @@ function StatsPage() {
               >
                 {streak}
               </span>
-            </div>
+              <ChevronDown
+                size={13}
+                strokeWidth={2}
+                style={{
+                  color: "var(--muted-foreground)",
+                  transform: streakOpen ? "rotate(180deg)" : "none",
+                  transition: "transform 0.2s ease",
+                }}
+              />
+            </button>
           ) : undefined
         }
       />
 
 
       <div className="px-[18px] space-y-3">
+        <AnimatePresence initial={false}>
+          {streakOpen && (
+            <motion.div
+              key="streak-panel"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              style={{ overflow: "hidden" }}
+            >
+              <StreakPanel data={streakData} />
+            </motion.div>
+          )}
+        </AnimatePresence>
         <Pills value={range} onChange={setRange} />
 
         <AnimatePresence mode="wait">
@@ -877,4 +991,129 @@ function SplitChartCard({
 
 function isAnyToday(values: { date: string }[], today: string) {
   return values.some((v) => v.date === today);
+}
+
+interface StreakPanelData {
+  loggingStreak: number;
+  onTargetStreak: number;
+  loggingRecord: number;
+  onTargetRecord: number;
+  proteinPct: number | null;
+  carbsPct: number | null;
+  fatPct: number | null;
+  history: { date: string; kind: string }[];
+}
+
+function StreakPanel({ data }: { data: StreakPanelData }) {
+  const { t } = useTranslation();
+  const dotColor = (kind: string) =>
+    kind === "target"
+      ? "#F4B500"
+      : kind === "off"
+        ? "#AEB9C2"
+        : kind === "logged"
+          ? "#D8D3C7"
+          : "var(--hairline)";
+  const macros: { label: string; pct: number | null; color: string }[] = [
+    { label: t("macro.protein"), pct: data.proteinPct, color: "var(--macro-protein)" },
+    { label: t("macro.carbs"), pct: data.carbsPct, color: "var(--macro-carbs)" },
+    { label: t("macro.fat"), pct: data.fatPct, color: "var(--macro-fat)" },
+  ];
+  return (
+    <div
+      className="p-4"
+      style={{ background: "var(--card)", border: "1px solid var(--hairline)", borderRadius: 18 }}
+    >
+      <div className="flex items-baseline justify-between">
+        <span className="text-[14px]" style={{ color: "var(--ink)" }}>
+          {t("stats.streak.onTargetLabel")}
+        </span>
+        <span className="num-tight text-[14px]" style={{ fontWeight: 800, color: "var(--ink)" }}>
+          {t("stats.streak.daysUnit", { n: data.onTargetStreak })}
+          <span className="text-[12px]" style={{ color: "var(--muted-foreground)", fontWeight: 600 }}>
+            {" · "}
+            {t("stats.streak.record", { n: data.onTargetRecord })}
+          </span>
+        </span>
+      </div>
+      <div className="mt-2 flex items-baseline justify-between">
+        <span className="text-[14px]" style={{ color: "var(--ink)" }}>
+          {t("stats.streak.loggingLabel")}
+        </span>
+        <span className="num-tight text-[14px]" style={{ fontWeight: 800, color: "var(--ink)" }}>
+          {t("stats.streak.daysUnit", { n: data.loggingStreak })}
+          <span className="text-[12px]" style={{ color: "var(--muted-foreground)", fontWeight: 600 }}>
+            {" · "}
+            {t("stats.streak.record", { n: data.loggingRecord })}
+          </span>
+        </span>
+      </div>
+
+      <div className="my-3 h-px" style={{ background: "var(--hairline)" }} />
+
+      <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+        {t("stats.streak.hitsTitle")}
+      </div>
+      <div className="mt-2 space-y-2">
+        {macros.map((m) => (
+          <div key={m.label} className="flex items-center gap-2.5">
+            <span className="text-[12px]" style={{ color: "var(--ink)", width: 58 }}>
+              {m.label}
+            </span>
+            <div
+              className="h-1.5 flex-1 overflow-hidden rounded-full"
+              style={{ background: "var(--hairline)" }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${m.pct ?? 0}%`,
+                  background: m.color,
+                  borderRadius: 999,
+                }}
+              />
+            </div>
+            <span
+              className="num-tight text-[12px]"
+              style={{ color: "var(--muted-foreground)", width: 34, textAlign: "right" }}
+            >
+              {m.pct == null ? "–" : `${m.pct}%`}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div className="my-3 h-px" style={{ background: "var(--hairline)" }} />
+
+      <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+        {t("stats.streak.historyTitle")}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {data.history.map((h) => (
+          <span
+            key={h.date}
+            className="h-3 w-3 rounded-full"
+            style={{ background: dotColor(h.kind) }}
+          />
+        ))}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-3 text-[11px]">
+        <span className="inline-flex items-center gap-1.5" style={{ color: "var(--muted-foreground)" }}>
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#F4B500" }} />
+          {t("stats.streak.legendTarget")}
+        </span>
+        <span className="inline-flex items-center gap-1.5" style={{ color: "var(--muted-foreground)" }}>
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#D8D3C7" }} />
+          {t("stats.streak.legendLogged")}
+        </span>
+        <span className="inline-flex items-center gap-1.5" style={{ color: "var(--muted-foreground)" }}>
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#AEB9C2" }} />
+          {t("stats.streak.legendOff")}
+        </span>
+      </div>
+      <div className="mt-2.5 text-[11px]" style={{ color: "var(--muted-foreground)", lineHeight: 1.5 }}>
+        {t("stats.streak.note")}
+      </div>
+    </div>
+  );
 }
