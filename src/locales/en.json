@@ -653,5 +653,21 @@
     "swapLabel": "Better match from your list",
     "swapDensity": "{{p}} g protein / 100 g · {{k}} kcal",
     "swapUse": "Add"
+  },
+  "balance": {
+    "title": "Balance your evening",
+    "remaining": "Left today: {{kcal}} kcal · {{p}} g P · {{f}} g F",
+    "done": "Already balanced for today — or add favourite foods to build from.",
+    "generate": "Suggest combos",
+    "noCombos": "Couldn’t build a combo from your foods. Add a few favourites or log more meals.",
+    "statusGood": "spot on, protein covered",
+    "statusSlack": "protein OK, ~{{n}} kcal to spare",
+    "statusFatLow": "lots of protein, fat below target",
+    "statusFatHigh": "protein OK, fat above target",
+    "previewTitle": "Preview combo",
+    "totals": "Total {{kc}} / {{kg}} kcal · {{pc}} / {{pg}} g P · {{fc}} / {{fg}} g F",
+    "add": "Add to diary",
+    "added": "Added to your diary",
+    "back": "Back"
   }
 }

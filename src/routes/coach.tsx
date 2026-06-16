@@ -4,9 +4,10 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Sparkles, RefreshCw, Scale, Plus } from "lucide-react";
+import { Sparkles, RefreshCw, Scale, Plus, Wand2, ChevronRight, ChevronLeft } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
-import { usePlate, ymd } from "@/lib/store";
+import { type Meal, getDayGoals, sumEntries, usePlate, ymd } from "@/lib/store";
+import { balanceDay, buildCandidatePool, comboStatus, type Combo } from "@/lib/balanceDay";
 import { buildCoachFacts, fallbackCoachText } from "@/lib/coach";
 import { coachReview } from "@/lib/ai-assistant.functions";
 import {
@@ -198,6 +199,8 @@ function CoachPage() {
             </button>
           )}
         </motion.div>
+
+        <BalanceSection today={today} />
 
         {/* Insights */}
         <motion.div
@@ -401,5 +404,301 @@ function Sparkline({ points }: { points: number[] }) {
       />
       <circle cx={last[0]} cy={last[1]} r={3.5} fill="var(--accent-yellow)" />
     </svg>
+  );
+}
+
+const BALANCE_MEALS: Meal[] = [
+  "breakfast",
+  "second_breakfast",
+  "lunch",
+  "dinner",
+  "snack",
+];
+
+function BalanceSection({ today }: { today: string }) {
+  const { t } = useTranslation();
+  const entries = usePlate((s) => s.entries);
+  const profile = usePlate((s) => s.profile);
+  const products = usePlate((s) => s.products);
+  const addEntry = usePlate((s) => s.addEntry);
+
+  const target = useMemo(() => {
+    const goal = getDayGoals(profile, today);
+    const consumed = sumEntries(entries.filter((e) => e.date === today));
+    return {
+      kcal: Math.max(0, Math.round(goal.kcal - consumed.kcal)),
+      protein: Math.max(0, Math.round(goal.protein - consumed.protein)),
+      carbs: Math.max(0, Math.round(goal.carbs - consumed.carbs)),
+      fat: Math.max(0, Math.round(goal.fat - consumed.fat)),
+    };
+  }, [profile, entries, today]);
+
+  const pool = useMemo(() => buildCandidatePool(products, entries), [products, entries]);
+  const enoughLeft = target.kcal >= 120 && target.protein > 0;
+
+  const [mode, setMode] = useState<"idle" | "list" | "preview">("idle");
+  const [combos, setCombos] = useState<Combo[]>([]);
+  const [windowStart, setWindowStart] = useState(0);
+  const [selected, setSelected] = useState<Combo | null>(null);
+  const [grams, setGrams] = useState<number[]>([]);
+  const [meal, setMeal] = useState<Meal>("dinner");
+
+  const generate = () => {
+    setCombos(balanceDay(target, pool, 3, 9));
+    setWindowStart(0);
+    setMode("list");
+  };
+  const refresh = () => {
+    if (combos.length > 3) setWindowStart((s) => (s + 3) % combos.length);
+  };
+  const shown =
+    combos.length <= 3
+      ? combos
+      : [0, 1, 2].map((i) => combos[(windowStart + i) % combos.length]);
+
+  const openPreview = (c: Combo) => {
+    setSelected(c);
+    setGrams(c.items.map((i) => i.grams));
+    setMeal("dinner");
+    setMode("preview");
+  };
+
+  const previewItems = selected
+    ? selected.items.map((it, i) => {
+        const g = grams[i] ?? it.grams;
+        const f = g / 100;
+        return {
+          name: it.name,
+          grams: g,
+          kcal: Math.round(it.kcal100 * f),
+          protein: Math.round(it.protein100 * f),
+          carbs: Math.round(it.carbs100 * f),
+          fat: Math.round(it.fat100 * f),
+        };
+      })
+    : [];
+  const pTot = previewItems.reduce(
+    (a, it) => ({
+      kcal: a.kcal + it.kcal,
+      protein: a.protein + it.protein,
+      carbs: a.carbs + it.carbs,
+      fat: a.fat + it.fat,
+    }),
+    { kcal: 0, protein: 0, carbs: 0, fat: 0 }
+  );
+
+  const addAll = () => {
+    for (const it of previewItems) {
+      addEntry({
+        date: today,
+        meal,
+        name: it.name,
+        grams: it.grams,
+        kcal: it.kcal,
+        protein: it.protein,
+        carbs: it.carbs,
+        fat: it.fat,
+        source: "balance",
+      });
+    }
+    toast.success(t("balance.added"));
+    setMode("idle");
+    setSelected(null);
+    setCombos([]);
+  };
+
+  if (mode === "preview" && selected) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+        className="p-4"
+        style={CARD}
+      >
+        <button
+          onClick={() => setMode("list")}
+          className="mb-2 flex items-center gap-1 text-[12px] font-semibold active:scale-95"
+          style={{ color: "var(--muted-foreground)" }}
+        >
+          <ChevronLeft size={15} strokeWidth={2} /> {t("balance.back")}
+        </button>
+        <div className="text-[15px] font-semibold" style={{ color: "var(--ink)" }}>
+          {t("balance.previewTitle")}
+        </div>
+        <div className="mt-3">
+          {selected.items.map((it, i) => (
+            <div
+              key={it.name}
+              className="flex items-center justify-between gap-2 py-2"
+              style={{ borderBottom: "1px solid var(--hairline)" }}
+            >
+              <span className="min-w-0 flex-1 truncate text-[14px]" style={{ color: "var(--ink)" }}>
+                {it.name}
+              </span>
+              <span className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                {previewItems[i].kcal} kcal · {previewItems[i].protein} B
+              </span>
+              <span
+                className="inline-flex items-center gap-1 rounded-[10px] px-2 py-1"
+                style={{ background: "var(--muted)" }}
+              >
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={grams[i] ?? it.grams}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value, 10);
+                    setGrams((arr) => {
+                      const n = [...arr];
+                      n[i] = Number.isFinite(v) ? Math.max(0, v) : 0;
+                      return n;
+                    });
+                  }}
+                  className="w-12 bg-transparent text-right text-[14px] font-semibold outline-none"
+                  style={{ color: "var(--ink)" }}
+                />
+                <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>g</span>
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div
+          className="mt-3 rounded-[14px] p-3 text-[13px]"
+          style={{
+            background: "color-mix(in oklab, var(--accent-yellow) 12%, transparent)",
+            color: "var(--ink)",
+            lineHeight: 1.6,
+          }}
+        >
+          {t("balance.totals", {
+            kc: pTot.kcal,
+            kg: target.kcal,
+            pc: pTot.protein,
+            pg: target.protein,
+            fc: pTot.fat,
+            fg: target.fat,
+          })}
+        </div>
+
+        <div className="mt-3 flex items-center gap-2">
+          <select
+            value={meal}
+            onChange={(e) => setMeal(e.target.value as Meal)}
+            className="rounded-[12px] px-3 py-2.5 text-[14px] outline-none"
+            style={{ background: "var(--muted)", color: "var(--ink)", fontWeight: 600 }}
+          >
+            {BALANCE_MEALS.map((m) => (
+              <option key={m} value={m}>
+                {t(`meal.${m}`)}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={addAll}
+            className="flex-1 rounded-[12px] py-3 text-[14px] font-bold active:scale-[0.99]"
+            style={{ background: "var(--accent-yellow)", color: "#1A1A18" }}
+          >
+            {t("balance.add")}
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.27 }}
+      className="p-4"
+      style={CARD}
+    >
+      <div className="flex items-center justify-between">
+        <div
+          className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.06em]"
+          style={{ color: "var(--muted-foreground)" }}
+        >
+          <Wand2 size={14} strokeWidth={2} style={{ color: "#B8860B" }} />
+          {t("balance.title")}
+        </div>
+        {mode === "list" && combos.length > 3 && (
+          <button
+            onClick={refresh}
+            aria-label={t("coach.refresh")}
+            className="grid h-8 w-8 place-items-center rounded-full active:scale-95"
+            style={{ background: "var(--muted)" }}
+          >
+            <RefreshCw size={15} strokeWidth={2} style={{ color: "var(--ink)" }} />
+          </button>
+        )}
+      </div>
+
+      {enoughLeft ? (
+        <p className="mt-2 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+          {t("balance.remaining", { kcal: target.kcal, p: target.protein, f: target.fat })}
+        </p>
+      ) : (
+        <p className="mt-2 text-[13px]" style={{ lineHeight: 1.5, color: "var(--ink)" }}>
+          {t("balance.done")}
+        </p>
+      )}
+
+      {enoughLeft && mode === "idle" && (
+        <button
+          onClick={generate}
+          className="mt-3 w-full rounded-[14px] py-3 text-[14px] font-bold active:scale-[0.99]"
+          style={{ background: "var(--accent-yellow)", color: "#1A1A18" }}
+        >
+          {t("balance.generate")}
+        </button>
+      )}
+
+      {enoughLeft &&
+        mode === "list" &&
+        (shown.length === 0 ? (
+          <p className="mt-3 text-[13px]" style={{ lineHeight: 1.5, color: "var(--muted-foreground)" }}>
+            {t("balance.noCombos")}
+          </p>
+        ) : (
+          <div className="mt-3 space-y-2">
+            {shown.map((c, idx) => {
+              const st = comboStatus(c, target);
+              const color = st === "fat_low" || st === "fat_high" ? "#C8821F" : "#639922";
+              const text =
+                st === "kcal_slack"
+                  ? t("balance.statusSlack", { n: Math.max(0, target.kcal - c.kcal) })
+                  : st === "fat_low"
+                    ? t("balance.statusFatLow")
+                    : st === "fat_high"
+                      ? t("balance.statusFatHigh")
+                      : t("balance.statusGood");
+              return (
+                <button
+                  key={idx}
+                  onClick={() => openPreview(c)}
+                  className="flex w-full items-center gap-2.5 rounded-[14px] p-3 text-left active:scale-[0.99]"
+                  style={{ background: "var(--muted)" }}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[13px] leading-snug" style={{ color: "var(--ink)" }}>
+                      {c.items.map((i) => `${i.name} ${i.grams} g`).join(" · ")}
+                    </div>
+                    <div className="mt-0.5 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+                      {c.kcal} kcal · {c.protein} g B · {c.fat} g T
+                    </div>
+                    <div className="mt-1 flex items-center gap-1.5 text-[11px]" style={{ color }}>
+                      <span className="inline-block h-2 w-2 rounded-full" style={{ background: color }} />
+                      {text}
+                    </div>
+                  </div>
+                  <ChevronRight size={18} strokeWidth={2} style={{ color: "var(--muted-foreground)" }} />
+                </button>
+              );
+            })}
+          </div>
+        ))}
+    </motion.div>
   );
 }

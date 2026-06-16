@@ -655,5 +655,21 @@
     "swapLabel": "Lepiej pasuje z Twojej listy",
     "swapDensity": "{{p}} g białka / 100 g · {{k}} kcal",
     "swapUse": "Dodaj"
+  },
+  "balance": {
+    "title": "Zbalansuj wieczór",
+    "remaining": "Zostało dziś: {{kcal}} kcal · {{p}} g B · {{f}} g T",
+    "done": "Na dziś już domknięte — albo dodaj ulubione produkty, by mieć z czego składać.",
+    "generate": "Zaproponuj kombinacje",
+    "noCombos": "Nie udało się złożyć kombinacji z Twoich produktów. Dodaj kilka ulubionych albo zaloguj więcej jedzenia.",
+    "statusGood": "w sam raz, białko domknięte",
+    "statusSlack": "białko OK, ~{{n}} kcal zapasu",
+    "statusFatLow": "dużo białka, tłuszcz poniżej celu",
+    "statusFatHigh": "białko OK, tłuszcz ponad cel",
+    "previewTitle": "Podgląd kombinacji",
+    "totals": "Razem {{kc}} / {{kg}} kcal · {{pc}} / {{pg}} g B · {{fc}} / {{fg}} g T",
+    "add": "Dodaj do dziennika",
+    "added": "Dodano do dziennika",
+    "back": "Wróć"
   }
 }
