@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { ChevronRight, Pencil, ShoppingBag, Bell } from "lucide-react";
+import { ChevronRight, Pencil, ShoppingBag, Bell, X } from "lucide-react";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { NotificationsSheet } from "@/components/NotificationsSheet";
 import {
@@ -68,6 +68,9 @@ function ProfilePage() {
   const setBody = usePlate((s) => s.setBody);
   const setGoals = usePlate((s) => s.setGoals);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [gEdit, setGEdit] = useState<
+    { kcal: number; protein: number; carbs: number; fat: number } | null
+  >(null);
   const anim = (i: number) => ({
     initial: { opacity: 0, y: 8 },
     animate: { opacity: 1, y: 0 },
@@ -99,6 +102,17 @@ function ProfilePage() {
     });
   }
 
+  function saveGoals() {
+    if (!gEdit) return;
+    setGoals({
+      goal_kcal: Math.max(0, Math.round(gEdit.kcal)),
+      goal_protein: Math.max(0, Math.round(gEdit.protein)),
+      goal_carbs: Math.max(0, Math.round(gEdit.carbs)),
+      goal_fat: Math.max(0, Math.round(gEdit.fat)),
+    });
+    setGEdit(null);
+  }
+
   return (
     <div className="pb-8">
       <ScreenHeader title={t("profile.title")} />
@@ -109,36 +123,78 @@ function ProfilePage() {
           <SectionLabel>{t("profile.yourGoals")}</SectionLabel>
           <motion.div {...anim(0)} className="p-4" style={CARD}>
             <div className="flex items-start justify-between">
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: "var(--muted-foreground)" }}>
-                  {t("profile.dailyGoals")}
+              <div className="text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: "var(--muted-foreground)" }}>
+                {t("profile.dailyGoals")}
+              </div>
+              {gEdit ? (
+                <button
+                  onClick={() => setGEdit(null)}
+                  aria-label={t("common.cancel")}
+                  className="grid h-9 w-9 place-items-center rounded-full active:scale-95"
+                  style={{ background: "color-mix(in oklab, var(--ink) 6%, transparent)", color: "var(--ink)" }}
+                >
+                  <X size={16} strokeWidth={2} />
+                </button>
+              ) : (
+                <button
+                  onClick={() =>
+                    setGEdit({
+                      kcal: Math.round(p.goal_kcal),
+                      protein: Math.round(p.goal_protein),
+                      carbs: Math.round(p.goal_carbs),
+                      fat: Math.round(p.goal_fat),
+                    })
+                  }
+                  aria-label={t("common.edit")}
+                  className="grid h-9 w-9 place-items-center rounded-full active:scale-95"
+                  style={{ background: "color-mix(in oklab, var(--ink) 6%, transparent)", color: "var(--ink)" }}
+                >
+                  <Pencil size={16} strokeWidth={2} />
+                </button>
+              )}
+            </div>
+
+            {gEdit ? (
+              <div className="mt-3 space-y-2">
+                <NumField
+                  label={t("profile.goalKcalLabel")}
+                  unit="kcal"
+                  value={gEdit.kcal}
+                  onChange={(v) => setGEdit((g) => (g ? { ...g, kcal: v } : g))}
+                />
+                <div className="grid grid-cols-3 gap-2">
+                  <NumField label={t("macro.protein")} unit="g" value={gEdit.protein} onChange={(v) => setGEdit((g) => (g ? { ...g, protein: v } : g))} />
+                  <NumField label={t("macro.carbs")} unit="g" value={gEdit.carbs} onChange={(v) => setGEdit((g) => (g ? { ...g, carbs: v } : g))} />
+                  <NumField label={t("macro.fat")} unit="g" value={gEdit.fat} onChange={(v) => setGEdit((g) => (g ? { ...g, fat: v } : g))} />
                 </div>
+                <button
+                  onClick={saveGoals}
+                  className="w-full rounded-full px-4 py-3 text-[14px] active:scale-[0.99]"
+                  style={{ background: "var(--accent-yellow)", color: "#161616", fontWeight: 800 }}
+                >
+                  {t("common.save")}
+                </button>
+              </div>
+            ) : (
+              <>
                 <div className="num-tight mt-1 text-[26px] leading-none" style={{ fontWeight: 800, color: "var(--ink)" }}>
                   {Math.round(p.goal_kcal)} <span className="text-[15px]" style={{ color: "var(--muted-foreground)", fontWeight: 700 }}>kcal / dzień</span>
                 </div>
-              </div>
-              <Link
-                to="/settings"
-                aria-label={t("common.edit")}
-                className="grid h-9 w-9 place-items-center rounded-full active:scale-95"
-                style={{ background: "color-mix(in oklab, var(--ink) 6%, transparent)", color: "var(--ink)" }}
-              >
-                <Pencil size={16} strokeWidth={2} />
-              </Link>
-            </div>
 
-            {/* Segmented macro bar */}
-            <div className="mt-4 flex h-3 w-full overflow-hidden rounded-full" style={{ background: "var(--hairline)" }}>
-              <div style={{ width: `${pPct}%`, background: "var(--macro-protein)", boxShadow: "inset -1.5px 0 0 rgba(0,0,0,.35)" }} />
-              <div style={{ width: `${cPct}%`, background: "var(--macro-carbs)", boxShadow: "inset -1.5px 0 0 rgba(0,0,0,.35)" }} />
-              <div style={{ width: `${fPct}%`, background: "var(--macro-fat)" }} />
-            </div>
+                {/* Segmented macro bar */}
+                <div className="mt-4 flex h-3 w-full overflow-hidden rounded-full" style={{ background: "var(--hairline)" }}>
+                  <div style={{ width: `${pPct}%`, background: "var(--macro-protein)", boxShadow: "inset -1.5px 0 0 rgba(0,0,0,.35)" }} />
+                  <div style={{ width: `${cPct}%`, background: "var(--macro-carbs)", boxShadow: "inset -1.5px 0 0 rgba(0,0,0,.35)" }} />
+                  <div style={{ width: `${fPct}%`, background: "var(--macro-fat)" }} />
+                </div>
 
-            <ul className="mt-3 grid grid-cols-3 gap-2">
-              <MacroCell label={t("macro.protein")} g={p.goal_protein} color="var(--macro-protein)" />
-              <MacroCell label={t("macro.carbs")} g={p.goal_carbs} color="var(--macro-carbs)" />
-              <MacroCell label={t("macro.fat")} g={p.goal_fat} color="var(--macro-fat)" />
-            </ul>
+                <ul className="mt-3 grid grid-cols-3 gap-2">
+                  <MacroCell label={t("macro.protein")} g={p.goal_protein} color="var(--macro-protein)" />
+                  <MacroCell label={t("macro.carbs")} g={p.goal_carbs} color="var(--macro-carbs)" />
+                  <MacroCell label={t("macro.fat")} g={p.goal_fat} color="var(--macro-fat)" />
+                </ul>
+              </>
+            )}
           </motion.div>
 
           {/* Library row */}

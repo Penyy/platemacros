@@ -475,7 +475,8 @@
     "needMore": "Fill in age, height and weight to compute suggested goals.",
     "editLater": "You can edit them later in Settings.",
     "remindersLabel": "Reminders",
-    "remindersValue": "Meal notifications"
+    "remindersValue": "Meal notifications",
+    "goalKcalLabel": "Calories"
   },
   "goals": {
     "title": "Goals",

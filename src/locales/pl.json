@@ -477,7 +477,8 @@
     "needMore": "Uzupełnij wiek, wzrost i wagę, aby obliczyć sugerowane cele.",
     "editLater": "Możesz je później ręcznie edytować w Ustawieniach.",
     "remindersLabel": "Przypomnienia",
-    "remindersValue": "Powiadomienia o posiłkach"
+    "remindersValue": "Powiadomienia o posiłkach",
+    "goalKcalLabel": "Kalorie"
   },
   "goals": {
     "title": "Cele",
