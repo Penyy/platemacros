@@ -211,26 +211,114 @@ function clampNum(n: number, min: number, max: number) {
   return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : min;
 }
 
+// --- Paginated fetch ----------------------------------------------------
+// PostgREST caps a single response at 1000 rows. A plain select() therefore
+// silently returns only the OLDEST 1000 rows (we order ascending), so once a
+// user passes ~1000 entries the newest days vanish after every app restart.
+// This helper pulls every page and surfaces errors instead of hiding them.
+const FETCH_PAGE = 1000;
+async function fetchAllRows(
+  build: (from: number, to: number) => PromiseLike<{ data: unknown[] | null; error: unknown }>
+): Promise<{ data: unknown[]; error: unknown }> {
+  const out: unknown[] = [];
+  for (let from = 0; ; from += FETCH_PAGE) {
+    const { data, error } = await build(from, from + FETCH_PAGE - 1);
+    if (error) return { data: out, error };
+    const rows = data ?? [];
+    out.push(...rows);
+    if (rows.length < FETCH_PAGE) break;
+  }
+  return { data: out, error: null };
+}
+
 // --- Sync outbox --------------------------------------------------------
-// Optimistic writes were previously fire-and-forget: a failed write only
-// showed a toast and was lost, and the next bootstrap could overwrite local
-// changes that hadn't synced. The outbox keeps each write and retries it (on
-// reconnect and on a timer) until it succeeds, and exposes a pending count.
-type WriteTask = { id: string; run: () => PromiseLike<{ error: unknown }> };
+// Optimistic writes go through a PERSISTENT outbox. Each task is a plain,
+// JSON-serializable description of one write (not a closure), so the queue is
+// mirrored to localStorage and survives the app being closed/killed before the
+// write reached Supabase (weak signal). Tasks are idempotent (upsert by id,
+// update, delete), so replaying one that already landed is harmless. A task is
+// only removed after the server confirmed it or rejected it permanently.
+type SyncTable = "food_entries" | "foods";
+type WriteOp =
+  | { op: "upsert"; table: SyncTable; rows: Record<string, unknown>[]; local: Record<string, unknown>[] }
+  | { op: "update"; table: SyncTable; id: string; patch: Record<string, unknown>; local: Record<string, unknown> }
+  | { op: "delete"; table: SyncTable; id: string };
+type WriteTask = { id: string; uid: string; w: WriteOp };
+
+const OUTBOX_KEY = "plate-outbox-v1";
 const outbox: WriteTask[] = [];
 let flushing = false;
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+function persistOutbox() {
+  if (typeof window === "undefined") return;
+  try {
+    if (outbox.length === 0) window.localStorage.removeItem(OUTBOX_KEY);
+    else window.localStorage.setItem(OUTBOX_KEY, JSON.stringify(outbox));
+  } catch {
+    // storage full/blocked — the queue still works in memory for this session
+  }
+}
+
+function loadOutbox() {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = window.localStorage.getItem(OUTBOX_KEY);
+    if (!raw) return;
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return;
+    for (const t of parsed as Partial<WriteTask>[]) {
+      if (
+        t &&
+        typeof t.id === "string" &&
+        typeof t.uid === "string" &&
+        t.w &&
+        (t.w.table === "food_entries" || t.w.table === "foods") &&
+        (t.w.op === "upsert" || t.w.op === "update" || t.w.op === "delete")
+      ) {
+        outbox.push(t as WriteTask);
+      }
+    }
+  } catch {
+    // corrupt blob — ignore
+  }
+}
+loadOutbox();
+
+function clearOutbox() {
+  outbox.length = 0;
+  persistOutbox();
+}
 
 function updatePending() {
   usePlate.setState({ pendingWrites: outbox.length });
 }
 
+function errorMessage(err: unknown): string {
+  if (typeof err === "string") return err;
+  const m = (err as { message?: unknown } | null)?.message;
+  return typeof m === "string" ? m : String(err ?? "");
+}
+
 function isNetworkError(err: unknown) {
-  const msg = err instanceof Error ? err.message : String(err ?? "");
   return (
     (typeof navigator !== "undefined" && !navigator.onLine) ||
-    /network|fetch|failed to fetch|load failed|timeout/i.test(msg)
+    /network|fetch|failed to fetch|load failed|timeout|timed out|abort|offline|connection/i.test(
+      errorMessage(err)
+    )
   );
+}
+
+// Keep the write and retry later for anything that is NOT a definitive
+// rejection by the server: no connectivity, no HTTP response at all (status 0),
+// 5xx / 408 / 429, and an expired or refreshing session (401). Only genuine
+// 4xx rejections (constraint/RLS/validation) are dropped.
+function isTransientFailure(res: { status?: number } | null, err: unknown) {
+  if (isNetworkError(err)) return true;
+  const status = res?.status ?? -1;
+  if (status === 0 || status >= 500 || status === 408 || status === 429 || status === 401) return true;
+  const code = (err as { code?: string } | null)?.code;
+  return code === "PGRST301" || /jwt|not authenticated/i.test(errorMessage(err));
 }
 
 function scheduleFlush() {
@@ -241,8 +329,19 @@ function scheduleFlush() {
   }, 15000);
 }
 
+function runTask(t: WriteTask) {
+  const w = t.w;
+  const q = supabase.from(w.table as "food_entries");
+  if (w.op === "upsert") return q.upsert(w.rows as never, { onConflict: "id" });
+  if (w.op === "update") return q.update(w.patch as never).eq("id", w.id).eq("user_id", t.uid);
+  return q.delete().eq("id", w.id).eq("user_id", t.uid);
+}
+
 async function flushOutbox(): Promise<void> {
   if (flushing || outbox.length === 0) return;
+  // Not signed in yet (cold start): bootstrap() flushes once auth is ready.
+  const uid = usePlate.getState().userId;
+  if (!uid) return;
   if (typeof navigator !== "undefined" && !navigator.onLine) {
     scheduleFlush();
     return;
@@ -251,24 +350,32 @@ async function flushOutbox(): Promise<void> {
   try {
     while (outbox.length > 0) {
       const task = outbox[0];
+      if (task.uid !== uid) {
+        // leftovers from another account — never send them under this session
+        outbox.shift();
+        persistOutbox();
+        updatePending();
+        continue;
+      }
+      let res: { error?: unknown; status?: number } | null = null;
       let error: unknown = null;
       try {
-        const res = await task.run();
+        res = (await runTask(task)) as { error?: unknown; status?: number };
         error = res?.error ?? null;
       } catch (err) {
         error = err;
       }
       if (error) {
-        if (isNetworkError(error)) {
-          // transient — keep the queue intact and retry later
+        if (isTransientFailure(res, error)) {
+          // keep the whole queue intact (persisted) and retry later
           scheduleFlush();
           break;
         }
-        // permanent (constraint/auth) — surface it and drop so it can't block
-        // everything queued behind it forever
+        // definitive rejection — surface it and drop so it can't block the queue
         netToast(error);
       }
       outbox.shift();
+      persistOutbox();
       updatePending();
     }
   } finally {
@@ -276,15 +383,41 @@ async function flushOutbox(): Promise<void> {
   }
 }
 
-function enqueueWrite(run: () => PromiseLike<{ error: unknown }>) {
-  outbox.push({ id: newId(), run });
+function enqueueWrite(uid: string, w: WriteOp) {
+  outbox.push({ id: newId(), uid, w });
+  persistOutbox();
   updatePending();
   void flushOutbox();
+}
+
+// Re-apply still-unsynced writes on top of freshly fetched server data, so a
+// refetch (or a cold start with a pending queue) never hides local changes.
+function applyPending<T extends { id: string }>(list: T[], table: SyncTable, uid: string): T[] {
+  let out = list;
+  for (const t of outbox) {
+    if (t.uid !== uid || t.w.table !== table) continue;
+    const w = t.w;
+    if (w.op === "upsert") {
+      for (const item of w.local as unknown as T[]) {
+        const i = out.findIndex((x) => x.id === item.id);
+        out = i >= 0 ? out.map((x, j) => (j === i ? item : x)) : [...out, item];
+      }
+    } else if (w.op === "update") {
+      out = out.map((x) => (x.id === w.id ? { ...x, ...(w.local as object) } : x));
+    } else {
+      out = out.filter((x) => x.id !== w.id);
+    }
+  }
+  return out;
 }
 
 if (typeof window !== "undefined") {
   window.addEventListener("online", () => {
     void flushOutbox();
+  });
+  // iOS PWAs don't reliably fire "online" — retry whenever the app comes back.
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") void flushOutbox();
   });
 }
 
@@ -313,7 +446,7 @@ export const usePlate = create<State>()((set, get) => ({
   authReady: false,
   online: typeof navigator !== "undefined" ? navigator.onLine : true,
   hydrated: false,
-  pendingWrites: 0,
+  pendingWrites: outbox.length,
   profile: defaultProfile,
   entries: [],
   burned: {},
@@ -345,7 +478,7 @@ export const usePlate = create<State>()((set, get) => ({
   setOnline: (v) => set({ online: v }),
 
   clearLocal: () => {
-    outbox.length = 0;
+    clearOutbox();
     set({
       profile: defaultProfile,
       entries: [],
@@ -367,11 +500,31 @@ export const usePlate = create<State>()((set, get) => ({
     try {
       const [profRes, entRes, foodRes, burnRes, dayOffRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
-        supabase.from("food_entries").select("*").eq("user_id", uid).order("created_at"),
-        supabase.from("foods").select("*").eq("user_id", uid).order("created_at"),
+        fetchAllRows((from, to) =>
+          supabase
+            .from("food_entries")
+            .select("*")
+            .eq("user_id", uid)
+            .order("created_at")
+            .order("id")
+            .range(from, to)
+        ),
+        fetchAllRows((from, to) =>
+          supabase
+            .from("foods")
+            .select("*")
+            .eq("user_id", uid)
+            .order("created_at")
+            .order("id")
+            .range(from, to)
+        ),
         supabase.from("daily_burned").select("date,burned_kcal").eq("user_id", uid),
         supabase.from("day_offs").select("date").eq("user_id", uid),
       ]);
+
+      // Never replace local state with an empty list because a query failed.
+      if (entRes.error) throw entRes.error;
+      if (foodRes.error) throw foodRes.error;
 
       const prof = profRes.data as (typeof profRes.data & {
         weekly_targets_enabled?: boolean | null;
@@ -452,10 +605,22 @@ export const usePlate = create<State>()((set, get) => ({
 
       const dayOffs = new Set<string>((dayOffRes.data ?? []).map((r) => r.date as string));
 
-      set({ profile, entries, products, burned, dayOffs, hydrated: true });
+      // Layer still-unsynced local writes on top of the server snapshot.
+      set({
+        profile,
+        entries: applyPending(entries, "food_entries", uid),
+        products: applyPending(products, "foods", uid),
+        burned,
+        dayOffs,
+        hydrated: true,
+      });
     } catch (err) {
       console.error("bootstrap failed", err);
-      toast.message("Brak połączenia — pokazuję ostatnio załadowane dane.");
+      if (isNetworkError(err)) {
+        toast.message("Brak połączenia — pokazuję ostatnio załadowane dane.");
+      } else {
+        toast.error("Nie udało się wczytać danych: " + errorMessage(err));
+      }
       set({ hydrated: true });
     }
   },
@@ -642,11 +807,11 @@ export const usePlate = create<State>()((set, get) => ({
     };
     set((s) => ({ entries: [...s.entries, entry] }));
     if (!uid) return;
-    enqueueWrite(() =>
-      supabase
-        .from("food_entries")
-        .upsert(
-          {
+    enqueueWrite(uid, {
+      op: "upsert",
+      table: "food_entries",
+      rows: [
+        {
             id,
             user_id: uid,
             date: entry.date,
@@ -663,10 +828,10 @@ export const usePlate = create<State>()((set, get) => ({
             sodium_mg: entry.sodium_mg ?? null,
             sub_items: (entry.sub_items ?? null) as Json,
             source: entry.source ?? null,
-          } as never,
-          { onConflict: "id" }
-        )
-    );
+        },
+      ],
+      local: [entry as unknown as Record<string, unknown>],
+    });
   },
 
 
@@ -691,26 +856,20 @@ export const usePlate = create<State>()((set, get) => ({
     if (patch.sodium_mg !== undefined) dbPatch.sodium_mg = patch.sodium_mg ?? null;
     if (patch.sub_items !== undefined) dbPatch.sub_items = (patch.sub_items ?? null) as Json;
 
-    enqueueWrite(() =>
-      supabase
-        .from("food_entries")
-        .update(dbPatch as never)
-        .eq("id", id)
-        .eq("user_id", uid)
-    );
+    enqueueWrite(uid, {
+      op: "update",
+      table: "food_entries",
+      id,
+      patch: dbPatch,
+      local: patch as unknown as Record<string, unknown>,
+    });
   },
 
   removeEntry: (id) => {
     set((s) => ({ entries: s.entries.filter((x) => x.id !== id) }));
     const uid = get().userId;
     if (!uid) return;
-    enqueueWrite(() =>
-      supabase
-        .from("food_entries")
-        .delete()
-        .eq("id", id)
-        .eq("user_id", uid)
-    );
+    enqueueWrite(uid, { op: "delete", table: "food_entries", id });
   },
 
   repeatMealFromPrevDay: (date, meal) => {
@@ -751,11 +910,10 @@ export const usePlate = create<State>()((set, get) => ({
     }));
     set((s) => ({ entries: [...s.entries, ...clones] }));
     if (uid) {
-      enqueueWrite(() =>
-        supabase
-          .from("food_entries")
-          .upsert(
-            clones.map((c) => ({
+      enqueueWrite(uid, {
+        op: "upsert",
+        table: "food_entries",
+        rows: clones.map((c) => ({
               id: c.id,
               user_id: uid,
               date: c.date,
@@ -772,10 +930,9 @@ export const usePlate = create<State>()((set, get) => ({
               sodium_mg: c.sodium_mg ?? null,
               sub_items: (c.sub_items ?? null) as Json,
               source: c.source ?? null,
-            })) as never,
-            { onConflict: "id" }
-          )
-      );
+        })),
+        local: clones as unknown as Record<string, unknown>[],
+      });
     }
     return clones.length;
   },
@@ -799,11 +956,11 @@ export const usePlate = create<State>()((set, get) => ({
     };
     set((s) => ({ products: [...s.products, product] }));
     if (!uid) return;
-    enqueueWrite(() =>
-      supabase
-        .from("foods")
-        .upsert(
-          {
+    enqueueWrite(uid, {
+      op: "upsert",
+      table: "foods",
+      rows: [
+        {
             id,
             user_id: uid,
             name: product.name,
@@ -815,10 +972,10 @@ export const usePlate = create<State>()((set, get) => ({
             sugars_g: product.sugars_g ?? null,
             saturated_fat_g: product.saturated_fat_g ?? null,
             sodium_mg: product.sodium_mg ?? null,
-          } as never,
-          { onConflict: "id" }
-        )
-    );
+        },
+      ],
+      local: [product as unknown as Record<string, unknown>],
+    });
   },
 
 
@@ -839,26 +996,20 @@ export const usePlate = create<State>()((set, get) => ({
     if (p.saturated_fat_g !== undefined) dbPatch.saturated_fat_g = p.saturated_fat_g ?? null;
     if (p.sodium_mg !== undefined) dbPatch.sodium_mg = p.sodium_mg ?? null;
 
-    enqueueWrite(() =>
-      supabase
-        .from("foods")
-        .update(dbPatch as never)
-        .eq("id", id)
-        .eq("user_id", uid)
-    );
+    enqueueWrite(uid, {
+      op: "update",
+      table: "foods",
+      id,
+      patch: dbPatch,
+      local: p as unknown as Record<string, unknown>,
+    });
   },
 
   removeProduct: (id) => {
     set((s) => ({ products: s.products.filter((x) => x.id !== id) }));
     const uid = get().userId;
     if (!uid) return;
-    enqueueWrite(() =>
-      supabase
-        .from("foods")
-        .delete()
-        .eq("id", id)
-        .eq("user_id", uid)
-    );
+    enqueueWrite(uid, { op: "delete", table: "foods", id });
   },
 
   setDayOff: (date) => {
