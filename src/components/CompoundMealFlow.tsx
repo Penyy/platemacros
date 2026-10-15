@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Camera, Loader2, Plus, Trash2, RotateCcw } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -179,11 +179,10 @@ export function CompoundMealFlow({ meal, setMeal, onSubmit }: Props) {
                 <span className="mb-1 block text-center text-[10px] uppercase text-muted-foreground">
                   {k === "kcal" ? "kcal" : k === "protein" ? "B" : k === "carbs" ? "W" : "T"}
                 </span>
-                <input
+                <NumInput
                   className={`${inputCls} px-2 py-1.5 text-center text-sm`}
-                  inputMode="decimal"
                   value={String(label.per100[k])}
-                  onChange={(e) => update(k, e.target.value)}
+                  onChange={(v) => update(k, v)}
                 />
               </label>
             ))}
@@ -345,4 +344,41 @@ export function CompoundMealFlow({ meal, setMeal, onSubmit }: Props) {
       )}
     </div>
   );
+}
+
+// --- Decimal text input ---------------------------------------------------
+// Parents keep these values as NUMBERS, so a controlled value={String(n)} used
+// to rewrite "12," back to "12" on every keystroke and the decimal separator
+// could never be typed. We keep the raw text locally and only re-sync from the
+// parent when its NUMBER really differs from what is typed.
+function cleanDecimal(raw: string): string {
+  let v = raw.replace(/[^0-9.,]/g, "");
+  if (/^[.,]/.test(v)) v = "0" + v; // ",5" -> "0,5"
+  const j = v.search(/[.,]/);
+  if (j >= 0) v = v.slice(0, j + 1) + v.slice(j + 1).replace(/[.,]/g, ""); // one separator only
+  return v;
+}
+function decimalValue(s: string): number {
+  const t = s.trim().replace(",", ".");
+  if (t === "") return 0;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : 0;
+}
+function useDecimalDraft(value: string, onChange: (v: string) => void) {
+  const [draft, setDraft] = useState(value);
+  useEffect(() => {
+    if (decimalValue(draft) !== decimalValue(value)) setDraft(value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  const onType = (raw: string) => {
+    const v = cleanDecimal(raw);
+    setDraft(v);
+    onChange(v);
+  };
+  return [draft, onType] as const;
+}
+
+function NumInput({ value, onChange, className }: { value: string; onChange: (v: string) => void; className: string }) {
+  const [draft, onType] = useDecimalDraft(value, onChange);
+  return <input className={className} inputMode="decimal" value={draft} onChange={(e) => onType(e.target.value)} />;
 }
