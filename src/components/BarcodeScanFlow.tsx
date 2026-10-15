@@ -819,10 +819,10 @@ export function BarcodeScanFlow({ meal, setMeal, onSubmit }: Props) {
           {t("scan.per100Title")}
         </div>
         <div className="grid grid-cols-4 gap-2">
-          <SmallField label="kcal" value={String(product.kcal)} onChange={(v) => updatePer100("kcal", v)} />
-          <SmallField label={t("macro.short.protein")} value={String(product.protein)} onChange={(v) => updatePer100("protein", v)} />
-          <SmallField label={t("macro.short.carbs")} value={String(product.carbs)} onChange={(v) => updatePer100("carbs", v)} />
-          <SmallField label={t("macro.short.fat")} value={String(product.fat)} onChange={(v) => updatePer100("fat", v)} />
+          <SmallField label="kcal" value={String(product.kcal ?? "")} onChange={(v) => updatePer100("kcal", v)} />
+          <SmallField label={t("macro.short.protein")} value={String(product.protein ?? "")} onChange={(v) => updatePer100("protein", v)} />
+          <SmallField label={t("macro.short.carbs")} value={String(product.carbs ?? "")} onChange={(v) => updatePer100("carbs", v)} />
+          <SmallField label={t("macro.short.fat")} value={String(product.fat ?? "")} onChange={(v) => updatePer100("fat", v)} />
         </div>
         <div className="mt-2 grid grid-cols-4 gap-2">
           <SmallField label={t("scan.fieldFiber")} value={product.fiber_g == null ? "" : String(product.fiber_g)} onChange={(v) => updatePer100("fiber_g", v)} />
@@ -1078,6 +1078,38 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+// --- Decimal text input ---------------------------------------------------
+// Parents keep these values as NUMBERS, so a controlled value={String(n)} used
+// to rewrite "12," back to "12" on every keystroke and the decimal separator
+// could never be typed. We keep the raw text locally and only re-sync from the
+// parent when its NUMBER really differs from what is typed.
+function cleanDecimal(raw: string): string {
+  let v = raw.replace(/[^0-9.,]/g, "");
+  if (/^[.,]/.test(v)) v = "0" + v; // ",5" -> "0,5"
+  const j = v.search(/[.,]/);
+  if (j >= 0) v = v.slice(0, j + 1) + v.slice(j + 1).replace(/[.,]/g, ""); // one separator only
+  return v;
+}
+function decimalValue(s: string): number {
+  const t = s.trim().replace(",", ".");
+  if (t === "") return 0;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : 0;
+}
+function useDecimalDraft(value: string, onChange: (v: string) => void) {
+  const [draft, setDraft] = useState(value);
+  useEffect(() => {
+    if (decimalValue(draft) !== decimalValue(value)) setDraft(value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  const onType = (raw: string) => {
+    const v = cleanDecimal(raw);
+    setDraft(v);
+    onChange(v);
+  };
+  return [draft, onType] as const;
+}
+
 function SmallField({
   label,
   value,
@@ -1087,6 +1119,7 @@ function SmallField({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const [draft, onType] = useDecimalDraft(value, onChange);
   return (
     <label className="block">
       <span className="mb-1 block text-center text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
@@ -1095,8 +1128,8 @@ function SmallField({
       <input
         className={`${inputCls} px-2 py-1.5 text-center text-sm`}
         inputMode="decimal"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={draft}
+        onChange={(e) => onType(e.target.value)}
       />
     </label>
   );
