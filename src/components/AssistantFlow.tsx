@@ -1054,6 +1054,38 @@ function ItemRow({
   );
 }
 
+// --- Decimal text input ---------------------------------------------------
+// Parents keep these values as NUMBERS, so a controlled value={String(n)} used
+// to rewrite "12," back to "12" on every keystroke and the decimal separator
+// could never be typed. We keep the raw text locally and only re-sync from the
+// parent when its NUMBER really differs from what is typed.
+function cleanDecimal(raw: string): string {
+  let v = raw.replace(/[^0-9.,]/g, "");
+  if (/^[.,]/.test(v)) v = "0" + v; // ",5" -> "0,5"
+  const j = v.search(/[.,]/);
+  if (j >= 0) v = v.slice(0, j + 1) + v.slice(j + 1).replace(/[.,]/g, ""); // one separator only
+  return v;
+}
+function decimalValue(s: string): number {
+  const t = s.trim().replace(",", ".");
+  if (t === "") return 0;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : 0;
+}
+function useDecimalDraft(value: string, onChange: (v: string) => void) {
+  const [draft, setDraft] = useState(value);
+  useEffect(() => {
+    if (decimalValue(draft) !== decimalValue(value)) setDraft(value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  const onType = (raw: string) => {
+    const v = cleanDecimal(raw);
+    setDraft(v);
+    onChange(v);
+  };
+  return [draft, onType] as const;
+}
+
 function MiniField({
   label,
   value,
@@ -1067,6 +1099,7 @@ function MiniField({
   bold?: boolean;
   dot?: string;
 }) {
+  const [draft, onType] = useDecimalDraft(String(value), onChange);
   return (
     <div
       className="rounded-xl px-2 py-1.5"
@@ -1078,8 +1111,8 @@ function MiniField({
       </div>
       <input
         inputMode="decimal"
-        value={String(value)}
-        onChange={(e) => onChange(e.target.value)}
+        value={draft}
+        onChange={(e) => onType(e.target.value)}
         className="num-tight w-full bg-transparent text-[13px] outline-none"
         style={{ color: "var(--ink)", fontWeight: bold ? 800 : 600 }}
       />
